@@ -1,0 +1,345 @@
+// !$*UTF8*$!
+{
+	256AC3D80F4B6AC300CF3369 /* SpeechOutMacAppDelegate.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {893, 726}}";
+			sepNavSelRange = "{396, 11}";
+			sepNavVisRange = "{0, 1021}";
+			sepNavWindowFrame = "{{488, 23}, {952, 854}}";
+		};
+	};
+	256AC3D90F4B6AC300CF3369 /* SpeechOutMacAppDelegate.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {796, 2548}}";
+			sepNavSelRange = "{5630, 0}";
+			sepNavVisRange = "{5300, 487}";
+			sepNavWindowFrame = "{{10, 324}, {952, 854}}";
+		};
+	};
+	29B97313FDCFA39411CA2CEA /* Project object */ = {
+		activeBuildConfigurationName = Debug;
+		activeExecutable = 4C1698F510F3855A00A9A6FF /* SpeechOutMac */;
+		activeTarget = 8D1107260486CEB800E47090 /* SpeechOutMac */;
+		addToTargets = (
+			8D1107260486CEB800E47090 /* SpeechOutMac */,
+		);
+		codeSenseManager = 4C16990310F3859800A9A6FF /* Code sense */;
+		executables = (
+			4C1698F510F3855A00A9A6FF /* SpeechOutMac */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					341,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					301,
+					60,
+					20,
+					48,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 285020039;
+			PBXWorkspaceStateSaveDate = 285020039;
+		};
+		perUserProjectItems = {
+			4C1699D210F3DA9400A9A6FF /* PBXTextBookmark */ = 4C1699D210F3DA9400A9A6FF /* PBXTextBookmark */;
+			4C29271C10F62403001CC717 /* PBXBookmark */ = 4C29271C10F62403001CC717 /* PBXBookmark */;
+			4C29273D10F6325B001CC717 /* PBXTextBookmark */ = 4C29273D10F6325B001CC717 /* PBXTextBookmark */;
+			4C2927B910F64365001CC717 /* PBXTextBookmark */ = 4C2927B910F64365001CC717 /* PBXTextBookmark */;
+			4C2927F010F64867001CC717 /* PBXTextBookmark */ = 4C2927F010F64867001CC717 /* PBXTextBookmark */;
+			4C4DE88910F7C0A50025D5DB /* PBXTextBookmark */ = 4C4DE88910F7C0A50025D5DB /* PBXTextBookmark */;
+			4C4DE8AC10F7C16A0025D5DB /* PBXTextBookmark */ = 4C4DE8AC10F7C16A0025D5DB /* PBXTextBookmark */;
+			4C8174A510FD1265008C393F /* XCBuildMessageTextBookmark */ = 4C8174A510FD1265008C393F /* XCBuildMessageTextBookmark */;
+			4C8174AD10FD1265008C393F /* PBXTextBookmark */ = 4C8174AD10FD1265008C393F /* PBXTextBookmark */;
+			4C8174C110FD1625008C393F /* PBXTextBookmark */ = 4C8174C110FD1625008C393F /* PBXTextBookmark */;
+			4CCB4A9810FBA32B00596454 /* PBXTextBookmark */ = 4CCB4A9810FBA32B00596454 /* PBXTextBookmark */;
+			4CCB4A9910FBA32B00596454 /* PBXTextBookmark */ = 4CCB4A9910FBA32B00596454 /* PBXTextBookmark */;
+		};
+		sourceControlManager = 4C16990210F3859800A9A6FF /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	29B97316FDCFA39411CA2CEA /* main.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {875, 737}}";
+			sepNavSelRange = "{269, 0}";
+			sepNavVisRange = "{0, 328}";
+			sepNavWindowFrame = "{{15, 8}, {934, 865}}";
+		};
+	};
+	4C1698F510F3855A00A9A6FF /* SpeechOutMac */ = {
+		isa = PBXExecutable;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		breakpointsEnabled = 0;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		dataTipCustomDataFormattersEnabled = 1;
+		dataTipShowTypeColumn = 1;
+		dataTipSortType = 0;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = SpeechOutMac;
+		savedGlobals = {
+		};
+		showTypeColumn = 0;
+		sourceDirectories = (
+		);
+	};
+	4C16990210F3859800A9A6FF /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+			repositoryNamesForRoots = {
+				"" = "";
+			};
+		};
+	};
+	4C16990310F3859800A9A6FF /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	4C16995C10F39C6C00A9A6FF /* README.txt */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {875, 1599}}";
+			sepNavSelRange = "{2399, 0}";
+			sepNavVisRange = "{0, 2718}";
+			sepNavVisRect = "{{0, 0}, {895, 737}}";
+			sepNavWindowFrame = "{{100, 136}, {934, 865}}";
+		};
+	};
+	4C16998010F3B49700A9A6FF /* VoicesPopUpButton.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {893, 726}}";
+			sepNavSelRange = "{347, 0}";
+			sepNavVisRange = "{0, 595}";
+			sepNavWindowFrame = "{{268, 98}, {952, 854}}";
+		};
+	};
+	4C16998110F3B49700A9A6FF /* VoicesPopUpButton.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {893, 1534}}";
+			sepNavSelRange = "{1535, 0}";
+			sepNavVisRange = "{0, 2024}";
+			sepNavWindowFrame = "{{168, 227}, {952, 854}}";
+		};
+	};
+	4C1699D210F3DA9400A9A6FF /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C16998010F3B49700A9A6FF /* VoicesPopUpButton.h */;
+		name = "VoicesPopUpButton.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 432;
+		vrLoc = 0;
+	};
+	4C29271C10F62403001CC717 /* PBXBookmark */ = {
+		isa = PBXBookmark;
+		fRef = 4C29270910F62372001CC717 /* SpeechOutMac.icns */;
+	};
+	4C29273D10F6325B001CC717 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C16995C10F39C6C00A9A6FF /* README.txt */;
+		name = "README.txt: 16";
+		rLen = 0;
+		rLoc = 6149;
+		rType = 0;
+		vrLen = 532;
+		vrLoc = 0;
+	};
+	4C2927B910F64365001CC717 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4CF9EF1D10F4F5A1004E7E65 /* MySpeechSynthesizer.m */;
+		name = "MySpeechSynthesizer.m: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 443;
+		vrLoc = 3;
+	};
+	4C2927F010F64867001CC717 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C16998110F3B49700A9A6FF /* VoicesPopUpButton.m */;
+		name = "VoicesPopUpButton.m: 48";
+		rLen = 0;
+		rLoc = 1535;
+		rType = 0;
+		vrLen = 874;
+		vrLoc = 438;
+	};
+	4C4DE80D10F797BE0025D5DB /* KQMLStream.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {875, 737}}";
+			sepNavSelRange = "{777, 0}";
+			sepNavVisRange = "{0, 1176}";
+			sepNavWindowFrame = "{{273, 127}, {934, 865}}";
+		};
+	};
+	4C4DE80E10F797BE0025D5DB /* KQMLStream.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {516, 2977}}";
+			sepNavSelRange = "{7959, 0}";
+			sepNavVisRange = "{0, 667}";
+			sepNavWindowFrame = "{{195, 169}, {934, 865}}";
+		};
+	};
+	4C4DE86310F7BA660025D5DB /* TRIPSAgent.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {875, 737}}";
+			sepNavSelRange = "{403, 124}";
+			sepNavVisRange = "{0, 533}";
+			sepNavWindowFrame = "{{15, 8}, {934, 865}}";
+		};
+	};
+	4C4DE86410F7BA660025D5DB /* TRIPSAgent.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {875, 793}}";
+			sepNavSelRange = "{1637, 0}";
+			sepNavVisRange = "{20, 1626}";
+			sepNavWindowFrame = "{{62, 268}, {934, 865}}";
+		};
+	};
+	4C4DE88910F7C0A50025D5DB /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 256AC3D80F4B6AC300CF3369 /* SpeechOutMacAppDelegate.h */;
+		name = "SpeechOutMacAppDelegate.h: 23";
+		rLen = 0;
+		rLoc = 532;
+		rType = 0;
+		vrLen = 477;
+		vrLoc = 53;
+	};
+	4C4DE8AC10F7C16A0025D5DB /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C4DE86310F7BA660025D5DB /* TRIPSAgent.h */;
+		name = "TRIPSAgent.h: 18";
+		rLen = 0;
+		rLoc = 308;
+		rType = 0;
+		vrLen = 382;
+		vrLoc = 151;
+	};
+	4C8174A510FD1265008C393F /* XCBuildMessageTextBookmark */ = {
+		isa = PBXTextBookmark;
+		comments = "Compile /Users/ferguson/Work/TRIPS/speechout-mac/src/SpeechOutMac/app/../../KQML/KQMLStream.m";
+		fRef = 4C4DE80E10F797BE0025D5DB /* KQMLStream.m */;
+		fallbackIsa = XCBuildMessageTextBookmark;
+		rLen = 0;
+		rLoc = 0;
+		rType = 1;
+	};
+	4C8174AD10FD1265008C393F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 256AC3D90F4B6AC300CF3369 /* SpeechOutMacAppDelegate.m */;
+		name = "SpeechOutMacAppDelegate.m: 172";
+		rLen = 0;
+		rLoc = 5630;
+		rType = 0;
+		vrLen = 487;
+		vrLoc = 5300;
+	};
+	4C8174C110FD1625008C393F /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C4DE80E10F797BE0025D5DB /* KQMLStream.m */;
+		name = "KQMLStream.m: 236";
+		rLen = 0;
+		rLoc = 7959;
+		rType = 0;
+		vrLen = 596;
+		vrLoc = 0;
+	};
+	4CCB4A9810FBA32B00596454 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C4DE80D10F797BE0025D5DB /* KQMLStream.h */;
+		name = "KQMLStream.h: 41";
+		rLen = 124;
+		rLoc = 1039;
+		rType = 0;
+		vrLen = 542;
+		vrLoc = 493;
+	};
+	4CCB4A9910FBA32B00596454 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4C4DE86410F7BA660025D5DB /* TRIPSAgent.m */;
+		name = "TRIPSAgent.m: 27";
+		rLen = 0;
+		rLoc = 667;
+		rType = 0;
+		vrLen = 527;
+		vrLoc = 400;
+	};
+	4CF9EF1C10F4F5A1004E7E65 /* MySpeechSynthesizer.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {893, 726}}";
+			sepNavSelRange = "{601, 0}";
+			sepNavVisRange = "{0, 608}";
+			sepNavWindowFrame = "{{38, 299}, {952, 854}}";
+		};
+	};
+	4CF9EF1D10F4F5A1004E7E65 /* MySpeechSynthesizer.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {628, 936}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{3, 443}";
+			sepNavWindowFrame = "{{61, 277}, {952, 854}}";
+		};
+	};
+	8D1107260486CEB800E47090 /* SpeechOutMac */ = {
+		activeExec = 0;
+		executables = (
+			4C1698F510F3855A00A9A6FF /* SpeechOutMac */,
+		);
+	};
+	8D1107310486CEB800E47090 /* SpeechOutMac-Info.plist */ = {
+		uiCtxt = {
+			sepNavWindowFrame = "{{84, 245}, {934, 865}}";
+		};
+	};
+}

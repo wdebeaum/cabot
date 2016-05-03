@@ -1,0 +1,311 @@
+dnl Welcome to the Sphinx-3 automated build system.
+dnl try not to hurt yourself ;)
+dnl $Id: configure.in,v 1.14 2007/07/27 16:26:58 lgalescu Exp $
+dnl
+
+AC_INIT([Sphinx3-0.4.1],[2004-08-09],[lgalescu@ihmc.us])
+AM_INIT_AUTOMAKE(sphinx3,0.4.1)
+AM_CONFIG_HEADER(config.h)
+
+dnl Inside TRIPS we don't need debugging info
+#CFLAGS=${CFLAGS:--O2}
+CFLAGS=${CFLAGS:--g -O2 -Wall}
+
+dnl Get build host type
+AC_CANONICAL_HOST
+
+AC_ISC_POSIX
+AC_PROG_CC
+
+AC_HEADER_STDC
+AC_TYPE_SIGNAL
+
+dnl Check special flags
+AC_C_BIGENDIAN([CFLAGS="$CFLAGS -D__BIGENDIAN__"])
+case $host in
+  *-*-darwin*) CFLAGS="$CFLAGS -D_OSX";;
+esac
+
+hmmdata=`ls -1 $srcdir/model/hmm/hub4_cd_continuous_8gau_1s_c_d_dd | egrep -v '(Makefile|CVS)'`
+#hmmdata=`ls -1 /dev/null | egrep -v '(Makefile|CVS)'`
+hmmdata=`echo $hmmdata`
+
+lmdata=`ls -1 $srcdir/model/lm/an4 | egrep -v '(Makefile|CVS)' | sed 's/\.in//g'`
+#lmdata=`ls -1 /dev/null | egrep -v '(Makefile|CVS)' | sed 's/\.in//g'`
+lmdata=`echo $lmdata`
+
+docdata=`ls -1 $srcdir/doc | egrep -v '(Makefile|CVS)'`
+docdata=`echo $docdata`
+
+
+dnl
+dnl determine audio type or use none if none supported on this platform
+dnl
+
+ad_files=""
+ad_libs=""
+audio_test_file=""
+
+dnl Added by Lucian Galescu <lgalescu@ihmc.us>, 07/20/2004
+dnl Much of this was written by George Ferguson.
+AC_ARG_WITH(portaudio,
+	    AS_HELP_STRING([--with-portaudio],
+			   [use PortAudio library for sound I/O]))
+AC_ARG_WITH(portaudio_net,
+	    AS_HELP_STRING([--with-portaudio-net],
+			   [use client-server portaudio_net setup]))
+
+if test "$with_portaudio" != no; then
+PORTAUDIO_BASE=""
+PORTAUDIO_INITIAL_CFLAGS=""
+case $host in
+  *-*-darwin*) 
+      PORTAUDIO_INITIAL_LIBS="-lportaudio -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework CoreServices -lm"
+      ;;
+  *-*-linux*)  
+      PORTAUDIO_INITIAL_LIBS="-lportaudio"
+dnl L Galescu 2007/07/27
+dnl Check for various libs needed by portaudio
+      AC_CHECK_LIB(rt, clock_gettime, [rt_lib=" -lrt"])
+dnl PA won't work at all w/o pthreads!
+      AC_CHECK_LIB(pthread, pthread_create, [pt_lib=" -lpthread"], 
+	     	   AC_MSG_ERROR([libpthread not found!]))
+dnl Note: we don't use directly ALSA sound I/O in Sphinx!
+      AC_CHECK_LIB(asound, snd_pcm_open, [as_lib=" -lasound"], )
+      PORTAUDIO_INITIAL_LIBS="${PORTAUDIO_INITIAL_LIBS}${rt_lib}${pt_lib}${as_lib}"
+      ;;
+  *)           
+      PORTAUDIO_INITIAL_LIBS="-lportaudio"
+      ;;
+esac
+AC_MSG_CHECKING([for PortAudio])
+PORTAUDIO_CFLAGS="$PORTAUDIO_INITIAL_CFLAGS"
+PORTAUDIO_LIBS="$PORTAUDIO_INITIAL_LIBS"
+ac_saved_CFLAGS="$CFLAGS"; CFLAGS="$PORTAUDIO_INITIAL_CFLAGS $CFLAGS"
+ac_saved_LIBS="$LIBS"; LIBS="$PORTAUDIO_INITIAL_LIBS $LIBS"
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+    [[#include <portaudio.h>
+      #include <pablio.h>]],
+    [[PABLIO_Stream *stream; PaError err = Pa_Initialize();]])
+  ],
+  [
+    AC_MSG_RESULT([ok])
+    ac_portaudio_found=yes
+  ],
+  [
+    ac_portaudio_found=no
+    for d in ${with_portaudio:+$with_portaudio} `pwd`/../portaudio /usr/local; do
+      PORTAUDIO_BASE="$d"
+      PORTAUDIO_CFLAGS="-I$PORTAUDIO_BASE/include $PORTAUDIO_INITIAL_CFLAGS"
+      PORTAUDIO_LIBS="-L$PORTAUDIO_BASE/lib $PORTAUDIO_INITIAL_LIBS"
+      CFLAGS="$PORTAUDIO_CFLAGS $CFLAGS"
+      LIBS="$PORTAUDIO_LIBS $LIBS"
+      AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM(
+        [[#include <portaudio.h>
+          #include <pablio.h>]], 
+        [[PABLIO_Stream *stream; PaError err = Pa_Initialize();]])
+      ],
+      [
+	AC_MSG_RESULT($d)
+	ac_portaudio_found=yes
+	break
+      ]
+      )
+    done
+    if test "$ac_portaudio_found" = no; then
+        if test -z "$with_portaudio"; then
+            AC_MSG_RESULT([not found (use --with-portaudio if this isn't ok)])
+	else
+            AC_MSG_RESULT([not found (but assuming \"$with_portaudio\")])
+      	    PORTAUDIO_BASE="${with_portaudio:+$with_portaudio}"
+      	    PORTAUDIO_CFLAGS="-I$PORTAUDIO_BASE/include $PORTAUDIO_INITIAL_CFLAGS"
+      	    PORTAUDIO_LIBS="-L$PORTAUDIO_BASE/lib $PORTAUDIO_INITIAL_LIBS"
+      	    CFLAGS="$PORTAUDIO_CFLAGS $CFLAGS"
+      	    LIBS="$PORTAUDIO_LIBS $LIBS"
+	    ac_portaudio_found=yes
+        fi
+    fi
+  
+])
+AC_SUBST(PORTAUDIO_CFLAGS)
+AC_SUBST(PORTAUDIO_LIBS)
+CFLAGS="$ac_saved_CFLAGS"
+LIBS="$ac_saved_LIBS"
+fi
+
+if test "x$ad_files" = "x"; then
+    # Can use portaudio_net on any arch (maybe)
+    if test "x$with_portaudio_net" != x -a "$with_portaudio_net" != no; then
+	CFLAGS="$CFLAGS $PORTAUDIO_CFLAGS -I../../../portaudio_net"
+	LIBS="$LIBS $PORTAUDIO_LIBS"
+	ad_files="ad_pa_net.lo"
+	ad_backend="AD_BACKEND_PA_NET"
+    else
+	# Otherwise the default depends...
+        case $host in
+		*-*-darwin*)
+			# For OSX, it's portaudio or nothing
+			if test "$ac_portaudio_found" = yes; then
+			    CFLAGS="$CFLAGS $PORTAUDIO_CFLAGS"
+			    LIBS="$LIBS $PORTAUDIO_LIBS"
+			    ad_files="ad_pa.lo"
+			    ad_backend="AD_BACKEND_PA"
+			else
+			    ad_files="ad_base.lo"
+			    ad_backend="AD_BACKEND_NONE"
+			fi
+			audio_test_file="pittsburgh.bigendian"
+			;;
+                *-*-linux*|*-*-freebsd*)
+			# For Linux, it's either portaudio or oss
+			if test "$ac_portaudio_found" = yes -a "x$with_portaudio" != x -a "$with_portaudio" != no; then
+			    CFLAGS="$CFLAGS $PORTAUDIO_CFLAGS"
+			    LIBS="$LIBS $PORTAUDIO_LIBS"
+			    # at least for fedora, we need to link with -lrt
+			    # the following was borrowed from portaudio config
+			    save_LIBS="${LIBS}"
+			    AC_CHECK_LIB(rt, clock_gettime, [rt_libs=" -lrt"])
+			    LIBS="${LIBS}${rt_libs}"
+			    ad_files="ad_pa.lo"
+			    ad_backend="AD_BACKEND_PA"
+			else 
+			    ad_files="ad_oss.lo"
+                            ad_backend="AD_BACKEND_OSS"
+                            CFLAGS="$CFLAGS -DAD_BACKEND_OSS"
+			fi
+			audio_test_file="pittsburgh.littleendian"
+
+dnl L Galescu: ALSA doesn't work as of 2007/04/09
+dnl L Galescu: I moved this bit of code here; in the event that S3 is updated 
+dnl this is the place where it should be 
+
+dnl Added by Jasper van Veghel <jvveghel@vanboxtelsoftware.nl>, 02/03/2003:
+dnl Modified by Lucian Galescu, 04/09/2007
+dnl ac_alsa_found=no
+dnl AC_ARG_WITH(alsa,
+dnl            AS_HELP_STRING([--with-alsa],[Use ALSA library for sound I/O]),
+dnl            [ac_alsa_found=yes
+dnl 	    ad_files="ad_alsa.lo"
+dnl             ad_backend="AD_BACKEND_ALSA"
+dnl 	    ad_libs="-lasound"
+dnl        	    CFLAGS="$CFLAGS -DAD_BACKEND_ALSA"
+dnl             audio_test_file="pittsburgh.littleendian"
+dnl             AC_CHECK_HEADER(alsa/asoundlib.h, ,
+dnl                     AC_MSG_ERROR([ALSA header file <alsa/asoundlib.h> not found!]))]
+dnl )
+			
+                        ;;
+                *-*-freebsd*|*-*-netbsd*|*-*-openbsd*)
+                        ad_files="ad_oss_bsd.lo mulaw_base.lo"
+                        ad_libs="-lossaudio"
+                        ad_backend="AD_BACKEND_OSS_BSD"
+                        CFLAGS="$CFLAGS -DAD_BACKEND_OSS_BSD"
+			audio_test_file="pittsburgh.littleendian"
+                        ;;
+                *-*-osf*)
+                        ad_files="ad_osf.lo mulaw_base.lo"
+                        ad_backend="AD_BACKEND_OSF"
+                        CFLAGS="$CFLAGS -DAD_BACKEND_OSF"
+			audio_test_file="pittsburgh.littleendian"
+                        ;;
+                *-*-irix*)
+                        ad_files="ad_irix.lo mulaw_base.lo"
+                        ad_libs="-laudio"
+                        ad_backend="AD_BACKEND_IRIX"
+                        CFLAGS="$CFLAGS -DAD_BACKEND_IRIX"
+			audio_test_file="pittsburgh.littleendian"
+                        ;;
+                *-*-sunos4*)
+                        ad_files="ad_sunos.lo audio_utils_sunos.lo"
+                        ad_libs="-lm -lnsl -ldl"
+                        ad_backend="AD_BACKEND_SUNOS"
+                        CFLAGS="$CFLAGS -D__BIG_ENDIAN__ -Dsunos -DAD_BACKEND_SUNOS"
+			audio_test_file="pittsburgh.bigendian"
+                        ;;
+                *86*-*-solaris*)
+                        ad_files="ad_sunos.lo audio_utils_sunos.lo"
+                        ad_libs="-lm -lnsl -lsocket -ldl"
+                        ad_backend="AD_BACKEND_SUNOS"
+                        CFLAGS="$CFLAGS -Dsunos -DAD_BACKEND_SUNOS"
+			audio_test_file="pittsburgh.littleendian"
+                        ;;
+                *-*-solaris*)
+                        ad_files="ad_sunos.lo audio_utils_sunos.lo"
+                        ad_libs="-lm -lnsl -lsocket -ldl"
+                        ad_backend="AD_BACKEND_SUNOS"
+                        CFLAGS="$CFLAGS -D__BIG_ENDIAN__ -Dsunos -DAD_BACKEND_SUNOS"
+			audio_test_file="pittsburgh.bigendian"
+                        ;;
+                *-*-*cygwin*)
+			# For Cygwin, it's WIN32 unless --with-portaudio given
+			if test "$ac_portaudio_found" = yes -a "x$with_portaudio" != x -a "$with_portaudio" != no; then
+			    CFLAGS="$CFLAGS $PORTAUDIO_CFLAGS"
+			    LIBS="$LIBS $PORTAUDIO_LIBS"
+			    ad_files="ad_pa.lo"
+			    ad_backend="AD_BACKEND_PA"
+			else
+			    ad_files="play_win32.lo rec_win32.lo"
+                            ad_backend="AD_BACKEND_WIN32"
+                            ad_libs="-lwinmm"
+			fi
+			audio_test_file="pittsburgh.littleendian"
+                        ;;
+                *-*apple*-*)
+                        ad_files="ad_base.lo"
+                        ad_backend="AD_BACKEND_NONE"
+                        CFLAGS="$CFLAGS -D__BIG_ENDIAN__ -DAD_BACKEND_NONE"
+			audio_test_file="pittsburgh.bigendian"
+                        ;;
+                *)
+                        ad_files="ad_base.lo"
+                        ad_backend="AD_BACKEND_NONE"
+                        CFLAGS="$CFLAGS -DAD_BACKEND_NONE"
+			audio_test_file="pittsburgh.littleendian"
+                        AC_MSG_RESULT([No audio interface for host type $host.])
+                        ;;
+        esac
+    fi
+fi
+AC_MSG_NOTICE([selected audio backend: $ad_backend]);
+
+AC_PATH_PROG(PERL,perl)
+AC_PATH_PROG(CSH,csh)
+AC_SUBST(hmmdata)
+AC_SUBST(lmdata)
+AC_SUBST(docdata)
+AC_SUBST(ad_files)
+AC_SUBST(ad_libs)
+AC_SUBST(ad_backend)
+AC_SUBST(audio_test_file)
+AC_SUBST(PERL)
+AC_SUBST(CSH)
+
+AM_PROG_LIBTOOL
+
+AC_CONFIG_FILES([ 
+Makefile
+src/Makefile
+src/libs3audio/Makefile
+src/libs3audio/ad_conf.h
+src/libs3audio/ad.h
+src/libs3decoder/Makefile
+src/libutil/Makefile
+src/programs/Makefile
+src/lm3g2dmp/Makefile
+scripts/Makefile
+scripts/sphinx3-test
+scripts/sphinx3-simple
+model/Makefile
+model/hmm/Makefile
+model/hmm/hub4_cd_continuous_8gau_1s_c_d_dd/Makefile
+model/lm/Makefile
+model/lm/an4/Makefile
+model/lm/an4/an4.ctl
+model/lm/an4/args.an4
+doc/Makefile])
+AC_OUTPUT
+
+chmod +x scripts/sphinx3-simple
+chmod +x scripts/sphinx3-test

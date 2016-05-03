@@ -1,0 +1,8 @@
+
+strings being kept for replies will have been freed by the time the
+callback tries to use them
+
+and in fact, if we get a new request while the old one is speaking
+we will be screwed
+
+

@@ -1,0 +1,8 @@
+all:
+	swig -c++ -python nimod.i
+	g++ -O2 -fPIC -c nimod.cpp nimod_wrap.cxx -I/usr/include/python2.7 -I/usr/lib/python2.7/site-packages/numpy/core/include -I/usr/include/ni
+	g++ -shared nimod.o nimod_wrap.o -o _nimod.so -lOpenNI -lGL
+	cp _nimod.so nimod.py ../
+clean:
+	rm -rf build
+	rm -f _nimod.so nimod.py nimod_wrap.c nimod_wrap.cxx *.o *~

@@ -1,0 +1,7 @@
+Makefile.in
+.deps
+.libs
+Makefile
+*.la
+ad.h
+ad_conf.h

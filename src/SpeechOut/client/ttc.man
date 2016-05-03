@@ -1,0 +1,158 @@
+.\" Time-stamp: <Mon Nov 24 19:15:58 EST 1997 ferguson>
+.TH TTC 1 "3 June 1997" "TRIPS"
+.SH NAME
+ttc \- TRIPS TrueTalk client using AudioFile server
+.SH SYNOPSIS
+ttc [\-h\ host] [\-audio\ server] [\-speechrate\ FLOAT] [\-debug\ where]
+.SH DESCRIPTION
+.PP
+.I Ttc
+is a TrueTalk (tm) client for use with the TRIPS system. That is, it
+connects to a TrueTalk server to provide speech generation services
+for TRIPS. This version of
+.I ttc
+uses either the AudioFile server for network audio facilities or the
+local Sun audio device.
+.SH OPTIONS
+.PP
+.IP "-h host"
+Connect to the TrueTalk server running on
+.IR host .
+The default is find it on the current host. The server must be running
+and ready to accept connections before
+.I ttc
+starts (see USAGE, below).
+.IP "-audio server"
+Specifies audio server or device. If
+.I server
+is a string starting with a slash ("/"), then it is taken to be the
+pathname of the local audio device, which is opened and used for
+output. Otherwise
+.I server
+is taken to be the name of the AudioFile server to which to connect.
+The default is the value of the environment variable AUDIOFILE, if
+set, otherwise a local AudioFile server. To use the audio device, you
+must explicitly pass this argument.
+.IP "-speechrate FLOAT"
+Specifies a speaking rate between 0 and 2.0, relative to the default
+of 1.0. Lower numbers mean faster speech.
+.IP "-debug where"
+Specify that copious debugging information should be written to
+.IR where .
+If
+.I where
+is a hyphen ("-"), output is to stderr, if it starts with a pipe ("|")
+the rest of the argument is passed to
+.IR popen (3),
+otherwise it is taken to be a filename to which to write. Be careful
+to escape pipes and spaces from the shell.
+.SH USAGE
+.PP
+The TrueTalk server must be running before
+.I ttc
+starts. Within TRIPS, this is usually accomplished by the
+.IR tspeechout (1)
+script. However, if you wanted to do it yourself, you could run
+the following commands:
+
+.nf
+.na
+    % setenv TT_BASE /s5/truetalk/tts.r1.`uname -s`.`uname -r`
+    % $TT_BASE/bin/tts -server -i
+.ad
+.fi
+
+That is, you need to set the environment variable TT_BASE, then run
+.I tts
+in server mode (\-i sets incremental mode). The example above is based
+on the TrueTalk installation at the time this manpage was written.
+.PP
+For this version of
+.IR ttc ,
+you must also be running the AudioFile server. Again, this will
+normally be taken care of when
+.I ttc
+is used in the TRIPS system, however to run it by hand you can do:
+
+.nf
+.na
+    % /u/trains/AF/bin/Asparc10 -rate 16000 &
+.ad
+.fi
+
+You might of course need to run a different AudioFile server,
+depending on the platform. For example, 
+.IR Asparc
+(without the "10") would be used for Suns that don't have speakerbox
+audio.
+.PP
+With both servers running, you can then run
+.IR ttc ,
+specifying the server host using "-h" if necessary (if you ran the
+TrueTalk server on another machine).
+.I Ttc
+listens for KQML messages on its standard input, as described below,
+and outputs KQML error and reply messages to its standard output.
+.SH "TTC MESSAGES"
+.PP
+The following KQML messages are understood by
+.IR ttc .
+They
+should be addressed with ":receiver SPEECH-OUT". Case is insignificant
+outside of strings. Whitespace between messages is ignored (but rigorously
+enforced within messages according to the KQML spec).
+.IP "(request :content (say STRING))"
+Sender is requesting that
+.I STRING
+be passed to TrueTalk (i.e., "spoken"). When the speech has been
+generated and the audio has finished playing,
+.I ttc
+will reply with a message of the form:
+
+.nf
+.na
+    (reply :sender SPEECH-OUT :content (done))
+.ad
+.fi
+
+Any :reply-with in the original message will be used in the reply.
+.IP "(request :content (exit :status N))"
+Requests that
+.I ttc
+exit with status
+.I N
+(default 0). This usually causes the TrueTalk server to exit also.
+.IP "(request :content (chdir DIR))"
+Ignored.
+.IP "(request :content (show\-window))"
+Ignored.
+.IP "(request :content (hide\-window))"
+Ignored.
+.IP "(request :content (start\-conversation :name N :lang L :sex S))"
+Ignored.
+.IP "(request :content (end\-conversation)"
+Ignored.
+.SH ENVIRONMENT
+AUDIOFILE			HOST:DEVICE for AudioFile server
+.SH FILES
+.PP
+None.
+.SH DIAGNOSTICS
+.PP
+Perhaps.
+.SH SEE ALSO
+.PP
+trips(1),
+tspeechout(1),
+tts(1)
+.SH BUGS
+.PP
+It seems that the AudioFile sometimes needs to re-sync it's clocks,
+and I suspect that this may cause the client playback to get lost. It
+shouldn't last more than one utterance, but I think I may have seen it
+get more confused.
+.SH AUTHOR
+.PP
+George Ferguson (ferguson@cs.rochester.edu).
+
+

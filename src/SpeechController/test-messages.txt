@@ -1,0 +1,14 @@
+
+$Id: test-messages.txt,v 1.1.1.1 2005/01/14 19:48:09 ferguson Exp $
+
+(tell :content (start :uttnum 1) :sender speech-in)
+(tell :content (word "HELLO" :frame (5 25) :uttnum 1) :sender speech-in)
+(tell :content (word "WORLD" :frame (25 40) :uttnum 1) :sender speech-in)
+(tell :content (end :text "HELLO WORLD" :uttnum 1) :sender speech-in)
+
+(tell :content (start :uttnum 2) :sender speech-in)
+(tell :content (word "GOODBYE" :frame (2 25) :uttnum 2) :sender speech-in)
+(tell :content (word "FOOBAR" :frame (25 40) :uttnum 2) :sender speech-in)
+(tell :content (backto :frame 25 :uttnum 2) :sender speech-in)
+(tell :content (word "BARFOO" :frame (25 40) :uttnum 2) :sender speech-in)
+(tell :content (end :text "GOODBYE BARFOO" :uttnum 2) :sender speech-in)

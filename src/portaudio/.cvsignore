@@ -1,0 +1,6 @@
+portaudio-2.0.pc
+lib
+libtool
+Makefile
+config.log
+config.status

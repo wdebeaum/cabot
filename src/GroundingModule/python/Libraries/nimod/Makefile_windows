@@ -1,0 +1,27 @@
+#
+# Kinect module makefile for Visual Studio
+#
+
+#Change this to the directory where you installed OpenNI
+OPENNI_DIR = "C:\\Program Files (x86)\\OpenNI"
+
+INCLUDES = /Ic:\\Python26\\include\\ /IC:\\Python26\\Lib\\site-packages\\numpy\\core\\include /I$(OPENNI_DIR)\\Include
+
+LINK = /link $(OPENNI_DIR)\\Lib\\OpenNI.lib C:\\Python26\\libs\\python26.lib
+
+all:_nimod.dll
+		
+_nimod.dll:nimod_wrap.obj nimod.obj
+	cl /LD /Fo_nimod.dll nimod_wrap.obj nimod.obj $(INCLUDES) $(LINK)
+	del nimod_wrap.lib nimod_wrap.exp nimod.obj nimod_wrap.obj nimod_wrap.cxx
+	copy nimod_wrap.dll ..\\_nimod.pyd
+	copy nimod.py ..\\nimod.py
+
+nimod_wrap.obj:nimod_wrap.cxx
+	cl /c nimod_wrap.cxx $(INCLUDES)
+
+nimod.obj:nimod.cpp
+	cl /c nimod.cpp $(INCLUDES)
+	
+nimod_wrap.cxx:nimod.i
+		swig -python -c++ -o nimod_wrap.cxx nimod.i

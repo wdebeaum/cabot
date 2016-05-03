@@ -1,0 +1,60 @@
+# Makefile-cabot
+#
+# Time-stamp: <Sat Jan  2 21:01:52 CST 2016 lgalescu>
+#
+# Author: Lucian Galescu <lgalescu@ihmc.us>, 14 Oct 2015
+#
+
+LIBS = \
+	KQML \
+	TripsModule \
+	trlib \
+	util \
+	defcomponent \
+	AKRL \
+	WordNetSQL
+
+LISP_MODULES = \
+	util \
+	Comm \
+	Logging \
+	OntologyManager \
+	LexiconManager \
+	Parser \
+	Wordfinder \
+	SimpleKB \
+	NewIM \
+	BasicDialogueAgent \
+	LanguageLearner \
+	Dummy \
+
+LISP_PROGRAMS = \
+	Systems/cabot
+
+SPEECH_LIBS = 
+#        portaudio
+
+include config/speech-out/defs.mk
+
+SPEECH_PROGRAMS = \
+	SpeechOutNot 
+#	Sphinx3 \
+#	SpeechIn3 \
+#	SpeechLM \
+#	SpeechController \
+#	SpeechOut \
+#	$(SPEECH_OUT_COMPONENT) \
+#	SpeechOutServer
+
+JAVA_PROGRAMS = \
+	Facilitator \
+	GroundingModule \
+	SRIWrapper \
+	KeyboardManager
+
+OTHER_PROGRAMS = \
+	TextPP \
+	TextTagger \
+	Tools
+
+include Makefile-common

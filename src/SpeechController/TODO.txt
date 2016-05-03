@@ -1,0 +1,5 @@
+$Id: TODO.txt,v 1.1.1.1 2005/01/14 19:48:09 ferguson Exp $
+
+- Should probably rethink the states that this can go through, to get
+  all the various labels right, especially when we change the mode on
+  the fly.

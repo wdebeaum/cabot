@@ -1,0 +1,7 @@
+This directory contains symlinks:
+	KQML   -> ../../KQML
+	config -> ../../config
+	util   -> ../../util
+	trlib   -> ../../trlib
+Using tar(1) normally will preserve the symlink structure. Use the
+"-h" flag to follow symlinks as if they were normal directories.

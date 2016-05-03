@@ -1,0 +1,10 @@
+Makefile.in
+.deps
+.libs
+Makefile
+decode
+gausubvq
+livedecode
+livepretend
+s3cont
+s3ptt

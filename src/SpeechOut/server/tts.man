@@ -1,0 +1,45 @@
+.\" Time-stamp: <Mon Nov 24 19:16:18 EST 1997 ferguson>
+.TH TTS 1 "10 Jan 1997" "TRIPS"
+.SH NAME
+tts \- Runs TrueTalk server
+.SH SYNOPSIS
+tts [args]
+.SH DESCRIPTION
+.PP
+This script simply configures the environment as needed to run the
+TrueTalk (tm) server, then invokes it with the \-server argument (and
+any other arguments given on the command line).
+.PP
+For details of the SPEECH-OUT module, see the manpage for
+.IR ttc (1).
+.SH ENVIRONMENT
+Appropriate defaults for the following variables are used if they are
+not set when
+.I tts
+is run. Their values may need to change if the TrueTalk configuration
+changes, for example in a travel system.
+.PP
+ELM_HOST		Host running license daemon
+.br
+TT_BASE		Root of TrueTalk directory tree
+.SH FILES
+.PP
+None.
+.SH DIAGNOSTICS
+.PP
+Some messages when the server exits.
+.SH SEE ALSO
+.PP
+trips(1),
+tspeechout(1),
+ttc(1)
+.SH BUGS
+.PP
+This is commercial software, not that that's a bug, but I thought I'd
+mention it. It is only licensed for certain machines, which can be
+difficult during road shows.
+.SH AUTHOR
+.PP
+George Ferguson (ferguson@cs.rochester.edu).
+
+

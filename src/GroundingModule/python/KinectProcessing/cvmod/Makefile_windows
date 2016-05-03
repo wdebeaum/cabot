@@ -1,0 +1,27 @@
+#
+# Kinect module makefile for Visual Studio
+#
+
+#Change this to the directory where you installed OpenNI
+OPENNI_DIR = "C:\\Program Files (x86)\\OpenNI"
+
+INCLUDES = /Ic:\\Python26\\include\\ /IC:\\Python26\\Lib\\site-packages\\numpy\\core\\include /I$(OPENNI_DIR)\\Include /I"D:\OpenCV2.3\build\include"
+
+LINK = /link $(OPENNI_DIR)\\Lib\\OpenNI.lib C:\\Python26\\libs\\python26.lib "C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\OpenGL32.Lib" "D:\OpenCV2.3\build\x86\vc10\lib\opencv_core231.lib" "D:\OpenCV2.3\build\x86\vc10\lib\opencv_imgproc231.lib" "D:\OpenCV2.3\build\x86\vc10\lib\opencv_highgui231.lib"
+
+all:_cvmod.dll
+		
+_cvmod.dll:cvmod_wrap.obj cvmod.obj
+	cl /LD /Fo_cvmod.dll cvmod_wrap.obj cvmod.obj $(INCLUDES) $(LINK)
+	del cvmod_wrap.lib cvmod_wrap.exp cvmod.obj cvmod_wrap.obj cvmod_wrap.cxx
+	copy cvmod_wrap.dll ..\\_cvmod.pyd
+	copy cvmod.py ..\\cvmod.py
+
+cvmod_wrap.obj:cvmod_wrap.cxx
+	cl /c cvmod_wrap.cxx $(INCLUDES)
+
+cvmod.obj:cvmod.cpp
+	cl /c cvmod.cpp $(INCLUDES)
+	
+cvmod_wrap.cxx:cvmod.i
+	swig -python -c++ -o cvmod_wrap.cxx cvmod.i
