@@ -19,7 +19,7 @@ The repo contains several libraries with their own FOSS licenses:
 
 The rest of the repo uses [GPL 2+](http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) (see `licenses/gpl-2.0.txt`, and the notice below). Some of the licenses listed above are only compatible with [GPL 3](http://www.gnu.org/licenses/gpl.html) (`licenses/gpl-3.0.txt`), so any TRIPS code that links to the corresponding libraries is effectively under GPL 3. But TRIPS is actually many separate programs which communicate over sockets, so not much of it is affected in this way.
 
-TRIPS CABOT system
+TRIPS CABOT system  
 Copyright (C) 2016  Institute for Human & Machine Cognition
 
 This program is free software; you can redistribute it and/or
