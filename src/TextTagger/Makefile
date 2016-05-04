@@ -2,7 +2,7 @@
 # Makefile for TextTagger
 #
 # William de Beaumont <wbeaumont@ihmc.us> 2008/3/6
-# $Id: Makefile,v 1.79 2016/03/15 19:48:10 wdebeaum Exp $
+# $Id: Makefile,v 1.80 2016/05/03 15:28:38 wdebeaum Exp $
 #
 
 MODULE = TextTagger
@@ -221,7 +221,8 @@ downloads/go.obo:
 	$(call download_compressed,"http://purl.obolibrary.org/obo/go.obo")
 
 downloads/cellosaurus.obo:
-	$(call download_compressed,"ftp://ftp.nextprot.org/pub/current_release/controlled_vocabularies/cellosaurus.obo")
+	# old link: ftp://ftp.nextprot.org/pub/current_release/controlled_vocabularies/cellosaurus.obo
+	$(call download_compressed,"ftp://ftp.expasy.org/databases/cellosaurus/cellosaurus.obo")
 	# fix escaping problem, and properly capitalize [Term]
 	$(PERL) -p -i -e 's/"HeLa "Kyoto""/"HeLa \\"Kyoto\\""/; s/^\[term\]/[Term]/;' $@
 
