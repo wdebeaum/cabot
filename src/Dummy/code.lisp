@@ -5,7 +5,7 @@
 (defun process-reply (msg args result)
   (let ((reply-with (find-arg-in-act msg :reply-with))
 	(sender (find-arg-in-act msg :sender)))
-    (format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
+    ;;(format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
     (if reply-with
 	(send-msg (append (list 'tell :receiver sender :content result) (list :in-reply-to reply-with)))
 	(send-msg (list 'tell :content result)))))
@@ -22,7 +22,7 @@
 	     (list 'report :content (list 'acceptable :what content :context context))
 	     ))))
 	   	     
-    (format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
+    ;;(format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
     (if reply-with
 	(send-msg (append (list 'tell :receiver sender :content result) (list :in-reply-to reply-with)))
 	(send-msg (list 'tell :content result)))))

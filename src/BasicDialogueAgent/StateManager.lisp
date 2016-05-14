@@ -323,9 +323,11 @@
 (defun update-current-dstate (state user args &optional triggered)
   "we keep track of triggered states because they are handled differently in Wizrd interactions (e.g., how we handle IGNORE)"
   (when user
-    (trace-msg 2 "Updating current state to ~S for user ~S with args ~S"
-	       (if (state-p state) state
-		   (find-state state)) (user-channel-id user) args)
+    (if (state-p state) state
+	(find-state state))
+    (trace-msg 3 "Updating current state to ~S for user ~S with args ~S"
+	       (if (state-p state) state)
+	       (user-channel-id user) args)
     (if (not (state-p state))
 	(setq state (find-state state)))
     (setf (user-current-dstate user) state)
@@ -752,8 +754,9 @@
   (when transitions
     (let ((ans (interpret-lf lfs (list (transition-pattern (car transitions)))))
 	  (im::*trace-level* dagent::*trace-level*))  ;; turn on IM tracing the the rule matching
-      (if ans (progn (trace-msg 2 "~%Matched rules: top hit is ~S" (car ans))
-		     (trace-msg 3 "~%   Other rules are ~S" (cdr ans)))
+      (if ans (progn (trace-msg 2 "~%Matched rules: top hit is ~S" (im::match-result-rule-id (car ans)))
+		     (trace-msg 3 ": ~%~S" (car ans))
+		     (trace-msg 4 "~%   Other rules are ~S" (cdr ans)))
 	  )
       (if ans
 	  (values ans (transition-destination (car transitions)))
@@ -769,7 +772,8 @@
   (send-msg '(request :content (release-pending-speech-act))))
 
 (defun execute-action (act channel user uttnum)
-  (trace-msg 1 "Executing ~S" act)
+  (trace-msg 1 "Executing ~S ..." (car act))
+  (trace-msg 2 "~%~S" act)
   
   (let ((ans (case (car act)
 	       (perform (mapcar #'(lambda (x) (execute-action x channel user uttnum))
