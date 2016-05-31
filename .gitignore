@@ -25,7 +25,7 @@ trips-*.core
 /src/portaudio/lib
 /src/portaudio/libtool
 /src/portaudio/Makefile
-/src/portaudio/include/pa_allocations.h
+/src/portaudio/include/pa_allocation.h
 /src/portaudio/include/pa_converters.h
 /src/portaudio/include/pa_cpuload.h
 /src/portaudio/include/pa_debugprint.h
@@ -47,12 +47,15 @@ trips-*.core
 /src/Sphinx3/**/.libs
 /src/Sphinx3/**/*.la
 /src/Sphinx3/stamp-h1
+/src/Sphinx3/a.out*/
+/src/Sphinx3/config.h
+/src/Sphinx3/libtool
 /src/Sphinx3/model/lm/an4/an4.ctl
 /src/Sphinx3/model/lm/an4/args.an4
 /src/Sphinx3/scripts/sphinx3-simple
 /src/Sphinx3/scripts/sphinx3-test
-/src/Sphinx3/libs3audio/ad.h
-/src/Sphinx3/libs3audio/ad_conf.h
+/src/Sphinx3/src/libs3audio/ad.h
+/src/Sphinx3/src/libs3audio/ad_conf.h
 /src/Sphinx3/lm3g2dmp/lm3g2dmp
 /src/Sphinx3/programs/decode
 /src/Sphinx3/programs/gausubvq
