@@ -11,7 +11,7 @@ CVS/
 config.log
 config.status
 TRIPS-stamp
-TRIPS/
+/src/*/TRIPS
 MANIFEST.MF
 trips-*.core
 /src/Makefile
