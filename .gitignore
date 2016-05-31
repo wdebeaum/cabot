@@ -11,6 +11,7 @@ CVS/
 config.log
 config.status
 TRIPS-stamp
+TRIPS/
 MANIFEST.MF
 trips-*.core
 /src/Makefile
@@ -45,7 +46,6 @@ trips-*.core
 /src/Sphinx3/**/Makefile
 /src/Sphinx3/**/.deps
 /src/Sphinx3/**/.libs
-/src/Sphinx3/**/*.la
 /src/Sphinx3/stamp-h1
 /src/Sphinx3/a.out*/
 /src/Sphinx3/config.h
@@ -77,6 +77,9 @@ trips-*.core
 /src/TextTagger/drum-dsl/
 /src/TextTagger/specialist.tsv
 /src/TextTagger/drum-dbxrefs.tsv
+/src/TextTagger/Perl/Geo
+/src/TextTagger/Perl/Lingua
+/src/TextTagger/Perl/TextTagger/Config.pm
 # WordNetSQL
 /src/WordNetSQL/glosstags.psv
 /src/WordNetSQL/wn.db
@@ -121,6 +124,8 @@ trips-*.core
 # compiled C code
 *.o
 *.lo
+*.a
+*.la
 # compiled Lisp code
 *.fasl
 *.x86f
