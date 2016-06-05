@@ -1,7 +1,7 @@
 ;;;;
 ;;;; defsys.lisp for Dagent- the generic dialogue agent 
 ;;;;
-;;;;;;;; Time-stamp: <Mon Dec 28 16:13:07 EST 2015 jallen>
+;;;;;;;; Time-stamp: <Fri Jun  3 17:25:21 EDT 2016 jallen>
 ;;;;
 
 
@@ -54,6 +54,7 @@
   (dfc:run-component :dagent)
   )
 
+(defvar *dagent-package* (find-package :dagent))
 
 (defvar *me*)
 
