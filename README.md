@@ -2,7 +2,7 @@
 
 CABOT stands for Conversing About Blocks On a Table. It is a collaborative assistant for the blocks world developed by IHMC together with University of Rochester and SIFT. The project is funded by DARPA under the Communication with Computers (CwC) program.
 
-This git repo is a mirror of the TRIPS `cabot` CVS module. It is updated nightly.
+This git repo is a mirror of the TRIPS `cabot` CVS module. It is updated manually when we feel the system is relatively stable.
 
 [Installation instructions](http://trips.ihmc.us/trac/cabot/wiki/CABoTSystemInstallation).
 
