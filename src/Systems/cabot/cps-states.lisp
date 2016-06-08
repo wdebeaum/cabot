@@ -5,30 +5,43 @@
 (defvar *state-definitions* nil)
 
 ;;  Setting CPS GOALS  -- System Initiative
-;;  This assume that the CPS state has preset an individual system goal,
-
+;;  This assume that the CPS state has a preset proviate system goal that
+;; we want to make into a shared goal with the user
+;; N ote:: this assumes the private system goal is already cached for processing
 (add-state 'initiate-CPS-goal
-	   (state :action '(GENERATE :content (ONT::PROPOSE-GOAL :content (V :current-shared-goal))
-			    :context (V :system-context))
+	   (state :action nil
+		  :transitions
+		  (list (transition
+			 :description "we know the private goal, so we propose it to the user"
+			 :pattern '((CSM-RESPONSE ?!x PRIVATE-SYSTEM-GOAL :content ?!content :context ?context)
+				    -propose-goal>
+				    (RECORD PROPOSAL-ON-TABLE (ONT::PROPOSE-GOAL :Content ?!content :context ?context))
+				    (GENERATE :content (ONT::PROPOSE-GOAL :content ?!content :context ?context)))
+			 :destination 'initiate-csm-goal-response))))
+
+(add-state 'initiate-csm-goal-response
+	   (state :action nil
 		  :transitions (list
-				(transition
-				 :description "acceptance"
-				 :pattern '((ONT::SPEECHACT ?!sa ONT::ACCEPT)
-					    (ont::eval (QUERY-CPS :sa LAST-PROPOSAL :result ?!content :context ?!context))
-					    -goal-response1>
-					    (UPDATE-CPS (ACCEPTED :content ?!content :context ?!context))
-					    (NOTIFY-BA :msg (SET-SHARED-GOAL :content ?!content
-							     :context ?!context)))
-				 
-				 :destination 'what-next)
+				
 				;; If the user rejects this, we ask them to propose something
 				(transition
 				 :description "rejectance"
 				 :pattern '((ONT::SPEECHACT ?sa1 ONT::REJECT )
-					    -goal-response2>
-					    (UPDATE-CPS :user-rejected (V :current-shared-goal))
+					    -intitiate-response2>
+					    (UPDATE-CSM (REJECTED :content ?!content :context ?!context))
 					    (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent *USER*))))
 				 :destination 'segment-end)
+				(transition
+				 :description "acceptance"
+				 :pattern '((ONT::SPEECHACT ?!sa ONT::ACCEPT)
+					    (ont::eval (find-attr (?prop :content ?!content :context ?!context) PROPOSAL-ON-TABLE))
+					    -initiate-response1>
+					    (UPDATE-CSM (ACCEPTED (?prop :content ?!content :context ?!context)))
+					    (RECORD ACTIVE-GOAL ?!content)
+					    (NOTIFY-BA :msg (SET-SHARED-GOAL :content ?!content
+							     :context ?!context)))
+				 
+				 :destination 'what-next)
 				)
 		  ))
 
@@ -56,26 +69,35 @@
 		  ))
 
 (add-state 'what-next 
-	   (state :action '(INVOKE-BA :msg (WHAT-NEXT :active-goal (V :current-shared-goal)))
+	   (state :action '(INVOKE-BA :msg (WHAT-NEXT :active-goal (V ACTIVE-GOAL)))
 		  :transitions (list
-			       (transition
+				(transition
 				 :description "suggestion of user action"
 				 :pattern '((BA-RESPONSE ?!X PERFORM :agent *USER* :action ?!action :context ?context)
 					    -what-next1>
-					    (UPDATE-CPS (PROPOSED :content ?!action :context ?context))
+					    (UPDATE-CSM (PROPOSED :content ?!action :context ?context))
+					    (RECORD PROPOSAL-ON-TABLE (ONT::PROPOSE :content ?!action :context ?context))
 					    (GENERATE :content (ONT::PROPOSE :content (ONT::PERFORM :action ?!action :context ?context))))
 				 :destination 'proposal-response)
 				(transition
 				 :description "action completed!"
 				 :pattern '((BA-RESPONSE ?!X GOAL-ACHIEVED)
 					    -what-next2>
-					    (UPDATE-CPS (GOAL-ACHIEVED))
+					    (UPDATE-CSM (GOAL-ACHIEVED))
 					    (GENERATE :content (ONT::EVALUATION :content (ONT::GOOD)))
+					   
 					    (GENERATE :content (ONT::CLOSE)))
 				 :destination 'segment-end)
-				))
+				
+				(transition
+				 :description "BA has nothing to do"
+				 :pattern '((BA_RESPONSE ?!x WAIT)
+					    -take-init2>
+					    (UPDATE-CSM (BA-WAITING)))
+				 :destination 'segment-end)
+				)
 		  
-		  )
+		  ))
 
 (add-state 'proposal-response
 	   (state :action nil
@@ -83,9 +105,9 @@
 				(transition
 				 :description "OK/ accept"
 				 :pattern '((ONT::SPEECHACT ?!sa ONT::ACCEPT)
-					    (ont::eval (QUERY-CPS :sa LAST-PROPOSAL :result ?!content :context ?!context))
-					    -proposal-response
-					    (UPDATE-CPS  (ACCEPTED :content ?!content :context ?!context))
+					    (ont::eval (find-attr (?prop :content ?!content :context ?!context)  PROPOSAL-ON-TABLE))
+					    -proposal-response1>
+					    (UPDATE-CSM  (ACCEPTED (?prop :content ?!content :context ?!context)))
 					    (NOTIFY-BA :msg (NOTIFY-WHEN-COMPLETED :agent *USER* :content ?!content :context ?!context))
 					    )
 				 :destination 'expect-action)
@@ -93,7 +115,7 @@
 				 :description "action completed (from BA)"
 				 :pattern '((EXECUTION-STATUS :action ?!act :status ont::DONE)
 					    -demonstrate-action1>
-					    (SET-CPS-VARIABLE :current-shared-goal ?!act)
+					    (RECORD ACTIVE-GOAL ?!act)
 					    )
 				 :destination 'what-next)
 				)
@@ -106,7 +128,7 @@
 				 :description "action completed (from BA)"
 				 :pattern '((EXECUTION-STATUS :action ?!act :status ont::DONE)
 					    -demonstrate-action1>
-					    (SET-CPS-VARIABLE :current-shared-goal ?!act)
+					    (RECORD LAST-ACTIOn-DONE ?!act)
 					    )
 				 :destination 'what-next)
 				;;  user might speak while we're waiting for confirmation
@@ -128,7 +150,7 @@
 							:result ?best-interp :new-akrl-context ?new-akrl))
 					    
 					    -propose-goal>
-					    (UPDATE-CPS (PROPOSED :content ?best-interp :what ?new-what :context ?new-akrl))
+					    (UPDATE-CSM (PROPOSED :content ?best-interp :what ?new-what :context ?new-akrl))
 					    (INVOKE-BA :msg (EVALUATE 
 							     :content ?best-interp 
 							     :context ?new-akrl))
@@ -166,7 +188,7 @@
 					      :result ?best-interp :new-akrl-context ?new-akrl))
 				  
 				  -propose-goal>
-				  (UPDATE-CPS (PROPOSED :content ?best-interp :what ?new-what :context ?new-akrl))
+				  (UPDATE-CSM (PROPOSED :content ?best-interp :what ?new-what :context ?new-akrl))
 				  (INVOKE-BA :msg (EVALUATE 
 						   :content ?best-interp 
 						   :context ?new-akrl))
@@ -182,8 +204,8 @@
 				(transition
 				 :description "acceptance"
 				 :pattern '((BA-RESPONSE X ACCEPTABLE :what ?!psgoal :context ?!context)
-					    -goal-response1>
-					    (UPDATE-CPS (ACCEPTED :content ?!psgoal :context ?!context))
+					    -cps-response1>
+					    (UPDATE-CSM (ACCEPTED :content ?!psgoal :context ?!context))
 					    (notify-BA :msg (COMMIT
 							     :content ?!psgoal :context ?!context))
 							     
@@ -197,6 +219,68 @@
 					    -goal-response2>
 					    (RECORD REJECTED ?!psobj :context ?context)
 					    (SAY :content "Sorry I can't do that"))
+				 :destination 'segmentend)
+				)
+		  ))
+
+;; This state starts an interaction with the BA to determine if the system should take
+;;  initiative or not
+
+(add-state 'what-next-initiative
+	   (state :action '(take-initiative?)
+		  :transitions (list
+				(transition
+				 :description "decided on taking initiative"
+				 :pattern '((TAKE-INITIATIVE :result YES :goal ?!result :context ?context)
+					    -take-init1>
+					    (UPDATE-CSM (INITIATIVE-TAKEN-ON-GOAL :what ?!result :context ?context))
+					    (invoke-BA :msg (WHAT-NEXT :active-goal ?!result :context ?context))
+					    )
+				 :destination 'perform-BA-request)
+				;;; initiative declined, enter a wait state
+				(transition
+				 :description "no initiative"
+				 :pattern '((TAKE-INITIATIVE :result NO)
+					    -take-init2>
+					    (UPDATE-CSM (NO-INITIATIVE-TAKEN)))
+				 :destination 'segmentend)
+				)
+		  ))
+
+(add-state 'perform-BA-request
+	   (state :action nil
+		  :transitions (list
+				(transition
+				 :description "failed trying to achieve the goal"
+				 :pattern '((BA-RESPONSE X FAILURE :what ?!F1 :as (SUBGOAL :of ?!target) :context ?context)
+					    ;;(A F1 :instance-of ONT::LOOK-UP :neutral ?!target)
+					    -failed1>
+					    (UPDATE-CSM (FAILED-ON :what ?!target))
+					    (GENERATE 
+					     :content (ONT::TELL :content ?!F1)
+					     :context ?context
+					     )
+					    )
+				 :destination 'segmentend)
+				(transition
+				 :description "solution to goal reported"
+				 :pattern '((BA-RESPONSE X SOLUTION :what ?!what :goal ?goal :context ?akrl-context)
+					    ;;(ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))
+					    -soln1>
+					    (UPDATE-CSM (SOLVED :what ?!what :goal ?goal :context ?akrl-context))
+					    (GENERATE 
+					     :content (ONT::TELL :content ?!what)
+					     :context ?akrl-context
+					     )
+					    )
+				 :destination 'segmentend)
+				
+				;;; initiative declined, enter a wait state
+				(transition
+				 :description "BA has nothing to do"
+				 :pattern '((BA_RESPONSE ?!x WAIT)
+					    -take-init2>
+					    (UPDATE-CSM (BA-WAITING)))
 				 :destination 'segmentend)
 				)
 		  ))

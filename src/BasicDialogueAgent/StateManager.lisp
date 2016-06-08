@@ -349,13 +349,15 @@
       (da-warn "Bad attribute-value pair in ~S" act)))
 
 (defun instantiate-dstate-args (value user)
-  "replace terms that refer to variables in the user dstate with their values"
+  "replace terms that refer to variables in the user dstate with their values:
+     we look both in the user's local-kb and in the dstate-args"
   (when value
     (if (consp value)
 	(cond 
 	  ((and (consp (car value)) (eq (caar value) 'V))
-	    (cons (or (find-arg (user-dstate-args user) (cadar value))
-		      (lookupCPSvar (cadar value)))
+	   (cons (or (cadr (assoc (cadar value) (user-local-kb user)))
+		     (find-arg (user-dstate-args user) (cadar value))
+		      )
 		  (instantiate-dstate-args (cdr value) user)))
 	  ((and (consp (car value)) (eq (caar value) 'S))
 	   (cons (format nil "~:(~A~)" (cadar value))  ;; write out string in all uppercase
@@ -596,7 +598,8 @@
   "processes the LF with the patterns associated with the current state. 
       Returns T if interpretation succeeded"
   (let ((s (current-dstate user)))
-    (trace-msg 2 "~%Interpreting LF ~S for ~S in state ~S" lfs (user-name user) (state-id s))
+    (trace-msg 2 "~%Interpreting LF ~S for ~S" lfs (user-name user))
+    (trace-msg 1 "~% in state ~S"  (state-id s))
     (trace-msg 4 "~%~S" s)
     (when s
       ;; first extract out terms if desired
@@ -752,8 +755,9 @@
 
 (defun find-first-transition-match (lfs transitions)
   (when transitions
-    (let ((ans (interpret-lf lfs (list (transition-pattern (car transitions)))))
-	  (im::*trace-level* dagent::*trace-level*))  ;; turn on IM tracing the the rule matching
+    (let* ((im::*trace-level* dagent::*trace-level*)  ;; turn on IM tracing the the rule matching
+	   (ans (interpret-lf lfs (list (transition-pattern (car transitions))))))
+	  
       (if ans (progn (trace-msg 2 "~%Matched rules: top hit is ~S" (im::match-result-rule-id (car ans)))
 		     (trace-msg 3 ": ~%~S" (car ans))
 		     (trace-msg 4 "~%   Other rules are ~S" (cdr ans)))
@@ -772,19 +776,20 @@
   (send-msg '(request :content (release-pending-speech-act))))
 
 (defun execute-action (act channel user uttnum)
-  (trace-msg 1 "Executing ~S ..." (car act))
-  (trace-msg 2 "~%~S" act)
-  
-  (let ((ans (case (car act)
-	       (perform (mapcar #'(lambda (x) (execute-action x channel user uttnum))
-				(cdr act)))
-	       (and (every #'(lambda (x) (execute-action x channel user uttnum))
-			   (cdr act)))
+  (when act
+    (trace-msg 1 "Executing ~S ..." (car act))
+    (trace-msg 2 "~%~S" act)
+    
+    (let ((ans (case (car act)
+		 (perform (mapcar #'(lambda (x) (execute-action x channel user uttnum))
+				  (cdr act)))
+		 (and (every #'(lambda (x) (execute-action x channel user uttnum))
+			     (cdr act)))
 
-	       ; list of control meds
-	       (druglist
-		(mapcar #'(lambda (b) (cadr (alarm-args b))) 
-			(remove-if-not #'(lambda (a) (equal (alarm-start-state a) 'CONTROL-MED1))
+					; list of control meds
+		 (druglist
+		  (mapcar #'(lambda (b) (cadr (alarm-args b))) 
+			  (remove-if-not #'(lambda (a) (equal (alarm-start-state a) 'CONTROL-MED1))
 				       (user-alarms user))))
 
 	       ; wait and check on user again after suggesting inhaler use
@@ -844,10 +849,10 @@
 		(apply (car (cadr act)) (list (cdr (cadr act)) channel user uttnum)))
 
 	       ;;  here are the CPS/BA builtin actions
-	       (update-cps 
-		(update-cps (cadr act)))
-	      ;; (query-CPS
-	;;	(query-cps (cadr act)))
+	       (update-csm
+		(update-csm (cadr act)))
+	       (query-CSM
+		(query-csm :content (find-arg-in-act act :content)))
 	       (invoke-ba 
 		(invoke-ba (cdr act) user channel uttnum)
 		nil)
@@ -868,7 +873,7 @@
 	       (otherwise
 		(format t "~% WARNING: action not known: ~S:" act)))))
     (trace-msg 3 "with result ~S" ans)
-    ans))
+    ans)))
 
 ;;  BA invocation
 

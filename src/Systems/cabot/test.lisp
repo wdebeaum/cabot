@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Wed Mar 16 13:00:47 EDT 2016 jallen>
+;;;; Time-stamp: <Sun Mar 20 21:05:24 EDT 2016 jallen>
 ;;;;
 
 (unless (find-package :trips)
@@ -90,6 +90,199 @@
 				  :BOTTOMRIGHT (50 88))
 			  )
 	  ))
+
+      ;;  script has a "here's two" at this stage -- but we'll need to discuss how this should be handled. Better for initial demo to wait for the perceptual component to confirm the performance of the action
+
+            
+      (TELL :CONTENT (SCENE-DESCRIPTION
+		:TIMESTAMP "2015-08-17T01:45:33.1353"
+		:IS-STABLE T 
+		:OBJECTS ((OBJECT ONT::V8039
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "starbucks block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1324
+				  :POSITION (.3211635 -.4607701 .0855261)
+				  :ROTATION (.7057797 .0432996 -0.0432995 -0.7057798)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4123adfSa
+				  :TOPLEFT (23 56)
+				  :BOTTOMRIGHT (50 88))
+			  (OBJECT ONT::V8040
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "nvidia block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1325
+				  :POSITION (.0604577 -0.41800114 0.0855262)
+				  :ROTATION (-0.5148671 -0.4846770 0.4846770 0.51486712)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4dfhfadf5
+				  :TOPLEFT (50 30)
+				  :BOTTOMRIGHT (60 130)))
+	  ))
+
+     
+      ;; CPSA -> BA (confirmation, request act done)
+      ;; BA-- CPSA -> ACK  (that's the "good")
+      ;; BA --> CPSA  push together   (i.e., goal ACHIEVE(TOUCHING(B1, B2)))
+      ;; OK. Good. Let's push them together"
+      ;;  "move this block?"   TO BE DONE (NO TIME FOR FIRST PASS)
+    
+;;  "OK"
+
+      ;; CPSA identifies clarification
+      ;;  CPSA--> BA: is "move B1" part of  "push together"
+      ;;  BA -> YES
+      ;; CPSA-> generator (ACK)
+      ;; "yes"
+      ;;  PERCEPTION -->  TOUCHING(B1, B2)
+      (TELL :CONTENT (SCENE-DESCRIPTION
+		:TIMESTAMP "2015-08-17T01:45:44.2145"
+		:IS-STABLE T 
+		:OBJECTS ((OBJECT ONT::V8039
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "starbucks block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1324
+				  :POSITION (.2311635 -.4507701 .0855261)
+				  :ROTATION (.7057797 .0432996 -0.0432995 -0.7057798)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4123adfSa
+				  :TOPLEFT (23 56)
+				  :BOTTOMRIGHT (50 88))
+			  (OBJECT ONT::V8040
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "nvidia block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1325
+				  :POSITION (.0604577 -0.41800114 0.0855262)
+				  :ROTATION (-0.5148671 -0.4846770 0.4846770 0.51486712)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4dfhfadf5
+				  :TOPLEFT (50 30)
+				  :BOTTOMRIGHT (60 130)))
+	  ))
+      ;;  CPSA -> BA (what's next)
+      ;;  BA -> CPSA: Achieve (ON(?block, B1)
+      ;; CPSA->Generator: PUTON((a block), B1)
+      ;; Put another block on top of that one
+      "OK"
+      ;;  CPSA -> Acknowledgement
+      ;; PERCEPTION:  On(B3, B1)
+      (TELL :CONTENT (SCENE-DESCRIPTION
+		:TIMESTAMP "2015-08-17T01:45:58.0941"
+		:IS-STABLE T 
+		:OBJECTS ((OBJECT ONT::V8039
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "starbucks block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1324
+				  :POSITION (.2311635 -.4507701 .0855261)
+				  :ROTATION (.7057797 .0432996 -0.0432995 -0.7057798)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4123adfSa
+				  :TOPLEFT (23 56)
+				  :BOTTOMRIGHT (50 88))
+			  (OBJECT ONT::V8040
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "nvidia block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1325
+				  :POSITION (.0604577 -0.41800114 0.0855262)
+				  :ROTATION (-0.5148671 -0.4846770 0.4846770 0.51486712)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4dfhfadf5
+				  :TOPLEFT (50 30)
+				  :BOTTOMRIGHT (60 130))
+			  (OBJECT ONT::V8041
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "mcdonalds block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1346
+				  :POSITION (.2103044 -0.4407028 .2222769)
+				  :ROTATION (.05758480 0.6951172 0.7131223 -0.0199164)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4iyuhiop
+				  :TOPLEFT (23 50)
+				  :BOTTOMRIGHT (50 150)))
+	  ))
+      ;; CPSA-> BA (WHAT'S NEXT)
+      ;; BA -> CPSA : DONE(build-staircase)
+      ;; S: OK. We are done
+      ))
+    (integrated-demo-another-one .
+     (;; message to CPSA setting goal: invoke BA --> set-goal: build-staircase
+      (TELL :content (SET-SYSTEM-GOAL :content G1
+				      :context ((A G1 :instance-of ONT::BUILD :affected-result st1)
+						(A st1 :instance-of ONT::STAIRCASE))))
+      "OK"
+      (TELL :CONTENT (SCENE-DESCRIPTION
+		:TIMESTAMP "2015-08-17T01:45:09.4123"
+		:IS-STABLE T 
+		:OBJECTS ()))
+      ;; S: Let's build a staircase
+    
+      ;;  CPSA-> BA - what's next?  BA -> CPSA (put a block a table)
+      ;; Put a block on the table
+      "OK"
+      (TELL :CONTENT (SCENE-DESCRIPTION
+		:TIMESTAMP "2015-08-17T01:45:23.1361"
+		:IS-STABLE T 
+		:OBJECTS ((OBJECT ONT::V8039
+				  :CLASS (:* ONT::BLOCK W::BLOCK)
+				  :PROPERTIES ()
+				  :NAME "starbucks block"
+				  :SHAPE (SHAPE-PARAMS 
+					  :SIDE_LENGTH .171
+					  :FACES ((FACE :NUMBER 1 :COLOR "blue"    :ORIENTATION 1)
+					(FACE :NUMBER 2 :COLOR "red" :ORIENTATION 2)
+					(FACE :NUMBER 3 :COLOR "green" :ORIENTATION 3)))
+				  :EXAPHOR ONT::V1324
+				  :POSITION (.3211635 -.4607701 .0855261)
+				  :ROTATION (.7057797 .0432996 -0.0432995 -0.7057798)
+				  :CONFIDENCE 1.0
+				  :VISUAL-ID 12as4123adfSa
+				  :TOPLEFT (23 56)
+				  :BOTTOMRIGHT (50 88))
+			  )
+	  ))
+
+      "can I add another one?" 
 
       ;;  script has a "here's two" at this stage -- but we'll need to discuss how this should be handled. Better for initial demo to wait for the perceptual component to confirm the performance of the action
  ;     (TELL :content (UPDATE-WORLD :content ((RELN t1 :instance-of ONT::TOUCH :neutral b1 :neutral1 b2 :force ont::FALSE)
