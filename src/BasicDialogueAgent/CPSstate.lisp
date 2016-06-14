@@ -22,9 +22,21 @@
 (defun query-csm (&key content)
   (send-and-wait `(REQUEST :content (QUERY-CSM :content ,content))))
 
-(defun find-CSM-interps (&key sa what result context new-akrl-context)
-  (let ((reply (send-and-wait `(REQUEST :content (INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context)))))
-	(result-value (find-arg reply :result))
-	(new-akrl-context-value reply :new-context))
-    (im::match-vals nil result result-value)
-    (im::match-vals nil new-akrl-context new-akrl-context-value)))
+(defun find-CSM-interps (&key sa what result context new-akrl-context test)
+  (let* ((speechact (if test
+		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :test test))
+		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context))))
+	 (reply (send-and-wait `(REQUEST :content ,speechact)))
+	 (result-value (find-arg-in-act reply :content))
+	 (new-akrl-context-value (find-arg-in-act reply :context)))
+    (append (im::match-vals nil result result-value)
+	    (im::match-vals nil new-akrl-context new-akrl-context-value))))
+
+	
+(defun take-initiative? (&key result goal context)
+  (let* ((reply (send-and-wait `(REQUEST :content (take-initiative? :goal ,goal :context ,context))))
+	 (result-value (find-arg-in-act reply :result))
+	 
+	 (new-akrl-context-value (find-arg reply :context)))
+    ;;(format t "%% Take INIT RETURNS ~S" reply)
+    reply))

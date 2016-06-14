@@ -37,16 +37,30 @@
 	(context (find-arg args :context)))
     (format t "~%DUMMY: WHAT-NEXT active goal is ~S" active-goal )
     (let* 
-	((target active-goal)
-	 (act (find-lf-in-context context target)))
-      (format t "~%act is ~S" act)
+	((target (find-arg-in-act active-goal :what))
+	 (act (find-lf-in-context context target))
+	 (condition-id (find-arg act :content))
+	 (condition (find-lf-in-context context condition-id))
+	 (action (find-arg condition :action))
+	 (result (find-arg condition :result))
+	 )
+      (format t "~%condition is ~S" condition)
       (case (find-arg act :instance-of)
+	(ont::evaluate
+	 (reply-to-message msg
+	
+			   `(REPORT :content (SOLUTION :what E2  :goal ,target :justification R02)
+				    :context ,(cons `(RELN E2 :INSTANCE-OF ONT::INCREASE :AGENT ,action :RESULT ,result)
+						   context))
+						   
+			   ))
+
 	(ont::identify 
 	 (let ((obj (find-lf-in-context context (find-arg act :affected))))
 	   (case (find-arg obj :instance-of)
 	     (ont::protein
 	      (reply-to-message msg
-			#|	`(REPORT :content (SOLUTION :what E1 :goal ,target :justification R01)
+				`(REPORT :content (SOLUTION :what E1 :goal ,target :justification R01)
 					 :context ((RELN E1 :INSTANCE-OF ONT::EQUALS :NEUTRAL S1 :NEUTRAL1 PK01)
 						   (A PK01 :INSTANCE-OF ONT::PROTEIN :NAME KRAS :DBID P01116)
 						   (RELN R01 :INSTANCE-OF ONT::HAVE :NEUTRAL Q1 :NEUTRAL1 MUT1)
@@ -59,9 +73,7 @@
 						   (A MUT1 :INSTANCE-OF ONT::MUTATION :MODS (RM1 RM2))
 						   (RELN RM1 :INSTANCE-OF ONT::HAVE :NEUTRAL PK01 :NEUTRAL1 MUT1)
 						   (RELN RM2 :INSTANCE-OF ONT::CAUSE-EFFECT :AGENT RM1 :RESULT RA1)
-						   (RELN RA1 :INSTANCE-OF ONT::ACTIVATE :AGENT MUT1 :AFFECTED PK01)))))||#
-				'(REPORT :content (SOLUTION :what gr-id :goal (current-goal))
-                                                      :context (list what)))
+						   (RELN RA1 :INSTANCE-OF ONT::ACTIVATE :AGENT MUT1 :AFFECTED PK01))))
 	      )
 
 	      (ont::medication
@@ -71,11 +83,13 @@
 				   :context ,(cons `(A F1 :instance-of ONT::LOOK-UP :neutral ,(second obj))
 						   context))))
 						   
-	   (otherwise 
-	    (reply-to-message msg
-			      `(REPORT :content (WAIT)))))))
-	  )
-      )))
+	      (otherwise 
+	       (reply-to-message msg
+				 `(REPORT :content (WAIT)))))))
+	))))
+
+       
       
 (defun find-lf-in-context (context id)
   (find id context :key #'cadr))
+

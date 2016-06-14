@@ -858,8 +858,13 @@
 		nil)
 	       (notify-ba 
 		(notify-ba (cdr act) user channel uttnum))
+	       ;; this function is called only if it is the the action slot of a state, so results are cached so the pattern rules 
+	       ;;  can access them
 	       (take-initiative?
-		(apply #'take-initiative? (cdr act)))
+		(let* ((result (apply #'take-initiative? (instantiate-dstate-args (cdr act) user)))
+		       ;;(result-value (or (find-arg-in-act result :result) 'NO))
+		      )
+		  (cache-response-for-processing (list result))))
 	       (set-cps-variable 
 		(set-CPS-variable (cadr act) (caddr act)))
 	       (generate
