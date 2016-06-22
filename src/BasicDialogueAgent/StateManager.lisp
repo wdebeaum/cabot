@@ -909,6 +909,9 @@
   (let ((reduced-context (remove-unused-context-with-root what *most-recent-lfs*)))
     (when reduced-context
       (im::match-vals nil result (mapcar #'im::convert-lf-to-akrl reduced-context)))))
+
+(defun find-attr (&key result feature)
+  (im::match-vals nil result (get-attr *current-user* feature)))
   
 (defun invoke-generator (msg user channel uttnum)
   "here we invoke the BA with a message and record the result for the followup state.

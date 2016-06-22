@@ -29,11 +29,53 @@ require Exporter;
 @EXPORT_OK = qw(combine_tags);
 
 use Data::Dumper;
-use TextTagger::Util qw(sets_equal union intersection remove_duplicates is_subset);
+use TextTagger::Util qw(sets_equal union intersection remove_duplicates is_subset word_is_in_trips_lexicon);
 
 use strict vars;
 
 my $debug = 0;
+
+# remove prefix tags and their corresponding root words when the whole word has
+# a sense in TRIPS/WN or the root word *doesn't* have a sense anywhere. Also
+# remove any other tags for the prefix/root if there isn't a subword version of
+# the prefix (the only other way we'd get the split).
+# note: assumes tag list is sorted
+sub remove_unusable_prefix_splits {
+  my ($self, @tags) = @_;
+  my @senses = grep { $_->{type} eq 'sense' } @tags;
+  my @subwords = grep { $_->{type} eq 'subword' } @tags;
+  my @prefixes = grep { $_->{type} eq 'prefix' } @tags;
+  for my $prefix (@prefixes) {
+    # make the greps below faster by discarding tags we've passed already
+    pop @senses while (@senses and $senses[0]{end} < $prefix->{start});
+    pop @subwords while (@subwords and $subwords[0]{end} < $prefix->{start});
+    next unless (exists($prefix->{root})); # saved root word tag
+    my $root = $prefix->{root};
+    my $whole = $prefix->{lex} . $root->{lex};
+          # if the whole word is in TRIPS/WN...
+    if (word_is_in_trips_lexicon($self, $whole, 1) or
+        # ... or we have no sense (in TRIPS/WN or here) for the root
+	not (word_is_in_trips_lexicon($self, $root->{lex}, 1) or
+	     grep {
+	       $_->{start} == $root->{start} and
+	       $_->{end} == $root->{end}
+	     } @senses)) {
+      # remove $prefix and $root from @tags
+      @tags = grep { (not ($_ == $prefix or $_ == $root)) } @tags;
+      # if there's no subword tag for the same span as $prefix
+      if (not grep {
+	    $_->{start} == $prefix->{start} and $_->{end} == $prefix->{end}
+	  } @subwords) {
+	# remove all other tags for the same spans as the prefix and root
+	@tags = grep { (not (
+	  ($_->{start} == $prefix->{start} and $_->{end} == $prefix->{end}) or
+	  ($_->{start} == $root->{start} and $_->{end} == $root->{end})
+	)) } @tags;
+      }
+    }
+  }
+  return @tags;
+}
 
 # note: assumes tag list is sorted
 sub remove_overlapping_but_nonnesting_phrase_tags {
@@ -589,6 +631,7 @@ sub combine_tags {
                        grep { $_->{type} eq 'phrase' }
 		       @tags
 		     ]);
+  @tags = remove_unusable_prefix_splits($self, @tags);
   @tags = remove_overlapping_but_nonnesting_phrase_tags(@tags);
   return remove_redundant_names(
            map { combine_tags_for_span($self, $phrase_tag_sources, @$_) }

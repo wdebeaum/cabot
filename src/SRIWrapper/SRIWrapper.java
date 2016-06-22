@@ -249,6 +249,14 @@ public class SRIWrapper extends StandardTripsModule  {
 	    error("Yow! Subscription failed: " + ex);
 	}
 	
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (SPOKEN . *)))");
+	    send(perf);		
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
+	
 	blockMessagePuller = new BlockMessagePuller(this, plan);
 	blockMessagePullerThread = new Thread(blockMessagePuller);
 	blockMessagePullerThread.start();
@@ -356,6 +364,15 @@ public class SRIWrapper extends StandardTripsModule  {
 		{
 			KQMLObject sender = msg.getParameter(":sender");
 			KQMLObject uttnum = content.getKeywordArg(":uttnum");
+			
+		}
+		else if (content0.equalsIgnoreCase("SPOKEN"))
+		{
+			
+			KQMLObject text = content.getKeywordArg(":WHAT");
+			System.out.println("Received SPOKEN message with text: " + text.toString() );
+			if (text != null)
+				TextToSpeech.sayWithoutRepeating(text.stringValue());
 			
 		}
 		else {

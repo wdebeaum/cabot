@@ -109,7 +109,7 @@ public class BlockMessagePuller implements Runnable {
 			}
 			
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				closeWriter();

@@ -30,7 +30,17 @@ public class Scene {
 		for (Object blockJson : blocks)
 		{
 			Block b = new Block((JSONObject)blockJson);
-			integerBlockMapping.put(b.id, b);
+			if (integerBlockMapping.containsKey(b.id))
+			{
+				int newId = b.id + 1;
+				while (integerBlockMapping.containsKey(newId))
+					newId++;
+				
+				if (newId <= 20)
+					integerBlockMapping.put(newId, b);
+			}
+			else
+				integerBlockMapping.put(b.id, b);
 		}
 		
 		

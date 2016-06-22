@@ -22,10 +22,10 @@
 (defun query-csm (&key content)
   (send-and-wait `(REQUEST :content (QUERY-CSM :content ,content))))
 
-(defun find-CSM-interps (&key sa what result context new-akrl-context test)
+(defun find-CSM-interps (&key sa what result context new-akrl-context test active-goal)
   (let* ((speechact (if test
-		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :test test))
-		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context))))
+		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :test ,test :active-goal ,active-goal))
+		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :active-goal ,active-goal))))
 	 (reply (send-and-wait `(REQUEST :content ,speechact)))
 	 (result-value (find-arg-in-act reply :content))
 	 (new-akrl-context-value (find-arg-in-act reply :context)))

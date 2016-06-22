@@ -11,13 +11,14 @@ import messages.NetworkConfiguration;
 
 public class TextToSpeech {
 	
-	public static boolean speechEnabled = false;
+	public static boolean speechEnabled = true;
+	public static String lastSpoken = "";
     
     public static void say(String input)
     {
+    	System.out.println(input);
     	if (!speechEnabled)
     	{
-    		System.out.println(input);
     		return;
     	}
     	
@@ -47,5 +48,14 @@ public class TextToSpeech {
 				e.printStackTrace();
 			}
 		}
+    }
+    
+    public static void sayWithoutRepeating(String input)
+    {
+    	if (input.equals(lastSpoken) || input.equals("Sorry, an error occurred in generation."))
+    		return;
+    	
+    	lastSpoken = input;
+    	say(input);
     }
 }

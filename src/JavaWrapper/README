@@ -1,0 +1,5 @@
+Java wrapper to put TRIPS parses into Java data structures.
+
+Note that cubismwrapper is not on the build path - you can add it to the build path and fix the errors if you need to use it, but right now it is just there for archival purposes. (The java wrapper code is generalized from that work
+
+LeadXMLProcessor will not currently be used but may be useful in the future - we're just going to take CoreNLP XML files for now.

@@ -25,14 +25,13 @@ public class JsonReader {
 			JSONObject json = (JSONObject)parser.parse(rd);
 			return json;
 	    } catch (IOException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Could not connect to: " + url);
 		} finally {
 		    try {
 				is.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Could not close connection to: " + url);
 			}
 	    }
 		return null;

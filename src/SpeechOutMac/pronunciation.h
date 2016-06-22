@@ -2,7 +2,7 @@
  * pronunciation.h
  *
  * Lucian Galescu <lgalescu@ihmc.us>, 28 Apr 2005
- * $Id: pronunciation.h,v 1.2 2014/02/23 22:53:43 iperera Exp $
+ * $Id: pronunciation.h,v 1.3 2016/06/16 23:55:03 iperera Exp $
  */
 
 #ifndef _pronunciation_h
@@ -51,7 +51,13 @@ typedef struct dict_resource_s {
     /* entries follow */
 } dict_resource;
 
-#pragma options align=reset
+//#pragma options align=reset
+
+#ifdef __clang__
+    #pragma options align=reset
+#else
+    #pragma pack()
+#endif
 
 typedef struct pronunciation_s {
     char *text;
