@@ -142,16 +142,17 @@ public class InterpretSpeechActHandler {
 	
 	private KQMLList handleWhatIs()
 	{
+		String newId = IDHandler.getNewID();
 		KQMLList askAdoptContent;
 		if (((KQMLList)whatLF).getKeywordArg(":instance-of").stringValue().
 				equalsIgnoreCase("ONT:MEDICATION"))
-			askAdoptContent = adoptContent(what,"SUBGOAL",activeGoalWhat);
+			askAdoptContent = adoptContent(newId,"SUBGOAL",activeGoalWhat);
 		else
-			askAdoptContent = adoptContent(what, "SUBGOAL", activeGoalWhat);
+			askAdoptContent = adoptContent(newId, "SUBGOAL", activeGoalWhat);
 		
     	KQMLList askRelnContent = new KQMLList();
     	askRelnContent.add("ont::RELN");
-    	askRelnContent.add(IDHandler.getNewID());
+    	askRelnContent.add(newId);
     	askRelnContent.add(":instance-of");
     	askRelnContent.add("ONT::IDENTIFY");
     	askRelnContent.add(":affected");

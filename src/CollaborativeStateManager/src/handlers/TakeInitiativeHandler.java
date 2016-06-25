@@ -29,12 +29,13 @@ public class TakeInitiativeHandler {
 			return null;
 		
 		String goalType = goalLF.getKeywordArg(":INSTANCE-OF").stringValue();
-		
+		System.out.println("Goal type: *" + goalType + "*");
 		KQMLList takeInitContent;
-		if (goalWhat.equalsIgnoreCase("ont::v32008"))
+		String goalTypeUpper = goalType.toUpperCase();
+		if (goalTypeUpper.contains("V32008"))
 			takeInitContent = takeInitiativeContent("NO", goal, context);
-		else if (goalType.equalsIgnoreCase("ONT::IDENTIFY") || 
-				goalType.equalsIgnoreCase("ONT::EVALUATE"))
+		else if (goalTypeUpper.contains("IDENTIFY") || 
+				goalTypeUpper.contains("EVALUATE"))
 			takeInitContent = takeInitiativeContent("YES", goal, context);
 		else
 			takeInitContent = takeInitiativeContent("NO", goal, context);

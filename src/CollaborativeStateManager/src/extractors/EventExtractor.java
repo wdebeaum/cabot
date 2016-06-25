@@ -29,7 +29,7 @@ public class EventExtractor {
 				continue;
 			KQMLList termList = (KQMLList)term;
 			
-			if (termList.get(0).stringValue().toUpperCase().contains("RELN") && 
+			if (termList.get(0).stringValue().toUpperCase().contains("RELN") || 
 					termList.get(3).stringValue().toUpperCase().contains("ACTIVATE"))
 			{
 				eventIDs.add(termList.get(1));

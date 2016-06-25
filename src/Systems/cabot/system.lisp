@@ -18,7 +18,7 @@
   (:dfc-component       :llearner          #!TRIPS"src;LanguageLearner;")
   ;; the :dummy component is used to fake certain message interactions during
   ;; system development. comment out when not needed!
-  ;; (:dfc-component       :dummy		   #!TRIPS"src;Dummy;")
+   (:dfc-component       :dummy		   #!TRIPS"src;Dummy;")
   )
 
 ;; add WebParser to the system when we have its source directory
@@ -68,4 +68,5 @@
 
 ;;  loading the dummy message handling
 
-;;(load "dummymessages.lisp")
+(load "dummymessages.lisp")
+(load "dummy-CSM.lisp")
