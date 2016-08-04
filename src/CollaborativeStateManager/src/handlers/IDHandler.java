@@ -7,9 +7,11 @@ public class IDHandler {
 	{
 		currentID++;
 		return "C" + String.format("%05d", currentID);
-		
-		
-		
 
+	}
+	
+	public static void resetIDs()
+	{
+		currentID = 0;
 	}
 }

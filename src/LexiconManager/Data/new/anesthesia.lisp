@@ -7,7 +7,7 @@
   (w::anesthesia
   (senses
    ((meta-data :wn ("anesthesia%1:26:00"))
-    (LF-PARENT ONT::medical-condition)
+    (LF-PARENT ONT::anesthesia)
     (TEMPL mass-pred-TEMPL)
     (syntax (W::morph (:forms (-none))))
     )

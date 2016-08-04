@@ -8,12 +8,12 @@
   (W::PLUS
    (wordfeats (W::conj +))
    (SENSES
-    ((LF W::PLUS)
+    ((LF ONT::PLUS)
      (non-hierarchy-lf t)(TEMPL SUBCAT-ANY-TEMPL)
      )
-    ((LF W::AND)
+    ((LF ONT::AND)
      (non-hierarchy-lf t)(TEMPL SUBCAT-ANY-TEMPL)
-     (SYNTAX (W::seq +) (W::status W::definite-plural))
+     (SYNTAX (W::seq +) (W::status (? s ont::definite-plural ont::indefinite-plural)))
      )
     )
    )

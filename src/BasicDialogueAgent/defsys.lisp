@@ -1,7 +1,7 @@
 ;;;;
 ;;;; defsys.lisp for Dagent- the generic dialogue agent 
 ;;;;
-;;;;;;;; Time-stamp: <Fri Jun  3 17:25:21 EDT 2016 jallen>
+;;;;;;;; Time-stamp: <Mon Aug  1 12:02:11 EDT 2016 jallen>
 ;;;;
 
 
@@ -32,6 +32,8 @@
 		  "StateManager"
 		  "CPSstate"
 		  "user-db"
+		  "cps-agent-states"
+		  "basic-conversation-states"
 		  ))
 
 ;;(mk:defsystem :dagent-data

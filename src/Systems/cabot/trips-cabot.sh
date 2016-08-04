@@ -172,7 +172,7 @@ cat - <<_EOF_ >/tmp/trips$$
                         "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
                         "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
                         "$TRIPS_BASE/src/Conceptualizer/src")
-        :argv ($port_opt)))
+        :argv ($port_opt TRIPS_SCENARIO_DEFAULT)))
 (request
   :receiver facilitator
   :content (start-module
@@ -183,7 +183,7 @@ cat - <<_EOF_ >/tmp/trips$$
                         "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
                         "$TRIPS_BASE/etc/java/TRIPS.util.jar"
                         "$TRIPS_BASE/src/CollaborativeStateManager/src")
-        :argv ($port_opt)))
+        :argv ($port_opt TRIPS_SCENARIO_DEFAULT)))
 
 _EOF_
 if test -z "$nouser" ; then

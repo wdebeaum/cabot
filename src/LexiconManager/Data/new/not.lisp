@@ -7,6 +7,10 @@
  :words (
   (W::NOT
    (SENSES
+    #||((TEMPL BINARY-CONSTRAINT-NP-TEMPL)
+     (LF-PARENT ONT::BUT-EXCEPTION)
+     (preference .98) ;; prefer the ADV operator when possible
+     )||#
     ((LF-PARENT ONT::NEG)
      (example "not too bad")
      (TEMPL NEG-ADJ-ADV-OPERATOR-TEMPL)
@@ -14,6 +18,23 @@
     )
    )
 ))
+
+;; not can be a conjunction "apples not pears keep", he was "happy, not sad"
+(define-words :pos W::conj :boost-word t
+ :tags (:base500)
+ :words (
+  (w::not
+   (wordfeats (w::but-not +))
+   (SENSES
+    ((LF ONT::BUT-EXCEPTION)
+     (non-hierarchy-lf t)
+     (TEMPL SUBCAT-ANY-TEMPL)
+     )
+    )
+   )
+  
+  ))
+
 
 (define-words :pos W::adv :templ DISC-PRE-TEMPL
  :words (
@@ -102,7 +123,7 @@
  :words (
 ;; VP negation e.g. he isn't going to the party
   (W::NOT
-  (senses((LF W::NEG)
+  (senses((LF ONT::NEG)
     (non-hierarchy-lf t)(TEMPL no-features-templ)
     )
    )

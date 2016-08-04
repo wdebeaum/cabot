@@ -119,7 +119,7 @@
 (define-type ONT::plant-part
     :wordnet-sense-keys ("plant_part%1:20:00")
     :parent ONT::plant
-    :arguments ((:required ONT::OF (F::Phys-obj (F::origin F::plant))))
+    :arguments ((:required ONT::FIGURE (F::Phys-obj (F::origin F::plant))))
     )
 
 ;; UMLS
@@ -167,14 +167,14 @@
 		      )
     :arguments (;(:OPTIONAL ONT::OF ((? lof F::Phys-obj)))
 ; this needs to be less restrictive as long as it's used for "where" clauses, e.g. the party where he met her
-		(:OPTIONAL ONT::OF ((? lof f::situation F::Phys-obj)))
+		(:OPTIONAL ONT::FIGURE ((? lof f::situation F::Phys-obj)))
 ; (:OPTIONAL ONT::OF ((? lof F::Phys-obj)))
 		)
     )
 
 (define-type ONT::specific-loc
     :parent ONT::location
-    :arguments ((:OPTIONAL ONT::VAL) ;; ppword-adv templates have an implicit subcat
+    :arguments ((:OPTIONAL ONT::GROUND) ;; ppword-adv templates have an implicit subcat
 		)
     )
 
@@ -655,7 +655,7 @@
 (define-type ONT::family-relation
     :wordnet-sense-keys ("relative%1:18:00" "relation%1:18:00")
     :parent ONT::person
-    :arguments ((:required ONT::OF (F::Phys-obj (F::intentional +) (F::origin F::human) (F::trajectory -)))
+    :arguments ((:required ONT::FIGURE (F::Phys-obj (F::intentional +) (F::origin F::human) (F::trajectory -)))
 		)
     )
 
@@ -664,20 +664,21 @@
 ;; subscriber, attendee
 (define-type ONT::person-reln
     :parent ONT::person
-    :arguments ((:required ONT::OF ((? lof F::Phys-obj f::abstr-obj f::situation)))
+    :arguments ((:required ONT::FIGURE ((? lof F::Phys-obj f::abstr-obj f::situation)))
 		)
     )
 
 ;; engineer, artist, scientist
 (define-type ONT::professional
     :wordnet-sense-keys ("professional%1:18:00" "professional_person%1:18:00")
+    :comment "a person defined by a role that they play. e.g., doctor, leader, ..."
     :parent ONT::PERSON
     :sem (F::Phys-obj (F::form F::solid-object)
 		      (F::spatial-abstraction F::spatial-point)
 		      (F::origin F::Human)
 		      (F::Object-Function F::Occupation)
 		      (F::Container -) (F::intentional +) (F::information -))
-    :arguments ((:OPTIONAL ONT::OF ((? lof F::Phys-obj f::abstr-obj)))
+    :arguments ((:OPTIONAL ONT::FIGURE ((? lof F::Phys-obj f::abstr-obj)))
 		(:optional ont::norole)  ;; here for "driver", "fixer": see note in DRV-NOM-RELN-TEMPL 
 		)
     )
@@ -686,14 +687,14 @@
 (define-type ONT::scholar
     :wordnet-sense-keys ("student%1:18:01" "bookman%1:18:00" "scholarly_person%1:18:00" "scholar%1:18:00" "student%1:18:00" "pupil%1:18:00" "educatee%1:18:00")
     :parent ONT::professional
-    :arguments ((:OPTIONAL ONT::OF ((? lof F::Phys-obj f::abstr-obj)))
+    :arguments ((:OPTIONAL ONT::FIGURE ((? lof F::Phys-obj f::abstr-obj)))
 		)
     )
 
 (define-type ONT::author
     :wordnet-sense-keys ("writer%1:18:00" "author%1:18:00")
     :parent ONT::professional
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (F::origin F::artifact) (f::information f::information-content))))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::origin F::artifact) (f::information f::information-content))))
     )
 
 ;; expert, specialist, afficionado, gourmet, gourmand
@@ -1059,7 +1060,7 @@
 (define-type ont::structural-opening
     :parent ONT::general-structure
     :wordnet-sense-keys ("entrance%1:06:00" "entranceway%1:06:00" "entryway%1:06:00" "entry%1:06:00" "window%1:06:00" "window%1:06:01" "window%1:06:05")
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 
@@ -1067,7 +1068,7 @@
 (define-type ont::structural-component
     :parent ONT::general-structure
     :wordnet-sense-keys ("annex%1:06:00" "annexe%1:06:00" "extension%1:06:00" "wing%1:06:00")
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 
@@ -1075,7 +1076,7 @@
 (define-type ont::structure-internal-component
     :parent ONT::structural-component
     :wordnet-sense-keys ("wall%1:06:00" "wall%1:06:03" "ceiling%1:06:00" "floor%1:06:00")
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 
@@ -1083,7 +1084,15 @@
     :comment "parts of exterior of buildings: e.g., roof, window"
     :parent ONT::structural-component
     :wordnet-sense-keys ("roof%1:06:00")
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
+		)
+    )
+
+(define-type ont::step
+    :comment "part of a staircase"
+    :parent ONT::structural-component
+    :wordnet-sense-keys ("step%1:06:00")
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 
@@ -1114,7 +1123,7 @@
 ;; anywhere, anyplace, ...
 (define-type ONT::wh-location
     :parent ONT::location
-    :arguments ((:OPTIONAL ONT::VAL) ;; ppword-adv templates have an implicit subcat
+    :arguments ((:OPTIONAL ONT::GROUND) ;; ppword-adv templates have an implicit subcat
 		)
     )
 
@@ -1169,10 +1178,11 @@
     :parent ONT::loc-wrt-ground-as-spatial-obj
     :wordnet-sense-keys ("center%1:15:01" "centre%1:15:01" "middle%1:15:00" "heart%1:15:00" "eye%1:15:00")
     :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::spatial-point)))
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA F::SPATIAL-REGION))))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA F::SPATIAL-REGION))))
 		)
     )
 
+; used by ORIENTS-TO
 (define-type ONT::loc-wrt-orientation
     :parent ONT::loc-as-defined-by-reln-to-ground
     )
@@ -1204,7 +1214,7 @@
 		      ;; Myrosia 2007/11/20 marked as container + to account for examples like "this path contains a bulb/2 terminals/3 segments"
 		      (f::Container +)
 		      (F::spatial-abstraction (? sa F::line F::strip)) (F::trajectory +))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 ;		(:OPTIONAL ONT::from-loc (F::Phys-obj))
 ;		(:OPTIONAL ONT::to-loc (F::Phys-obj))
 ;		(:OPTIONAL ONT::via (F::Phys-obj))
@@ -1254,8 +1264,8 @@
     :parent ONT::LOCATION-by-description
     :wordnet-sense-keys ("junction%1:06:00")
     :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::spatial-point)))
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA2 F::LINE F::STRIP)) (F::FORM F::GEOGRAPHICAL-OBJECT) (F::MOBILITY F::FIXED)))
-		(:OPTIONAL ONT::OF2 (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA2 F::LINE F::STRIP)) (F::FORM F::GEOGRAPHICAL-OBJECT) (F::MOBILITY F::FIXED)))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA F::LINE F::STRIP)) (F::FORM F::GEOGRAPHICAL-OBJECT) (F::MOBILITY F::FIXED)))
+		(:OPTIONAL ONT::FIGURE1 (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA2 F::LINE F::STRIP)) (F::FORM F::GEOGRAPHICAL-OBJECT) (F::MOBILITY F::FIXED)))
 		)
     )
 
@@ -1265,8 +1275,8 @@
     :sem (F::Phys-obj (F::spatial-abstraction F::spatial-point) )
     ;; both of these arguments should be numbers -- they are restricted in the templates since numbers don't have semantics
     ;; e.g. point 4 5
-    :arguments ((:required ONT::OF) ;;x
-		(:required ONT::OF2) ;;y
+    :arguments ((:required ONT::FIGURE) ;;x
+		(:required ONT::FIGURE1) ;;y
 		)
     )
 
@@ -1274,7 +1284,7 @@
     :parent ONT::LOCATION-by-description
     :wordnet-sense-keys ("corner%1:15:02" "corner%1:06:00")
     :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::spatial-point)))
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::FORM F::OBJECT) (F::SPATIAL-ABSTRACTION (? SA F::STRIP F::SPATIAL-REGION))))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::FORM F::OBJECT) (F::SPATIAL-ABSTRACTION (? SA F::STRIP F::SPATIAL-REGION))))
 		)
     )
 
@@ -1282,7 +1292,7 @@
     :parent ONT::LOCATION-by-description
     :wordnet-sense-keys ("boundary%1:25:00" "edge%1:25:00" "bound%1:25:00")
     :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::line)))
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::FORM F::OBJECT) (F::SPATIAL-ABSTRACTION (? SA F::SPATIAL-REGION))))                             )
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::FORM F::OBJECT) (F::SPATIAL-ABSTRACTION (? SA F::SPATIAL-REGION))))                             )
     )
 
 
@@ -1290,22 +1300,43 @@
 (define-type ONT::object-dependent-location
     :wordnet-sense-keys ("region%1:15:00")
     :parent ONT::LOCATION
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::Form F::object)))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::Form F::object)))
 		)
     )
 
+(define-type ONT::TOP-LOCATION
+    :wordnet-sense-keys ("top%1:15:01" "top%1:15:00")
+    :parent ONT::object-dependent-location
+    )
+
+(define-type ONT::BOTTOM-LOCATION
+    :wordnet-sense-keys ("bottom%1:15:00" "bottom%1:15:01")
+    :parent ONT::object-dependent-location
+    )
+
+(define-type ONT::SIDE-LOCATION
+    :wordnet-sense-keys ("side%1:15:02")
+    :parent ONT::object-dependent-location
+    )
+
+(define-type ONT::SURFACE-LOCATION
+    :wordnet-sense-keys ("surface%1:06:00" "surface%1:15:00")
+    :parent ONT::object-dependent-location
+    )
+
 ;; noun sense of north, south, east, west
+; used by ORIENTS-TO
 (define-type ONT::cardinal-point
     :parent ONT::LOCATION-by-description
     :wordnet-sense-keys ("cardinal_compass_point%1:24:00")
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ))
 		)
     )
 
 (define-type ONT::Destination
     :parent ONT::LOCATION
     :wordnet-sense-keys ("finish%1:15:00" "destination%1:15:00" "goal%1:15:00")
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ))
 		)
     )
 
@@ -1313,7 +1344,7 @@
 (define-type ONT::Origin
     :parent ONT::LOCATION-by-description
     :wordnet-sense-keys ("beginning%1:15:00" "origin%1:15:00" "root%1:15:00" "source%1:15:00")
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ))
 		)
     )
 
@@ -1321,14 +1352,14 @@
 (define-type ONT::location-reln
     :parent ONT::LOCATION
     :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::spatial-point)))
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA F::Strip F::SPATIAL-REGION f::Line))))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA F::Strip F::SPATIAL-REGION f::Line))))
 		)
     )
 
 ;;; This is for locations defined dependent on a line
 (define-type ONT::line-dependent-location
     :parent ONT::LOCATION-reln
-    :arguments ((:OPTIONAL ONT::OF (F::PHYS-OBJ (F::spatial-abstraction (? sa F::line F::strip))))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::spatial-abstraction (? sa F::line F::strip))))
 		)
     )
 
@@ -1348,7 +1379,7 @@
     :sem (F::Phys-obj (:required (F::Form F::Object) (F::Origin F::Artifact) (F::Intentional -) (F::object-function F::representation) (f::trajectory +))
 		      ;; swift -- we need trajectory + and f::strip so we can scroll up and down displays, pages, documents etc.
 		      (:default (f::container +)  (F::information F::information-content) (f::mobility f::non-self-moving) (f::spatial-abstraction (? sab f::spatial-point f::spatial-region f::strip))))
-    :arguments ((:OPTIONAL ONT::OF))
+    :arguments ((:OPTIONAL ONT::FIGURE))
     )
 
 ;;INFO-Holder needs much more work
@@ -1446,21 +1477,21 @@
 (define-type ONT::MAP
     :parent ONT::direct-REPRESENTATION
     :wordnet-sense-keys ("map%1:06:00" "chart%1:06:00")
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (F::form F::Geographical-object)))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::form F::Geographical-object)))
 		)
     )
 
 (define-type ONT::IMAGE
     :parent ONT::direct-REPRESENTATION
     :wordnet-sense-keys ("picture%1:06:00" "image%1:06:00" "icon%1:06:00" "ikon%1:06:00")
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 
 (define-type ONT::CHART
     :parent ONT::direct-REPRESENTATION
     :wordnet-sense-keys ("chart%1:10:00")
-    :arguments ((:OPTIONAL ONT::OF (?o (F::information F::information-content)))
+    :arguments ((:OPTIONAL ONT::FIGURE (?o (F::information F::information-content)))
 		)
     )
 
@@ -1472,7 +1503,7 @@
 (define-type ONT::PUBLICATION
     :parent ONT::info-medium
     :wordnet-sense-keys ("publication%1:10:00")
-    :arguments ((:OPTIONAL ONT::OF (?o (F::information F::information-content)))
+    :arguments ((:OPTIONAL ONT::FIGURE (?o (F::information F::information-content)))
 ;		(:optional ont::originator (?org (f::intentional +))) ;; a book/paper/article by an author
 		)
     )
@@ -1481,7 +1512,7 @@
 (define-type ONT::book
     :wordnet-sense-keys ("volume%1:06:00" "book%1:06:00" "book%1:10:00")
     :parent ONT::publication
-    :arguments ((:OPTIONAL ONT::OF (?o (F::information F::information-content)))
+    :arguments ((:OPTIONAL ONT::FIGURE (?o (F::information F::information-content)))
 		)
     )
 
@@ -1495,14 +1526,14 @@
 (define-type ONT::article
     :wordnet-sense-keys ("article%1:10:00")
     :parent ONT::publication
-    :arguments ((:OPTIONAL ONT::OF (?o (F::information F::information-content)))
+    :arguments ((:OPTIONAL ONT::FIGURE (?o (F::information F::information-content)))
 		)
     )
 
 (define-type ONT::reference-work
     :wordnet-sense-keys ("reference_book%1:10:00" "reference%1:10:04" "reference_work%1:10:00" "book_of_facts%1:10:00")
     :parent ONT::publication
-    :arguments ((:OPTIONAL ONT::OF (?o (F::information F::information-content)))
+    :arguments ((:OPTIONAL ONT::FIGURE (?o (F::information F::information-content)))
 		)
     )
 
@@ -1537,7 +1568,7 @@
 ;; for a purchase action
 (define-type ONT::order
     :parent ONT::template-info-object
-    :arguments ((:REQUIRED ONT::OF ((? lof f::abstr-obj f::phys-obj)))
+    :arguments ((:REQUIRED ONT::FIGURE ((? lof f::abstr-obj f::phys-obj)))
 		)
     )
 
@@ -1581,7 +1612,7 @@
     :parent ONT::geo-formation
     :wordnet-sense-keys ("shore%1:17:00")
     :sem (F::PHYS-OBJ (F::SPATIAL-ABSTRACTION (? SA F::SPATIAL-POINT F::LINE)) (F::MOBILITY F::FIXED))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (F::form F::Geographical-object) (F::spatial-abstraction (? sao F::STrip F::Spatial-region))))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::form F::Geographical-object) (F::spatial-abstraction (? sao F::STrip F::Spatial-region))))
 		)
     )
 
@@ -1649,7 +1680,7 @@
     :parent ONT::anatomy
     :sem (F::Phys-obj (F::origin F::living) (f::intentional -) (f::form f::object) (f::object-function f::body-part))
  ;;; too strong, but better than unconstrained
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (F::origin F::living) (f::form f::object)))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::origin F::living) (f::form f::object)))
 		)
     )
 
@@ -1814,7 +1845,7 @@
     :parent ONT::device
     :wordnet-sense-keys ("model%1:09:03")
     :sem (F::Phys-obj (F::Origin F::Artifact))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (F::Origin F::Artifact) ))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::Origin F::Artifact) ))
 		)
     )
 
@@ -1863,7 +1894,7 @@
 (define-type ONT::computer-part
     :parent ONT::device
     :sem (F::Phys-obj (F::mobility F::non-self-moving)(F::object-function F::instrument) (f::origin f::artifact))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (F::Origin F::Artifact)(F::mobility F::non-self-moving) ))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::Origin F::Artifact)(F::mobility F::non-self-moving) ))
 		)
     )
 
@@ -1917,7 +1948,7 @@
 (define-type ONT::wireless
     :wordnet-sense-keys ("wireless_local_area_network%1:06:00" "WLAN%1:06:00" "wireless_fidelity%1:06:00" "WiFi%1:06:00")
     :parent ONT::COMPUTER-PART
-    :arguments ((:OPTIONAL ONT::OF (f::Phys-obj (f::origin f::artifact)))
+    :arguments ((:OPTIONAL ONT::FIGURE (f::Phys-obj (f::origin f::artifact)))
 		)
     )
 
@@ -1931,7 +1962,7 @@
 (define-type ONT::member
     :parent ONT::part
     :wordnet-sense-keys ("member%1:18:00" "member%1:24:00")
-    :arguments ((:OPTIONAL ONT::OF (f::Phys-obj (f::origin f::living)))
+    :arguments ((:OPTIONAL ONT::FIGURE (f::Phys-obj (f::origin f::living)))
 		)
     )
 
@@ -1939,7 +1970,7 @@
     :wordnet-sense-keys ("audio%1:10:00" "sound%1:10:00")
     :parent ONT::substance
     :sem (F::PHYS-OBJ (f::form f::wave) (F::INTENTIONAL -) (F::CONTAINER -))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 
@@ -1962,7 +1993,7 @@
     :parent ONT::manufactured-object
     :wordnet-sense-keys ("credit_card%1:21:00" "charge_card%1:21:00" "charge_plate%1:21:00" "plastic%1:21:00")
     :sem  (F::phys-obj (f::object-function f::currency))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj (f::origin f::human) (f::intentional +)))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (f::origin f::human) (f::intentional +)))
 		)
     )
 
@@ -1983,7 +2014,7 @@
 (define-type ONT::geo-SAMPLE
     :parent ONT::natural-object
     :wordnet-sense-keys ("core%1:17:01")
-    :arguments ((:Optional ONT::OF (f::Phys-obj (F::origin f::artifact)))
+    :arguments ((:Optional ONT::FIGURE (f::Phys-obj (F::origin f::artifact)))
                 )
     )
 
@@ -2001,7 +2032,7 @@
     :sem (f::Phys-obj (:required (f::intentional -) (f::information -))
 		      (:default (f::mobility f::non-self-moving))
 		      )
-    :arguments ((:OPTIONAL ONT::OF))
+    :arguments ((:OPTIONAL ONT::FIGURE))
     )
 
 ;; square, triangle, etc.  -- shapes that can be moved around on the screen
@@ -2043,7 +2074,7 @@
     :sem (f::Phys-obj (:required (f::origin f::artifact) (f::form f::object))
 		      (:default (f::intentional -) (f::container -) (f::mobility f::non-self-moving) (f::information -))
 		      )
-    :arguments ((:essential ONT::OF))
+    :arguments ((:essential ONT::FIGURE))
     )
 
 ;; shades, curtains, blinds
@@ -2273,7 +2304,7 @@
     :parent ONT::PHYS-REPRESENTATION
     :wordnet-sense-keys ("prescription%1:10:02" "prescription%1:10:01")
     :sem (F::PHYS-OBJ (F::FORM F::SOLID-OBJECT) (F::ORIGIN F::ARTIFACT) (F::INTENTIONAL -))
-    :arguments ((:OPTIONAL ONT::OF (F::Phys-obj))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj))
 		)
     )
 

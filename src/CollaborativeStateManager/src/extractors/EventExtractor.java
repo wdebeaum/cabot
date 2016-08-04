@@ -11,12 +11,15 @@ public class EventExtractor {
 	KQMLList relnEventContext;
 	KQMLList originalContext;
 	KQMLList eventIDs;
+	OntologyReader ontologyReader;
 	
-	public EventExtractor()
+	
+	public EventExtractor(OntologyReader ontologyReader)
 	{
 		eventContext = new KQMLList();
 		relnEventContext = new KQMLList();
-		eventIDs = new KQMLList();		
+		eventIDs = new KQMLList();
+		this.ontologyReader = ontologyReader;
 	}
 	
 	public void apply(KQMLList context)
@@ -29,8 +32,8 @@ public class EventExtractor {
 				continue;
 			KQMLList termList = (KQMLList)term;
 			
-			if (termList.get(0).stringValue().toUpperCase().contains("RELN") || 
-					termList.get(3).stringValue().toUpperCase().contains("ACTIVATE"))
+			if (ontologyReader.isEvent(termList.getKeywordArg(":INSTANCE-OF")
+																.stringValue()))
 			{
 				eventIDs.add(termList.get(1));
 				eventContext.add(term);

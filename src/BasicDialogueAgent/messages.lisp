@@ -2,7 +2,7 @@
 ;;;; messages.lisp for PlowAgent
 ;;;;
 ;;;;
-;;;; Time-stamp: <Wed Mar 16 17:19:52 EDT 2016 jallen>
+;;;; Time-stamp: <Wed Jul 20 15:25:37 CDT 2016 lgalescu>
 ;;;;
 
 (in-package :dagent)
@@ -84,24 +84,17 @@
 
 
 ;; START-CONVERSATION
-;; Eventually this should be cleaned up 
-(defcomponent-handler
-  '(tell &key :content (start-conversation . *))
-     #'(lambda (msg args)
-	 (declare (ignore msg))
-	 (go-to-restart-state *current-user*)
-      )
-    :subscribe t)
+
+(defcomponent-cancellation-pattern
+    '(tell &key :content (start-conversation . *)))
 
 (defcomponent-handler
   '(tell &key :content (start-conversation . *))
      #'(lambda (msg args)
 	 (declare (ignore msg))
-	 (go-to-restart-state *current-user*)
+	 (restart-dagent)
       )
     :subscribe t)
-
-
 
 ;;; see user-db.lisp
 

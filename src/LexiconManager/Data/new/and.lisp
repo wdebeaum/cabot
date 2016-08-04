@@ -2,6 +2,7 @@
 ;;;; w::and
 ;;;;
 
+#|
 (define-words :pos w::adv
  :words (
 ;; Parentheticals
@@ -15,6 +16,22 @@
 	   )
 )
 ))
+|#
+
+(define-words :pos W::conj :boost-word t
+ :tags (:base500)
+ :words (
+  ((W::and w::not)
+   (wordfeats (w::but-not +))
+   (SENSES
+    ((LF ONT::BUT-EXCEPTION)
+     (non-hierarchy-lf t)
+     (TEMPL SUBCAT-ANY-TEMPL)
+     )
+    )
+   )
+  
+  ))
 
 (define-words 
     :pos W::adv :templ DISC-PRE-TEMPL
@@ -73,9 +90,9 @@
   (W::AND
    (wordfeats (W::conj +) (W::seq +))
    (SENSES
-    ((LF W::AND)
+    ((LF ONT::AND)
      (non-hierarchy-lf t) (TEMPL SUBCAT-ANY-TEMPL)
-     (syntax (w::status w::definite-plural))
+     (syntax (w::status (? s ont::definite-plural ont::indefinite-plural)))
      )
     )
    )
@@ -88,7 +105,7 @@
    (wordfeats (W::conj +))
    (SENSES
     ;;;I think we don't have SEQ +, since this can't conjoin NPs - need to check JFA 4/02
-    ((LF W::AND)
+    ((LF ONT::AND)
      (non-hierarchy-lf t)(TEMPL SUBCAT-ANY-TEMPL)
      (preference .98)
      )

@@ -23,9 +23,13 @@
   (send-and-wait `(REQUEST :content (QUERY-CSM :content ,content))))
 
 (defun find-CSM-interps (&key sa what result context new-akrl-context test active-goal)
-  (let* ((speechact (if test
-		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :test ,test :active-goal ,active-goal))
-		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :active-goal ,active-goal))))
+  (let* ((realgoal (if (consp active-goal) (find-arg-in-act active-goal :what)
+		       active-goal))
+	 (speechact (if test
+;		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :test ,test :active-goal ,active-goal))
+;		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :active-goal ,active-goal))))
+		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :test ,test :active-goal ,realgoal))
+		       `(INTERPRET-SPEECH-ACT :content (,sa :content ,what :context ,context :active-goal ,realgoal))))
 	 (reply (send-and-wait `(REQUEST :content ,speechact)))
 	 (result-value (find-arg-in-act reply :content))
 	 (new-akrl-context-value (find-arg-in-act reply :context)))
@@ -34,7 +38,9 @@
 
 	
 (defun take-initiative? (&key result goal context)
-  (let* ((reply (send-and-wait `(REQUEST :content (take-initiative? :goal ,goal :context ,context))))
+  (let* (;(reply (send-and-wait `(REQUEST :content (take-initiative? :goal ,goal :context ,context))))
+	 (realgoal (if (consp goal) (find-arg-in-act goal :what) goal))
+	 (reply (send-and-wait `(REQUEST :content (take-initiative? :goal ,realgoal :context ,context))))
 	 (result-value (find-arg-in-act reply :result))
 	 
 	 (new-akrl-context-value (find-arg reply :context)))

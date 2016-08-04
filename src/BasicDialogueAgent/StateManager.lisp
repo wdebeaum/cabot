@@ -2,7 +2,7 @@
 
 (in-package :dagent)
   
-(defvar *state-definitions* nil)
+;;(defvar *state-definitions* nil)
 (defvar *segments* nil)
 (defvar *state-table* nil)
 (defvar *transition-ids* nil)
@@ -34,6 +34,8 @@
 (defvar *wait-after-inhaler* 0.333333)  ;; check with the user X hours after inhaler use or suggesting inhaler use (20 minutes)
 
 (defvar *last-internal-response* nil)   ;; this variable is used to store input to the state manager (e.g., a message from an external component like the BA, or a response to a function call within DAGENT.
+
+(defvar *interpretable-utt* nil)
 
 (defun cache-response-for-processing (x)
   (push x *last-internal-response*))
@@ -282,6 +284,18 @@
 (defun find-state (name)
   (cdr (assoc name *state-table*)))
 
+(defun restart-dagent nil
+  (mapcar #'reset-user (mapcar #'cdr *users*)))
+
+(defun reset-user (user)
+  (setf (user-current-dstate user) nil)
+  (setf (user-dstate-args user) nil)
+  (setf (user-local-kb user) nil)
+  (setf (user-history-kb user) nil)
+  (setf (user-pending-alarms user) nil)
+  (setf (user-transcript user) nil))
+  
+  
 (defun reset-states nil
   (setq *segments* nil)
   (setq *state-table* nil)
@@ -362,7 +376,7 @@
 	  ((and (consp (car value)) (eq (caar value) 'S))
 	   (cons (format nil "~:(~A~)" (cadar value))  ;; write out string in all uppercase
 		 (instantiate-dstate-args (cdr value) user)))
-	  (t (cons (car value)
+	  (t (cons (instantiate-dstate-args (car value) user)
 		   (instantiate-dstate-args (cdr value) user))))
 	value)))
 		    
@@ -488,8 +502,13 @@
 (defun end-of-turn (&key uttnum words channel)
   "if we get here then we were not able to interpret any of the user's utterance"
   (let* ((user (lookup-user channel)))
-    (uninterpretable-utterance-handler nil nil nil (if (user-p user) (user-channel-id user) channel)
-				       words nil nil user uttnum)
+    (trace-msg 1 "~%Processing END-OF-TURN message ...")
+    (if (not *interpretable-utt*)
+	(uninterpretable-utterance-handler nil nil nil (if (user-p user) (user-channel-id user) channel)
+					   words nil nil user uttnum)
+      )
+    (setq *interpretable-utt* nil)  ; reset for next turn
+    (release-pending-speech-act)
     ))
 
 ;;  HERE WE START THE CODE FOR PROCESSING INCOMING MESSAGES
@@ -597,9 +616,12 @@
   (declare (ignore hyps context words))
   "processes the LF with the patterns associated with the current state. 
       Returns T if interpretation succeeded"
+  (when (not (user-p user))
+    (format t "~%Warning: process-lf-in-state  called with a bad user argument: ~S" user)
+    (setq user *current-user*))
   (let ((s (current-dstate user)))
     (trace-msg 2 "~%Interpreting LF ~S for ~S" lfs (user-name user))
-    (trace-msg 1 "~% in state ~S"  (state-id s))
+    (trace-msg 1 "~% in state ~S"  (if (state-p s) (state-id s)))
     (trace-msg 4 "~%~S" s)
     (when s
       ;; first extract out terms if desired
@@ -779,7 +801,7 @@
   (when act
     (trace-msg 1 "Executing ~S ..." (car act))
     (trace-msg 2 "~%~S" act)
-    
+    (setq act (instantiate-dstate-args act user))
     (let ((ans (case (car act)
 		 (perform (mapcar #'(lambda (x) (execute-action x channel user uttnum))
 				  (cdr act)))
@@ -858,6 +880,8 @@
 		nil)
 	       (notify-ba 
 		(notify-ba (cdr act) user channel uttnum))
+	       (extract-goal-description
+		(apply #'extract-goal-description (cdr act)))
 	       ;; this function is called only if it is the the action slot of a state, so results are cached so the pattern rules 
 	       ;;  can access them
 	       (take-initiative?
@@ -877,7 +901,7 @@
 	       (true (clear-pending-speech-acts  uttnum channel))
 	       (otherwise
 		(format t "~% WARNING: action not known: ~S:" act)))))
-    (trace-msg 3 "with result ~S" ans)
+    (trace-msg 3 " result of execute-action is ~S" ans)
     ans)))
 
 ;;  BA invocation
@@ -886,7 +910,8 @@
   "here we invoke the BA with a message and record the result for the followup state.
     Since we are using send and wait we don't have syncronization problems"
   ;; clear clear any remaining input in the input stream
-  (clear-pending-speech-acts uttnum channel)
+;  (clear-pending-speech-acts uttnum channel)
+  (setq *interpretable-utt* t)
   (let* ((msg (instantiate-dstate-args (find-arg args :msg) user))
 	 (reply (send-and-wait `(REQUEST :content ,msg)))
 	 (content (find-arg-in-act reply :content))
@@ -900,11 +925,22 @@
 
 (defun notify-BA (args user channel uttnum)
   "here we invoke the BA with a message but don't expect a response"
-  (clear-pending-speech-acts uttnum channel)
+;  (clear-pending-speech-acts uttnum channel)
+  (setq *interpretable-utt* t)
   (let ((msg (instantiate-dstate-args (find-arg args :msg) user)))
     (send-msg `(REQUEST :content ,msg))
     ))
-    
+
+(defun extract-goal-description (&key cps-act context result goal-id)
+  (let* ((lf (find-lf-in-context (find-arg-in-act cps-act :what) context))
+	 (id (second lf)))
+    (append (im::match-vals nil goal-id id)
+	    (im::match-vals nil result (list lf)))))
+
+(defun find-lf-in-context (id context)
+  (find-if #'(lambda (x) (eq (second x) id))
+		 context))
+
 (defun generate-AKRL-context (&key what result)
   (let ((reduced-context (remove-unused-context-with-root what *most-recent-lfs*)))
     (when reduced-context
@@ -912,6 +948,13 @@
 
 (defun find-attr (&key result feature)
   (im::match-vals nil result (get-attr *current-user* feature)))
+
+(defun find-feature-from-attr  (&key result attr feature)
+  (im::match-vals nil result (find-arg-in-act (get-attr *current-user* attr) feature)))
+
+(defun extract-feature-from-act (&key result expr feature)
+  (format t "~%extracting features: expr = ~S feature = ~S result = ~S" expr feature (find-arg-in-act expr feature))
+  (im::match-vals nil result (find-arg-in-act expr feature)))
   
 (defun invoke-generator (msg user channel uttnum)
   "here we invoke the BA with a message and record the result for the followup state.
@@ -919,7 +962,8 @@
   (let ((expanded-msg (expand-args msg)))
     (Format t "~%~%==========================~% System generating: ~S ~%========================~%" expanded-msg)
     ;;  we clear any remaining input as we generate
-    (clear-pending-speech-acts uttnum channel)
+;    (clear-pending-speech-acts uttnum channel)
+    (setq *interpretable-utt* t)
     (send-msg `(REQUEST :content ,(cons 'GENERATE expanded-msg)))))
 
 (defun expand-args (msg)

@@ -458,7 +458,7 @@ intersection of an entry's tags and these tags is non-empty."
       (setq formlist (mmapcan (lambda (form)
 				(case form 
 				  ;; normal verb forms
-				  (-vb '(:12s123pbase :3s :ing :past :pastpart :nom))
+				  (-vb '(:12s123pbase :3s :ing :past :pastpart :nom :agentnom))
 				  ;; normal noun forms
 				  (-s-3p '(:sing :plur))
 ;;				  (-load '(:load :load-p)) ;; no longer used
@@ -473,6 +473,7 @@ intersection of an entry's tags and these tags is non-empty."
 				)
 			     forms))
       )
+   
     (when (and (member ':pastpart formlist) (member ':past formlist))
       (when (and (null (find-arg features ':pastpart)) ;; don't generate separate entry for :pastpart if it's the same as :past (i.e. not irreg)
 		 (null (find-arg features ':conflate-past))) ;; only add this once
@@ -482,6 +483,12 @@ intersection of an entry's tags and these tags is non-empty."
 	    (setf (vocabulary-entry-wfeats entry) '((W::MORPH (:FORMS (-VB) :conflate-past)))))
 	  )
 	))
+    (if (member :nom features)
+	(setq formlist (cons :noms formlist)))
+    (if (member :agentnom features)
+	(setq formlist (cons :agentnoms formlist)))
+    ;; add the tag to generate the plural nom form as well if a NOM value is present
+    ;;(format t "~%Formlist is ~S forms are ~S" formlist forms)
     (mapcar (lambda (f)
 	      (gen-variant word f features entry))
 	    (remove-duplicates formlist))    
@@ -510,58 +517,28 @@ intersection of an entry's tags and these tags is non-empty."
 	      
 	  senses))
 
-#||(defun gen-nom-senses (word senses)
-  (let ((nom-senses nil)
-	(type-template-pairs nil)
-	)
-    (dolist (s senses)
-       (let* ((this-lftype (sense-definition-lf-parent s))
-	      (this-template (retrieve-template (sense-definition-templ s)))
-	      (mappings (when this-template (syntax-template-mappings this-template)))
-	      (this-nom-template (when this-template (get-nom-templ-for-slot word (sense-definition-templ s) 'lobj)))
-	    )
-	 (if this-template
-	     (progn
-	       (if (remove-if #'null (mapcar #'(lambda (s)
-					       (equal (car s) this-lftype))
-					   type-template-pairs))
-		 ;; existing type -- add new sense if transitive
-		 (if this-nom-template (pushnew (cons this-lftype this-nom-template) type-template-pairs :test #'equal))
-		 ;; new lftype -- add sense
-		 (if this-nom-template (pushnew (cons this-lftype this-nom-template) type-template-pairs :test #'equal)
-		     (pushnew (cons this-lftype (get-nom-templ-for-slot word (sense-definition-templ s) 'lsubj)) type-template-pairs :test #'equal)))	
-	     (print-debug "nominalization sense list is ~S~%" type-template-pairs))
-	     (progn
-	       (format t "~% unknown template: ~S in defn ~S" (sense-definition-templ s) s)
-	       nil))))
-	    
-    ; put the type-template pairs into lex entry format
-    (dolist (pair type-template-pairs)
-      (pushnew (list (list 'lf-parent (car pair)) (list 'templ (cdr pair))) nom-senses :test #'equal))
-    (print-debug "senses for ~S are ~S~%" word nom-senses)
-    (cons 'senses nom-senses))
-  )
-||#
-(defun gen-nomentry (word entry)
+(defun gen-nomentry (word form entry)
    "This is the new method for generating nominalization - we preserve the V entry but change the
    POS and the morph features"
   (let* ((nom-senses (if word (gen-nom-senses word (vocabulary-entry-senses entry))))
-	 
 	 (objpreps (or (find-arg (cadr (assoc 'W::morph (vocabulary-entry-wfeats entry))) :nomobjpreps)
 		       '(w::of)))
 	 ;; if nomsubjpreps is defined, used it, otherwise use default "by". It seems that
 	 ;; the cases with idiosyncratic subject preps are verbs that do not allow "by"
 	 (subjpreps (or (find-arg (cadr (assoc 'W::morph (vocabulary-entry-wfeats entry))) :nomsubjpreps)
 			'(w::by)))
+	 (nom-lex (if (eq form :nom)
+		      word
+		      (add-suffix word "S")))
 	 (nom-def (if word (cons word (list 
-					    (cons 'senses (if objpreps
-							      (mapcar #'(lambda (x) (cons (list 'syntax '(w::sort w::pred)
-												(list 'w::nomobjpreps (list '? 'objp objpreps))
-												(list 'W::nomsubjpreps (list '? 'subjp subjpreps)
-													      ))
-											  x))
-								      nom-senses)
-							      nom-senses))))))
+				       (cons 'senses (if objpreps
+							 (mapcar #'(lambda (x) (cons (list 'syntax '(w::sort w::pred)
+											   (list 'w::nomobjpreps (list '? 'objp objpreps))
+											   (list 'W::nomsubjpreps (list '? 'subjp subjpreps)
+												 ))
+										     x))
+								 nom-senses)
+							 nom-senses))))))
 	 ;;(xx (format t "~%nom-senses=~S~%objpreps=~S  nom-def= ~S" nom-senses objpreps nom-def))
          (nom-entry (parse-vocab-table-entry nom-def :pos 'w::n :default-template 'other-reln-theme-templ))
          )
@@ -570,6 +547,18 @@ intersection of an entry's tags and these tags is non-empty."
     (if nom-entry (pushnew word (lexicon-db-base-forms *lexicon-data*)))
    nom-entry)
   )
+
+
+(defun gen-agentnomentry (word form entry)
+   "This generates reuses the code to build NOM entries, with the additional feature :AGENTNOM +"
+   (let* ((nom-entry (gen-nomentry word (case form (:agentnom :nom) (:agentnoms :noms)) entry)))
+     (mapcar #'(lambda (x)
+		 (setf (sense-definition-syntax x)
+		       (cons '(W::Agent-nom +) (sense-definition-syntax x))))
+	     (vocabulary-entry-senses nom-entry))
+     
+     nom-entry
+  ))
  
 (defun gen-variant (base form features entry)
   "takes one form (e.g., :3s :ing) and generates the entry"
@@ -584,16 +573,28 @@ intersection of an entry's tags and these tags is non-empty."
       (setq morph-variant (or irreg (gen-standard-morph-variant form base))))
     (cond
      ((symbolp morph-variant)
-      (if (and (eq form ':nom) irreg) ; irreg must be defined for :nom generation
-	  (list morph-variant (list form (gen-id morph-variant) (gen-nomentry morph-variant entry)))
-	(if (not (eq form ':nom)) (list morph-variant (list form (gen-id base) entry)))))
+      (case form 
+	(:nom
+	 (if irreg ; irreg must be defined for :nom generation, as  the lexical item that denotes must be specified
+	     (list morph-variant (list form (gen-id morph-variant) (gen-nomentry morph-variant form entry)))))
+	(:noms
+	 (let ((morph-variant (or irreg (add-suffix (find-arg features :nom) "S"))))
+	   (list morph-variant (list form (gen-id morph-variant) (gen-nomentry morph-variant form entry)))))
+	(:agentnom
+	 (if irreg ;; a lexical value must have been defined in order to proceed
+	     (list morph-variant (list form (gen-id morph-variant) 
+				       (gen-agentnomentry morph-variant form entry)))))
+	(:agentnoms
+	 (let ((morph-variant (or irreg (add-suffix (find-arg features :agentnom) "S"))))
+	   (list morph-variant (list form (gen-id morph-variant) (gen-agentnomentry morph-variant form entry)))))
+	(otherwise  (list morph-variant (list form (gen-id base) entry)))))
      ((listp morph-variant)
       ;; the variant is itself a compound word
        (let ((nentry (copy-vocabulary-entry entry)))
 	(setf (vocabulary-entry-word nentry) (first morph-variant))
 	(setf (vocabulary-entry-remaining-words nentry) (rest morph-variant))
 	(if (and (eq form ':nom) irreg) ; irreg must be defined for :nom generation
-	    (list (first morph-variant) (list form (gen-id (first morph-variant)) (gen-nomentry morph-variant nentry)))
+	    (list (first morph-variant) (list form (gen-id (first morph-variant)) (gen-nomentry morph-variant form nentry)))
 	  (if (not (eq form ':nom)) (list (first morph-variant) (list form (gen-id base) nentry))))
 	))
      )
@@ -806,8 +807,9 @@ intersection of an entry's tags and these tags is non-empty."
 			     ;;(this-sem (sense-definition-sem x))			    
 			     ;;(orientation (cadr (assoc 'f::orientation this-sem)))
 			     (templ (retrieve-template (sense-definition-templ x)))
-			     (templ-feats (if (syntax-template-p templ)
-					      (syntax-template-syntax templ)))
+			     (templ-feats (remove-if #'(lambda (x) (eq (car x) 'w::SUBCAT))
+						     (if (syntax-template-p templ)
+							 (syntax-template-syntax templ))))
 			     (comp-op (cadr (assoc 'w::comp-op templ-feats)))
 			     )
 			(case comp-op 
@@ -906,7 +908,7 @@ intersection of an entry's tags and these tags is non-empty."
      ;;  noun derivatives
      (:sing
       (replace-feat feats 'w::agr 'w::3s))
-     (:plur 
+     ((:plur :noms :agentnoms)
       (replace-feat feats 'w::agr 'w::3p))
      
      ;;adjective derivatives
@@ -918,7 +920,7 @@ intersection of an entry's tags and these tags is non-empty."
      (-ly nil)
 
      ; nominalizations - has a separate entry generation function as more than the syntactic features change
-     (:nom nil) 
+     ((:nom :agentnom) nil) 
      
      (otherwise 
       (lexiconmanager-warn "Unknown morphological feature ~S in definition of ~S" morphfeat word)
@@ -959,6 +961,7 @@ intersection of an entry's tags and these tags is non-empty."
 
 (defun getworddef (word)
   (let ((entries (getwordDefs word *lexicon-data*)))
+    ;;(format t "~%Entries are ~S" entries)
     (mapcan #'(lambda (e)
 		(get-word-sense-definitions word e *lexicon-data*))
 	    entries)))

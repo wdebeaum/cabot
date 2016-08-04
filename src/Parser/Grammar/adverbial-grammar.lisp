@@ -8,7 +8,7 @@
 (parser::augment-grammar
   '((headfeatures
 	 ;;lex headcat removed --me
-     (PP VAR KIND MASS NAME agr SEM SORT PRO SPEC CLASS transform)
+     (PP KIND MASS NAME agr SEM SORT PRO SPEC CLASS transform)
      ;;(ADVBLS FOCUS VAR SEM SORT ATYPE ARG SEM ARGUMENT NEG TO QTYPE lex transform)
      (ADVBL VAR SORT ARGSORT ATYPE SEM ARGUMENT lex headcat transform neg)
      (ADV SORT ATYPE CONSTRAINT SA-ID PRED NEG TO LEX HEADCAT SEM ARGUMENT SUBCAT IGNORE transform)
@@ -41,7 +41,7 @@
      )
    
      ;;  simple adverbials- used is the lexical entry does not specify an argument-map
-    ((ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf) (VAR ?v) (CONSTRAINT (& (ONT::OF ?arg)))
+    ((ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf) (VAR ?v) (CONSTRAINT (& (FIGURE ?arg)))
                               (sem ?sem) (transform ?transform)))
             ;;(SORT CONSTRAINT)
       (role ?lf)
@@ -265,59 +265,114 @@
     ;;   by the verb as a SEM restriction on the PP, and SEM is a head feature.
     ;;  e.g., on the top
     
-    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (sem ?sem)
+    ((PP (PTYPE ?pt) (var ?v) (lf ?lf) (case ?c) (sem ?sem) 
 		 (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
 		 )   ; I set the case here to a var, in order to allow -np-spec-of-pp> to work. Otherwise, CASE is not used in PPs
      -pp1> 1  ;; since PPs are only used if subcategorized, we set this to 1
      (prep (LEX ?pt) (headcat ?hc))
-     (head (np (lf ?lf) (sem ?sem)
+     (head (np (lf ?lf) (sem ?sem)  (var ?v)
 	       ;; 02/07/08 allow bare numbers here! 
 	      ;; (LF (% ?cat (STATUS (? !st number)))) ; disallowing bare numbers here to prevent 'more than 5' w/ bare (referential-sem) interp
-	       (lf (% ?cat (status (? !st PRO)))) ;; disallowing proforms here -- use pp1-pro>
+	       (lf (% ?cat (status (? !st ONT::PRO)))) ;; disallowing proforms here -- use pp1-pro>
 	       (sort (? sort pred descr wh-desc unit-measure)) (case (? case obj -)))
       ))
+
+    ;; PP conjunction rules: e.g., it associates with X and with Y -- both X and Y fill the role signalled by with
+    ;; this rule requires the prep to the identicial, and merges the NP's into a conjunction
+     ((PP (PTYPE ?pt) (var ?vc) (lf (% PROP (class ?class) (var ?vc) (sem ?sem) (constraint (& (operator ont::and) (sequence (?v1 ?v2))))))
+       (case ?c) (sem ?sem)
+		 (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
+       )
+      -pp-conj1>
+      (head (PP (PTYPE ?pt) (var ?v1) (case ?c) (sem ?s1)
+       (LF (% ?sort1 (class ?c1) (status ?status)))
+       ))
+      (CONJ (LF ?conj) (var ?vc) (but-not -) (but -))
+      (PP (PTYPE ?pt) (var ?v2) (case ?c) (sem ?s2)
+       (LF (% ?sort2 (class ?c2)))
+       )
+      (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
+      (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class)))
+
+    ;; I ate a dollop of the ice cream but not the ice
+    ((PP (PTYPE ?pt) (var ?vc) 
+      (lf (% PROP (class ?class) (var ?vc) (sem ?sem) 
+	     (constraint (& (operator ont::and) (sequence ?v1) (except ?v2)))))
+      (case ?c) (sem ?sem)
+      (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
+      )
+     -pp-conj-but-not1>
+     (head (PP (PTYPE ?pt) (var ?v1) (case ?c) (sem ?s1)
+	       (LF (% ?sort1 (class ?c1) (status ?status)))
+	       ))
+     (CONJ (LF ?conj) (var ?vc) (but-not +))
+     (PP (PTYPE ?pt) (var ?v2) (case ?c) (sem ?s2)
+      (LF (% ?sort2 (class ?c2)))
+      )
+     (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
+     (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class)))
+
+    ;;PP but-not with comma
+    ((PP (PTYPE ?pt) (var ?vc) 
+      (lf (% PROP (class ?class) (var ?vc) (sem ?sem) 
+	     (constraint (& (operator ont::and) (sequence ?v1) (except ?v2)))))
+      (case ?c) (sem ?sem)
+      (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
+      )
+     -pp-conj-but-not-comma>
+     (head (PP (PTYPE ?pt) (var ?v1) (case ?c) (sem ?s1)
+	       (LF (% ?sort1 (class ?c1) (status ?status)))
+	       ))
+     (punc (lex w::punc-comma))
+     (CONJ (LF ?conj) (var ?vc) (but-not +))
+     (PP (PTYPE ?pt) (var ?v2) (case ?c) (sem ?s2)
+      (LF (% ?sort2 (class ?c2)))
+      )
+     (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
+     (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class)))
+
 
     ;; for subcat pp'w with proforms -- but not w::one
-       ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (sem ?sem)
-		 (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
-		 )   ; I set the case here to a var, in order to allow -np-spec-of-pp> to work. Otherwise, CASE is not used in PPs
+    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (sem ?sem)  (var ?v)
+      (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
+      )   ; I set the case here to a var, in order to allow -np-spec-of-pp> to work. Otherwise, CASE is not used in PPs
      -pp1-pro>
      (prep (LEX ?pt) (headcat ?hc))
-     (head (np (lex (? !nlx w::one)) (lf ?lf) (sem ?sem)
-	       (lf (% ?cat (status PRO)))
+     (head (np (lex (? !nlx w::one)) (lf ?lf) (sem ?sem) (var ?v)
+	       (lf (% ?cat (status ONT::PRO)))
 	       (sort (? sort pred descr wh-desc unit-measure)) (case (? case obj -)))
       ))
 
-       ;; subcat pp with proform one has lower preference to prefer number subcats
-       ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (sem ?sem)
-		 (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
-		 )   ; I set the case here to a var, in order to allow -np-spec-of-pp> to work. Otherwise, CASE is not used in PPs
+    ;; subcat pp with proform one has lower preference to prefer number subcats
+    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (sem ?sem)  (var ?v)
+      (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
+      )   ; I set the case here to a var, in order to allow -np-spec-of-pp> to work. Otherwise, CASE is not used in PPs
      -pp1-pro-one> .9
      (prep (LEX ?pt) (headcat ?hc))
-     (head (np (lex w::one) (lf ?lf) (sem ?sem)
-	       (lf (% ?cat (status PRO)))
+     (head (np (lex w::one) (lf ?lf) (sem ?sem)  (var ?v)
+	       (lf (% ?cat (status ont::PRO)))
 	       (sort (? sort pred descr wh-desc unit-measure)) (case (? case obj -)))
       ))
 
        
      ;; more than five (trucks) 
-    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (mass count)
+    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (mass count)  (var ?v)
 		 (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
 		 ) 
      -pp1-number> .9
      (prep (LEX ?pt) (headcat ?hc))
-     (head (cardinality (lf ?lf))
-      ))
+     (head (cardinality (lf ?lf)  (var ?v)))
+      )
     
     ;; rule for prepositional subcats with adjectives, such as
     ;; TEST: classify this as benign
     ;; I'd like one in red
-    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (adjpp +) (arg ?arg)
+    ((PP (PTYPE ?pt) (lf ?lf) (case ?c) (adjpp +) (arg ?arg)  (var ?v)
 		 (lex ?pt) (headcat ?hc) (fake-head 0) ;;me
 		 )
      -pp1-adj> .97
      (prep (LEX ?pt) (headcat ?hc))
-     (head (adjp (lf ?lf) (case (? case obj -)) (arg ?arg) (set-modifier -)))  ;; set-modifier - excludes numbers
+     (head (adjp (lf ?lf) (case (? case obj -))  (var ?v) (arg ?arg) (set-modifier -)))  ;; set-modifier - excludes numbers
       )
 
     ))  ;; end ADVERBIALS
@@ -338,8 +393,8 @@
      ;; MD 2008/07/17 added post-subcat as a head feature so that it doesn't lead to overgeneration
      (ADJP VAR ATYPE SORT ARG COMP-OP PRED ARGUMENT lex headcat transform post-subcat) 
      (NUMBER VAR AGR lex headcat transform)
-     (VP vform var agr neg sem subj iobj dobj comp3 part cont gap class subjvar lex headcat transform subj-map tma aux)
-     (VP- vform var agr neg sem subj iobj dobj comp3 part cont gap class subjvar lex headcat transform subj-map tma aux passive passive-map)
+     (VP vform var agr neg sem subj iobj dobj comp3 part cont gap class subjvar lex headcat transform subj-map tma aux template)
+     (VP- vform var agr neg sem subj iobj dobj comp3 part cont gap class subjvar lex headcat transform subj-map tma aux passive passive-map template)
      (S vform neg cont stype gap sem subjvar dobjvar var  lex headcat transform subj)
      (N1 case VAR AGR MASS SEM Changeagr class reln sort lex headcat transform set-restr)
      (NP case VAR AGR MASS SEM Changeagr class reln sort lex headcat transform status)
@@ -395,12 +450,12 @@
     ;; she in this case was fired
    ((vp- (constraint ?new)
      (tma ?tma) (sem ?argsem)
-     (advbl-needed ?avn)
+     (advbl-needed ?avn) (complex +)
       )
      -adv-vp-pre-complex-s>  .97
      (advbl (SORT BINARY-CONSTRAINT) 
       (ATYPE (? x PRE PRE-VP)) 
-      (ARGUMENT (% S (SEM ($ f::situation))))  
+      (ARGUMENT (% S (SEM ?argsem))) ;;($ f::situation))))  
       (GAP -) 
       (ARG ?v) (VAR ?mod)
       )
@@ -448,7 +503,9 @@
 		(aux -) (gap ?gap)
 		(ellipsis -)
 		))
-     (adjp (ARGUMENT (% NP (sem ?sem))) (GAP -)
+     (adjp (ARGUMENT (% NP (sem ?sem))) 
+      (SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::domain-property))))
+      (GAP -)
       ;; (subjvar ?subjvar)
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
       (ARG ?npvar) (VAR ?mod)
@@ -473,8 +530,10 @@
 		(ellipsis -)
 		))
 
-     (advbl (ARGUMENT (% (? xxx NP S) (sem ?sem))) (GAP -)
+     (advbl (ARGUMENT (% NP ;; (? xxx NP S)  ;; we want to eliminate V adverbials, he move quickly  vs he moved into the dorm
+			 (sem ?sem))) (GAP -)
       ;; (subjvar ?subjvar)
+      (SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::domain-property))))
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
       (ARG ?npvar) (VAR ?mod)
       ;;(role ?advrole) 
@@ -510,10 +569,24 @@
 		  )))
      -advbl-conj1>
      (ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf1) (VAR ?v1)(sem ?sem1))) (gap ?g) (argument ?argmt))
-     (CONJ (LF ?conj))
+     (CONJ (LF ?conj) (but-not -) (but -))
      (head (ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf2) (VAR ?v2) (sem ?sem2))) (gap ?g) (argument ?argmt)))
      (sem-least-upper-bound (in1 ?sem1) (in2 ?sem2) (out ?sem))
     )
+
+    ;; down the hill but to the right
+     ((ADVBL (ARG ?arg) (sem ?sem) (VAR ?v1) (gap ?g)
+	   (LF (% PROP (CLASS ?lf1) (VAR ?v1) (sem ?sem) (CONSTRAINT ?newcon)))
+		  )
+     -advbl-but-conj1>
+      (head (ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf1) (VAR ?v1)(sem ?sem) (constraint ?con) ))
+		   (gap ?g) (argument ?argmt)))
+      (CONJ (LF ?conj) (but-not -) (but +) (var ?vc))
+      (ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf2) (VAR ?v2) (sem ?sem2))) (gap ?g) (argument ?argmt))
+      (add-to-conjunct (val (:qualification (% *PRO* (status ont::F) (var ?vc) (class ?conj) (constraint (& (Figure ?v1) (ground ?v2)))
+					       )))
+       (old ?con) (new ?newcon))
+      )
 
     ((ADVBL (ARG ?arg) (sem ?sem) (VAR *)
       (LF (% PROP (CLASS ?clf) (VAR *) (sem ?sem) 
@@ -586,8 +659,8 @@
 	      (subjvar ?subjvar) 
 	      )
            )
-     (add-to-conjunct (val (TIME (% *pro* (var *) (status F) (class ont::EVENT-TIME-REL) 
-				    (constraint (& (of ?v) (val ?mod))))))
+     (add-to-conjunct (val (TIME (% *pro* (var *) (status ont::F) (class ont::EVENT-TIME-REL) 
+				    (constraint (& (FIGURE ?v) (GROUND ?mod))))))
       (old ?con) (new ?newcon))
      (change-feature-values (OLD ?lf) (NEW ?newlf) (newvalues ((CONSTRAINT ?newcon)))))
 
@@ -600,15 +673,15 @@
      (head (S (VAR ?v) (LF ?lf) (LF (% prop (constraint ?con))) (aux -)
 	      (wh -) ;; while possible, its very unlikely
 	      (tma ?tma) (stype (? stp decl imp how-about))
-	      (subjvar ?subjvar) 
+	      (subjvar ?subjvar) (adj-s-prepost -)
 	      )
            )
-     (adjp (ARGUMENT (% NP)) 
+     (adjp (ARGUMENT (% NP)) (set-modifier -)
 	 (gap -) 
 	 (ARG ?subjvar) (VAR ?mod)
 	 )
-     (add-to-conjunct (val (TIME (% *pro* (var *) (status F) (class ont::EVENT-TIME-REL) 
-				    (constraint (& (of ?v) (val ?mod))))))
+     (add-to-conjunct (val (TIME (% *pro* (var *) (status ont::F) (class ont::EVENT-TIME-REL) 
+				    (constraint (& (FIGURE ?v) (GROUND ?mod))))))
       (old ?con) (new ?newcon))
      (change-feature-values (OLD ?lf) (NEW ?newlf) (newvalues ((CONSTRAINT ?newcon)))))
 
@@ -678,7 +751,7 @@
      (add-to-conjunct (val (& (MODS ?av))) (old ?restr) (new ?new))
      )
     
-    ((NP (name +) (LF (% description (status definite)
+    ((NP (name +) (LF (% description (status ont::definite)
 			 (var ?v1) (class ?class) (sem ?lfsem)
 			 (constraint  ?new)))
          (sort ?sort)  (case ?case))
@@ -1004,9 +1077,9 @@
     ;; TEST: exactly five
     ((number (agr ?agr) (VAR ?v) (MASS ?mn) (lf ?lf) (sem ?sem) (premod +) ;;(val ?val)
 	     (nobarespec +) ; this can't be a specifier -- that goes through the cardinality rules
-	     (restr (& (mods (% *PRO* (status F) (class ?lfa) (var ?v1) 
-				(constraint (& (of ?v) 
-					       (val (% *PRO* (status indefinite) (var *) (class ont::number) (constraint (& (value ?val)))))))))))
+	     (restr (& (mods (% *PRO* (status ont::F) (class ?lfa) (var ?v1) 
+				(constraint (& (FIGURE ?v) 
+					       (GROUND (% *PRO* (status ont::indefinite) (var *) (class ont::number) (constraint (& (value ?val)))))))))))
 	     )
      -advbl-bare-number-pre>
      (adv (ATYPE PRE) (VAR ?v1) (argument (% number)) (Mass ?m) (lf ?lfa))
@@ -1017,9 +1090,9 @@
     ;; TEST: eight or so
     ((number (agr ?agr) (VAR ?v) (MASS ?mn) (lf ?lf) (sem ?sem) (premod +) ;;(val ?val)
 	     (nobarespec +) ; this can't be a specifier -- that goes through the cardinality rules
-	     (restr (& (mods (% *PRO* (status F) (class (:* ont::precision-val w::approximate)) (var *) 
-				(constraint (& (of ?v) 
-					       (val (% *PRO* (status indefinite) (var **) (class ont::number) (constraint (& (value ?val)))))))))))
+	     (restr (& (mods (% *PRO* (status ont::F) (class (:* ont::precision-val w::approximate)) (var *) 
+				(constraint (& (FIGURE ?v) 
+					       (GROUND (% *PRO* (status ont::indefinite) (var **) (class ont::number) (constraint (& (value ?val)))))))))))
 	     )
      -number-or-so>
      (head (number (VAR ?v) (lf ?lf) (lex ?l) (agr ?agr) (MASS ?mn) (sem ?sem) (val ?val) (premod -)
@@ -1030,7 +1103,7 @@
     
     ;; and the special case for "a" -- e.g., only a week, just a candy, ..
    
-    ((NP (LF (% description (status indefinite)
+    ((NP (LF (% description (status ont::indefinite)
 			 (var ?v1) (class ?class) (sem ?lfsem)
 			 (constraint ?new)))
       (sort ?sort) (case ?case))
@@ -1038,11 +1111,11 @@
      (adv (ATYPE PRE) (VAR ?v) (argument (% number)) (Mass ?m) (lf ?lfa))
      (head (NP (VAR ?v1) (lex ?nlex) (agr 3s)
                (sort ?sort) (case ?case)
-	       (LF (% description (status indefinite) (sem ?lfsem) (class ?class) (constraint  ?restr)))
+	       (LF (% description (status ont::indefinite) (sem ?lfsem) (class ?class) (constraint  ?restr)))
 	       )
       )
-     (add-to-conjunct (val (MODS (% *PRO* (status F) (class ?lfa) (var ?v) 
-				    (constraint (& (of ?v1))))))
+     (add-to-conjunct (val (MODS (% *PRO* (status ont::F) (class ?lfa) (var ?v) 
+				    (constraint (& (FIGURE ?v1))))))
       (old ?restr) (new ?new))
      )
     
@@ -1085,7 +1158,7 @@
      (head (Utt (ended -) (LF (% SPEECHACT (class ?sa) (constraint ?adv1))) (var ?v) (punc -) (subjvar ?sv)))
      (add-to-conjunct (val (MODS ?advv)) (old ?adv1) (new ?adv)))
 
-    ((Utt (LF (% SPEECHACT (class ?sa) (constraint ?adv))) (var ?v) (punctype ?pn))
+    ((Utt (LF (% SPEECHACT (class ?sa) (var ?v) (constraint ?adv))) (var ?v) (punctype ?pn))
      -disc-comma> 
      (advbl (sort DISC) (ATYPE PRE) (arg ?v) (SA-ID -) (VAR ?advv) (gap -) (argument (% UTT)))
      (punc (lex w::punc-comma))
@@ -1133,8 +1206,8 @@
 
 (parser::augment-grammar
  '((headfeatures
-    (VP vform var agr neg sem subj iobj dobj comp3 part cont class subjvar lex headcat transform tma subj-map)
-    (VP- vform var agr neg sem subj iobj dobj comp3 part cont class subjvar lex headcat transform subj-map tma aux passive passive-map)
+    (VP vform var agr neg sem subj iobj dobj comp3 part cont class subjvar lex headcat transform tma subj-map template)
+    (VP- vform var agr neg sem subj iobj dobj comp3 part cont class subjvar lex headcat transform subj-map tma aux passive passive-map template)
     (pp headcat lex)
     (advbl gap headcat lex neg)
     )
@@ -1177,7 +1250,7 @@
    ((advbl (arg ?arg) (role (:* ONT::distance W::quantity)) (var *)
 	   (sort binary-constraint)
 	   (LF (% PROP (VAR *) (CLASS (:* ONT::extent-predicate ?scale)) (sem ?sem)
-		  (CONSTRAINT (& (OF ?arg) (VAL ?v)))))
+		  (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))))
 	   (atype (? x W::PRE W::POST))
 	   (argument (% (? ARGCAT8043 W::S
                            W::NP
@@ -1205,7 +1278,7 @@
      (sort pred) (gap -) (atype (? atp pre post))
      (role ONT::MANNER) (var **)
      (LF (% PROP (CLASS ONT::Manner) (VAR **) 
-	    (CONSTRAINT (& (ONT::OF ?arg) (ont::val ?v)))
+	    (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))
 	    (sem ($ f::abstr-obj (f::information -) (f::intentional -)))))
      )
     -vp-ing-advbl> 0.93
@@ -1221,7 +1294,7 @@
      (sort pred) (gap -) (atype (? atp pre post))
      (role ONT::MANNER) (var **)
      (LF (% PROP (CLASS ONT::result) (VAR **) 
-	    (CONSTRAINT (& (ONT::OF ?arg) (ont::val ?v)))
+	    (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))
 	    (sem ($ f::abstr-obj (f::information -) (f::intentional -)))))
      )
     -vp-ing-as-result-advbl> 0.93
@@ -1241,7 +1314,7 @@
      (sort pred) (gap -) (atype (? atp pre post))
      (var *)
      (LF (% PROP (CLASS ONT::Manner) (VAR *) 
-	    (CONSTRAINT (& (ONT::OF ?arg) (ont::val ?v)))
+	    (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))
 	    (sem ($ f::abstr-obj (f::information -) (f::intentional -)))))
      )
     -manner-advbl> 
@@ -1253,7 +1326,7 @@
     ((ADVBL (ARG ?arg) 
       (SORT BINARY-CONSTRAINT) (var *)
        (LF (% PROP (var *) (CLASS ONT::EXCLUSIVE) 
-	        (Constraint (& (of ?arg) (val ?v)))))
+	        (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE w::post) (focus ?v)
       (ARGUMENT (% (? x W::VP W::S)))
       (SEM ?sem))
@@ -1266,7 +1339,7 @@
     ((ADVBL (ARG ?arg) 
       (SORT BINARY-CONSTRAINT) (var *)
        (LF (% PROP (var *) (CLASS ONT::EXCLUSIVE) 
-	        (Constraint (& (of ?arg) (val ?v)))))
+	        (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE (? xx w::post w::pre w::pre-vp)) (focus ?v)
       (lex ?hlex) (headcat ?hcat)
       (ARGUMENT (% (? x W::VP W::S)))
@@ -1280,7 +1353,7 @@
     ((ADVBL (ARG ?arg) 
       (SORT BINARY-CONSTRAINT) (var *)
        (LF (% PROP (var *) (CLASS ONT::EXCLUSIVE) 
-	        (Constraint (& (of ?arg) (val ?v)))))
+	        (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE (? xx w::post w::pre w::pre-vp)) (focus ?v)
       (lex ?hlex) (headcat ?hcat)
       (ARGUMENT (% (? x W::VP W::S)))

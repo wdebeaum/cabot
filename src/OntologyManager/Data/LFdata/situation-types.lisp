@@ -176,7 +176,7 @@
  :sem (F::Situation (F::Cause F::Mental) (F::Trajectory -))
  :comment "a state in which an EXPERIENCER holds some attitude towards a proposition"
  :arguments ((:ESSENTIAL ONT::Formal)
-	     (:OPTIONAL ont::neutral  ((? cg1 f::abstr-obj F::Phys-obj)))
+	     (:OPTIONAL ont::neutral  ((? cg f::abstr-obj F::Phys-obj)))
 	     (:OPTIONAL ont::neutral1  ((? cg1 f::abstr-obj F::Phys-obj)))  ;; backwards compatability
              )
  )
@@ -563,6 +563,7 @@
              )
  )
 
+#|
 ;;; These are all cases where there is an (implicit) agent directing the motion
 (define-type ONT::directed-motion
  :parent ont::motion
@@ -570,15 +571,19 @@
 ;             (:ESSENTIAL ONT::Addressee ((? adr F::Phys-obj f::abstr-obj) (F::intentional +)))
              )
  )
+|#
 
-
+#|
+; merged with ARRIVE
 (define-type ONT::Arriving
  :parent ont::motion
  :arguments (
 ;	     (:ESSENTIAL ONT::To-loc)
              )
  )
+|#
 
+#|
 (define-type ONT::Departing
  :parent ont::motion
  :arguments (
@@ -586,6 +591,7 @@
 	     (:optional ont::neutral)
              )
  )
+|#
 
 ;; enter,  ingress
 (define-type ONT::ENTERING
@@ -617,13 +623,14 @@
              )
  )
 
-
+#|
 (define-type ONT::storing
   :parent ONT::directed-motion
   :arguments ((:REQUIRED ONT::affected ((? ttype F::Abstr-obj f::phys-obj))) ;; storee
 	      (:OPTIONAL ONT::agent (F::phys-obj (F::intentional +))) ;; storer
 	      )
  )
+|#
 
 (define-type ONT::Active-Perception
  :wordnet-sense-keys ("look%2:39:00" "feel%2:39:00" "sense%2:39:00" "note%2:39:02" "look_on%2:39:00" "look_out%2:39:00" "watch%2:39:00" "watch%2:39:03")
@@ -785,7 +792,7 @@
  :sem (F::Situation (F::Aspect F::static) (F::Time-span F::extended) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::neutral ((? oc1 F::Phys-obj F::Abstr-obj F::Situation)))
 	     ;; this is still here until we decide what to do with the formal-pred mappings for be
-	     (:optional ONT::formal ((? oc1 F::Phys-obj F::Abstr-obj F::Situation)))
+	     (:optional ONT::formal ((? oc2 F::Phys-obj F::Abstr-obj F::Situation)))
 ;             (:ESSENTIAL ONT::PROPERTY ((? oc2 F::abstr-obj))) ;; only properties (preds) -- for event nouns use ont::have-experience or ont::participating
              )
  )

@@ -267,7 +267,7 @@
 	    (LF (% time-description))
 	    )
       )
-     (conj (LF and))
+     (conj (LF ont::and))
      (value 
       (time-converted +)
       (sem ?sem)
@@ -279,7 +279,7 @@
     ((ADVBL (ARG ?arg) 
       (SORT BINARY-CONSTRAINT) (var *)
       (LF (% PROP (var *) (CLASS ONT::ITERATION-PERIOD) 
-	     (Constraint (& (of ?arg) (val ?v)))))
+	     (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE w::post) (focus ?v)
       (lex ?hlex) (headcat ?hcat)
       (ARGUMENT (% (? x W::VP W::S)))
@@ -287,7 +287,7 @@
      -a-day-advbl> .98
      (head (np (agr 3s) (var ?v)
 	       (sem ($ f::time (f::time-scale f::interval)))
-	       (lf (% description (status indefinite) (class ont::time-interval) (constraint (& (scale f::time-measure-scale)))))
+	       (lf (% description (status ont::indefinite) (class ont::time-interval) (constraint (& (scale f::time-measure-scale)))))
 	       ;; exclude things like "lunch"
 	       (mass count)
 	       )))
@@ -322,7 +322,7 @@
      -units-per-period2> .98
      (head (np (lf ?lf) (sort unit-measure) (wh -) (var ?v1)
 	       ))
-     (head (np (agr 3s) (var ?per) (lf (% description (status indefinite))) (mass count)
+     (head (np (agr 3s) (var ?per) (lf (% description (status ont::indefinite))) (mass count)
 	       )))
 
 
@@ -364,7 +364,7 @@
       (sem ($ f::abstr-obj))
       (coerce -) (arg ?arg)
       (atype w::central) (sort pred) (template lxm::central-adj-templ)
-      (argument-map ont::of) (argument (% NP (sem ($ f::situation (f::type ont::change-magnitude))))))
+      (argument-map ont::FIGURE) (argument (% NP (sem ($ f::situation (f::type ont::change-magnitude))))))
      -n-fold>
      (number (var ?v) (val ?n))
      (word (lex (? w w::fold w::times))))
@@ -468,7 +468,7 @@
       (role ont::frequency)
       (var *)
       ;;(var ?var)
-      (lf (% PROP (class ONT::repetition) (var *) (constraint (& (of ?argvar) (VAL ?!val)))))
+      (lf (% PROP (class ONT::repetition) (var *) (constraint (& (FIGURE ?argvar) (GROUND ?!val)))))
       (atype post)
       (arg ?argvar)
       )
@@ -487,12 +487,12 @@
       (role ont::frequency)
       (var *)
       ;;(var ?var)
-      (lf (% PROP (class ONT::repetition) (var *) (constraint (& (of ?argvar) (VAL ?!card)))))
+      (lf (% PROP (class ONT::repetition) (var *) (constraint (& (FIGURE ?argvar) (GROUND ?!card)))))
       (atype post)
       (arg ?argvar)
       )
      -repetition-quan-advbll>
-     (head (spec (mass count) (lf indefinite-plural)))
+     (head (spec (mass count) (lf ont::indefinite-plural)))
      (word (lex (? t W::time W::times)))
      )
 
@@ -504,21 +504,21 @@
 	    (role ont::frequency)
 	    (var *) (case ?case)
 	    ;;(var ?var)
-	    (lf (% PROP (class ONT::iteration-period) (var *) (constraint (& (of ?argvar) (VAL ?valvar)))))
+	    (lf (% PROP (class ONT::iteration-period) (var *) (constraint (& (FIGURE ?argvar) (GROUND ?valvar)))))
 	    (atype post)
 	    (arg ?argvar)
 	    )
      -period-value-advbl1> .98
      (head (np (sem ?valsem) (var ?valvar)
 	       (sem ($ f::time (f::time-scale F::INTERVAL))) (headless -)
-	       (LF (% DESCRIPTION (status (? xx quantifier)))) ;; indefinite))))   
+	       (LF (% DESCRIPTION (status (? xx ont::quantifier)))) ;; indefinite))))   
 	       ))
      )
 
      ;; 30 miles per hour
      ((np (sort unit-measure)
        (var ?v) (frequency +) (case ?case)
-       (lf (% description (class ?class) (var ?v) (constraint ?constr) (status indefinite)))
+       (lf (% description (class ?class) (var ?v) (constraint ?constr) (status ont::indefinite)))
        (sem ?sem)
       )
      -frequency-value-np> 
@@ -533,20 +533,20 @@
 	    (argument (% S (var ?argvar) (sem ($ f::situation)) ))
 	    (subcatsem ?valsem)  (bare-advbl +)
 	    (var *)
-	    (lf (% PROP (class ONT::event-time-rel) (var *) (constraint (& (of ?argvar) (VAL ?valvar)))))
+	    (lf (% PROP (class ONT::event-time-rel) (var *) (constraint (& (FIGURE ?argvar) (GROUND ?valvar)))))
 	    (atype (? atp pre post))
 	    (arg ?argvar)
 	    )
      -deictic-time-advbl> 1
      (head (np (sem ?valsem) (var ?valvar) (headless -) (coerced -)
 	       (sem ($ f::time (f::time-scale F::INTERVAL)))
-	       (LF (% DESCRIPTION (status definite) (class ont::time-object);;(CONSTRAINT (& (proform (? cr W::THIS W::THAT W::THOSE W::THESE)))))) ;;(? cr this that those these))))))
+	       (LF (% DESCRIPTION (status ont::definite) (class ont::time-object);;(CONSTRAINT (& (proform (? cr W::THIS W::THAT W::THOSE W::THESE)))))) ;;(? cr this that those these))))))
 	       ))
      )))
 
     ;;  Special construction for last year/next week/ etc which doesn't seem to generalize to non-temporal
     ((np (var ?v) (sort pred) (agr 3s) 
-      (LF (% description (var ?v) (status definite)
+      (LF (% description (var ?v) (status ont::definite)
 	     (class ont::time-loc) (constraint (& (proform ?lex) (extent ?class))) (sem ($ f::time (f::time-scale F::INTERVAL)))))
       (sem ($ f::time (f::time-scale F::INTERVAL))))
       -next-last-time1> 1
@@ -558,7 +558,7 @@
 
     ;; E.G., last February 15th, next Tuesday
       
-    ((np (var ?v) (sort pred)  (LF (% description (var ?v) (status definite)
+    ((np (var ?v) (sort pred)  (LF (% description (var ?v) (status ont::definite)
 		(class ONT::TIME-LOC) (constraint ?new) (sem ($ f::time (f::time-scale F::INTERVAL)))))
       (sem ($ f::time (f::time-scale F::INTERVAL))))
      -next-last-date> 1
@@ -572,7 +572,7 @@
 
     ;;  Special construction for the last three hours/two days/...
 
-    ((np (sort pred) (agr 3s) (var *) (LF (% description (var *) (status definite)
+    ((np (sort pred) (agr 3s) (var *) (LF (% description (var *) (status ont::definite)
 		(class ONT::TIME-LOC) (constraint (& (proform ?lex) (extent ?v)))
 		(sem ($ f::time (f::time-scale F::INTERVAL)))))
       (sem ($ f::time (f::time-scale F::INTERVAL))))
@@ -588,11 +588,11 @@
     
     ;;  Special construction for quantifications of dates: every Monday, each june 1st, this friday, 
     
-    ((np (var ?v) (LF (% description (var ?v) (status quantifier)
+    ((np (var ?v) (LF (% description (var ?v) (status ont::quantifier)
 		(class ONT::TIME-LOC) (constraint ?new) (sem ($ f::time (f::time-scale F::INTERVAL)))))
       (sem ($ f::time (f::time-scale F::INTERVAL))))
      -quant-date>
-     (spec (pred (? x every each)) (restr ?r) (arg ?v))
+     (spec (pred (? x ont::every ont::each)) (restr ?r) (arg ?v))
      (head (DATE (var ?v) (month ?m) (year -) (day ?d) (dow ?dow)))
      (append-conjuncts (conj1 (& (month ?m) (day ?d) (dow ?dow)))
       (conj2 ?r) (new ?new))
@@ -899,8 +899,8 @@
       (multi-element-sequence +)
       )
      -number-sequence2> .97    ;; need at least two consecutive numbers to form a sequence
-     (head (number (val ?l1) (range -) (unit ?unit) (premod -) (ntype (? !nt w::negative w::positive))))
-     (number (val ?l2) (unit ?unit) (premod -) (range -) (ntype (? !nt w::negative w::positive)))
+     (head (number (val ?l1) (range -) (unit ?unit) (premod -) ))
+     (number (val ?l2) (unit ?unit) (premod -) (range -) )
      )
 
     ;;  Letter/number sequences
@@ -1163,7 +1163,7 @@
       (SEM ?newsem) (var ?var) ;; duplicate (sort individual)
       (transform ?op) (mass count) (case (? case sub obj -))
       (lf (% description 
-	     (status gname) (class ?lf-new) (var ?var)
+	     (status ont::gname) (class ?lf-new) (var ?var)
 	     (sem ?newsem)  (lex ?lex)
 	    ;; (constraint (& (NAME-OF ?lex)))  not necesary, LEX does the job
 	     ))
@@ -1177,7 +1177,7 @@
     
  ;; construction for naming subregions, e.g., southern israel
     ((NP (var *) (sem ?nsem) (sort pred)
-      (LF (% Description (status definite) (var *) (class ONT::GEOGRAPHIC-REGION) (sem ?nsem)
+      (LF (% Description (status ont::definite) (var *) (class ONT::GEOGRAPHIC-REGION) (sem ?nsem)
 	     (constraint (& (mod ?sub))))))
 
       -sublocation>
@@ -1409,7 +1409,7 @@
    ((ADVBL (ARG ?arg) (ROLE (:* ONT::EVENT-TIME-REL W::DATE))
 	   (SORT BINARY-CONSTRAINT)
 	   (LF (% PROP (VAR ?v) (CLASS (:* ONT::EVENT-TIME-REL W::DATE))
-		  (CONSTRAINT (& (OF ?arg) (VAL (% *PRO* (VAR *)
+		  (CONSTRAINT (& (FIGURE ?arg) (GROUND (% *PRO* (VAR *)
 						       (CLASS ONT::TIME-LOC)
 						       (CONSTRAINT (& (DAY ?day) (Month ?m) (DAY-OF-WEEK ?!dow) (YEAR ?y) (AM-pm ?ampm) (phase ?phase)))))))))
 	   (VAR ?v) (ATYPE (? x W::PRE W::POST))  (bare-advbl +)
@@ -1427,7 +1427,7 @@
    ((ADVBL (ARG ?arg) (ROLE (:* ONT::EVENT-TIME-REL W::DATE))
 	   (SORT BINARY-CONSTRAINT)  (bare-advbl +)
 	   (LF (% PROP (VAR ?v) (CLASS (:* ONT::EVENT-TIME-REL W::DATE))
-		  (CONSTRAINT (& (OF ?arg) (VAL (% *PRO* (VAR *) (STATUS definite)
+		  (CONSTRAINT (& (FIGURE ?arg) (GROUND (% *PRO* (VAR *) (STATUS ont::definite)
 						       (CLASS ONT::TIME-LOC)
 						       (CONSTRAINT (& (DAY ?!day) (Month ?m) (YEAR ?y) (phase ?phase)))))))))
 	   (VAR ?v) (ATYPE (? x W::PRE W::POST))
@@ -1444,9 +1444,9 @@
     ;;  three days before yesterday, two hours before noon, a few minutes after noon, 5 days ago
     ;;  create an NP here that can then either be the object of a prep (until 5 days ago) or made into an ADVBL
     
-    ((NP (LF  (% DESCRIPTION (VAR *) (STATUS DEFINITE)
+    ((NP (LF  (% DESCRIPTION (VAR *) (STATUS ont::DEFINITE)
 		 (CLASS ONT::TIME-LOC) 
-		 (CONSTRAINT (& (MODS (% *PRO* (status F) (CLASS (? ev ONT::EVENT-TIME-REL)) (var ?v)
+		 (CONSTRAINT (& (MODS (% *PRO* (status ont::F) (CLASS (? ev ONT::EVENT-TIME-REL)) (var ?v)
 					(constraint ?newc)))))))
       (SEM ($ F::TIME (F::TIME-FUNCTION F::YEAR-NAME) (F::TIME-SCALE F::INTERVAL)))
       (VAR *) (sort pred) (NAME +)
@@ -1479,13 +1479,13 @@
 
     ((ADVBL (ARG ?arg) 
       (SORT BINARY-CONSTRAINT) (var *)
-      (LF (% PROP (var *) (CLASS ONT::TIME-DURATION-REL) (Constraint (& (:of ?arg) (:val ?v)))))
+      (LF (% PROP (var *) (CLASS ONT::TIME-DURATION-REL) (Constraint (& (:FIGURE ?arg) (:GROUND ?v)))))
       (ATYPE ?atype) (npadvbl +)
       (lex ?hlex) (headcat ?hcat)
       (ARGUMENT (% (? x W::VP W::S)))
       (SEM ?sem))
     -bare-duration-advbl> 
-     (NP (SORT W::UNIT-MEASURE) (spec indefinite)   ;; must be indefinite, e.g., "three months", not "this month"
+     (NP (SORT W::UNIT-MEASURE) (spec ont::indefinite)   ;; must be indefinite, e.g., "three months", not "this month"
       (LF (% PROP (CLASS ont::duration-scale)))
       (SEM ($ ?any (F::SCALE F::duration-scale)))
       (var ?v) (generated -))
@@ -1495,7 +1495,7 @@
 
    ;;  Monday, Monday July 4, Monday July 4 2003
    
-   ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS definite)
+   ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::definite)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (DAY-OF-WEEK ?!dow) (DAY ?day) (Month ?m) (YEAR ?y)))))
 	(SEM ($ F::TIME (F::TIME-FUNCTION F::DAY-OF-WEEK) (F::TIME-SCALE F::INTERVAL)))
 	(VAR ?v) (NAME +) (Sort pred)
@@ -1505,7 +1505,7 @@
 	  (lex ?hlex) (headcat ?hcat)))
 
    ;; July third, etc, no day of the week
-    ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS definite)
+    ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::definite)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (DAY ?!day) (Month ?m) (YEAR ?y)))))
 	(SEM ($ F::TIME (F::TIME-FUNCTION F::DAY-OF-WEEK) (F::TIME-SCALE F::INTERVAL)))
 	(Sort pred)
@@ -1517,7 +1517,7 @@
 
     ;;  The next rules go with IN (and do not mention a day)
     ;;  e.g.,  July, and July 2004
-    ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS DEFINITE) (NAME +)
+    ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::DEFINITE) (NAME +)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (Month ?!m) (YEAR ?y) (phase ?phase))))) (sort pred) 
 	(SEM ($ F::TIME (F::TIME-FUNCTION F::MONTH-NAME) (F::TIME-SCALE F::INTERVAL)))
 	(VAR ?v) (lex ?hlex) (headcat ?hcat))
@@ -1527,7 +1527,7 @@
     
 
     ;; 2004,  the second century, ...
-     ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS DEFINITE)
+     ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::DEFINITE)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (YEAR ?y) (century ?c) (era ?e)(phase ?phase)))))
 	(SEM ($ F::TIME (F::TIME-FUNCTION F::YEAR-NAME) (F::TIME-SCALE F::INTERVAL)))
 	(VAR ?v) (sort pred) (NAME +)
@@ -1599,13 +1599,13 @@
 
     ;; special constructions on web pages and documents
     ;;  "sq ft: 5000", "population: 1000"
-    ((NP (LF (% description (STATUS INDEFINITE)
+    ((NP (LF (% description (STATUS ONT::INDEFINITE)
 		(VAR ?v) (SORT unit-measure)
 		(CLASS (:* ONT::quantity ?sc))
 		(CONSTRAINT ?constr) (argument ?argument)
 		(sem ?sem) (unit-spec +)
 		))
-	      (SPEC INDEFINITE) (VAR ?v) (SORT unit-measure))
+	      (SPEC ont::INDEFINITE) (VAR ?v) (SORT unit-measure))
          -unit-colon-value>
      (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
 		   (KIND -) (agr ?agr) (sem ?sem) (sem ($ f::abstr-obj (f::scale ?sc)))
@@ -1615,7 +1615,7 @@
      (punc (lex w::punc-colon))
      (NUMBER (val ?num) (VAR ?nv) (AGR ?agr) (restr ?r))
          (add-to-conjunct (val (& (value ?num))) (old ?r) (new ?newr))
-	 (add-to-conjunct (val (& (amount (% *PRO* (status indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
+	 (add-to-conjunct (val (& (amount (% *PRO* (status ont::indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
 				  (unit ?c))) (old ?restr) (new ?constr))
 	 )
     

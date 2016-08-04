@@ -67,7 +67,7 @@
   (W::NO
    (wordfeats (W::NEG +) (W::AGR ?agr) (W::MASS ?m) (W::status W::quantifier))
    (SENSES
-    ((LF W::NONE)
+    ((LF ONT::NONE)
      (non-hierarchy-lf t)(TEMPL quan-no-bare-TEMPL)
      )
     )
@@ -79,7 +79,7 @@
  :words (
   (W::NO
    (SENSES
-    ((LF (W::NEG))
+    ((LF (ONT::NEG))
      (non-hierarchy-lf t)(SYNTAX (W::SA ONT::SA_RESPONSE))
      )
     )
@@ -90,7 +90,7 @@
  :words (
   ((W::no W::way)
    (SENSES
-    ((LF (W::NEG))
+    ((LF (ONT::NEG))
      (non-hierarchy-lf t)(SYNTAX (W::SA ONT::SA_RESPONSE))
      )
     )
@@ -101,7 +101,7 @@
  :words (
   ((W::no W::thanks)
    (SENSES
-    ((LF (W::NEG))
+    ((LF (ONT::NEG))
      (non-hierarchy-lf t)(SYNTAX (W::SA ONT::SA_RESPONSE))
      )
     )

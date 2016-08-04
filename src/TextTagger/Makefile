@@ -2,7 +2,7 @@
 # Makefile for TextTagger
 #
 # William de Beaumont <wbeaumont@ihmc.us> 2008/3/6
-# $Id: Makefile,v 1.84 2016/06/01 14:17:20 wdebeaum Exp $
+# $Id: Makefile,v 1.88 2016/07/06 20:22:26 wdebeaum Exp $
 #
 
 MODULE = TextTagger
@@ -34,6 +34,14 @@ all default install clean::
 	    (cd $$d && $(MAKE) $@ MODULE=$(MODULE)) || exit 1; \
 	  fi; \
 	done
+
+# if this is a CVS checkout, we can get new .pl files from CVS
+# (saves me telling everyone to do this manually each time I add one)
+# if it's a git checkout, it should already be handled by git
+ifneq (,$(wildcard CVS))
+%.pl:
+	cvs update $@
+endif
 
 #
 # Rules for those using terms.c (see also several sections using this below)
@@ -151,7 +159,7 @@ install:: mirna-species.tsv drum-terms.tsv drum-dsl specialist.tsv drum-dbxrefs.
 	$(INSTALL_DATA) drum-terms.tsv $(etcdir)/$(MODULE)
 	$(INSTALL_DATA) specialist.tsv $(etcdir)/$(MODULE)
 	$(INSTALL_DATA) drum-dbxrefs.tsv $(etcdir)/$(MODULE)
-	
+
 # This file is in CVS, so we don't really need this rule, but it's here to
 # document how the file was made in the first place. The database is a lot
 # larger than the part we use, and it's public domain, so it makes sense for
@@ -163,7 +171,7 @@ install:: mirna-species.tsv drum-terms.tsv drum-dsl specialist.tsv drum-dbxrefs.
 #	'$$a = $$1 if (/^ID   (\w+)-/i);  push @{$$h{$$a}}, $$1 if (/^DE   ([A-Z]\w* \w*) mir/i and  not grep { $$_ eq $$1 } @{$$h{$$a}});  END {  print map { $$_ . join("", map { "\t$$_" } @{$$h{$$_}}) . "\n" }  sort keys %h;  }' \
 #	>$@
 
-drum-terms.tsv: merge-terms-files.pl obo-terms.tsv hgnc-terms.tsv uniprot-terms.tsv uniprot-subcell-terms.tsv nextprot-family-terms.tsv pfam-terms.tsv mesh-scr-terms.tsv
+drum-terms.tsv: merge-terms-files.pl obo-terms.tsv hgnc-terms.tsv uniprot-terms.tsv uniprot-subcell-terms.tsv nextprot-family-terms.tsv pfam-terms.tsv mesh-scr-terms.tsv ncit-terms.tsv
 	./$^ >$@
 
 drum-dbxrefs.tsv: get-uniprot-dbxrefs.pl downloads/uniprot_sprot.dat.gz
@@ -202,6 +210,17 @@ mesh-scr-terms.tsv: get-mesh-scr-terms.pl $(TEXTTAGGER_mesh_scr)
 	gunzip -c <$(TEXTTAGGER_mesh_scr) \
 	| ./get-mesh-scr-terms.pl \
 	>$@
+
+# get the current version of NCIt, since it changes so often and they don't
+# keep the old ones available (or just use the one we have if we have it
+# already)
+NCIT_WEBSITE=http://evs.nci.nih.gov/ftp1/NCI_Thesaurus/
+NCIT_ZIPFILE=$(shell cd downloads ; ls Thesaurus_??.???.FLAT.zip 2>/dev/null || (curl -s -L $(NCIT_WEBSITE) |grep -o -e 'Thesaurus_..\....\.FLAT.zip' |head -1))
+$(info NCIT_ZIPFILE=$(NCIT_ZIPFILE))
+
+# also writes drum-dsl/NCIT/*
+ncit-terms.tsv: get-ncit-terms.pl downloads/$(NCIT_ZIPFILE)
+	./$+ >$@
 
 specialist.tsv: get-specialist-tsv.pl downloads/LEXICON downloads/inflection.table $(prefix)/src/LexiconManager/Data/new
 	TRIPS_BASE=$(prefix) ./get-specialist-tsv.pl downloads/LEXICON downloads/inflection.table >$@
@@ -261,6 +280,11 @@ downloads/cv_family.txt:
 downloads/Pfam-A.seed.gz:
 	$(call download,"ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz")
 
+# NCI Thesaurus
+# see http://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ReadMe.txt
+downloads/$(NCIT_ZIPFILE):
+	$(call download,$(NCIT_WEBSITE)$(NCIT_ZIPFILE))
+
 # see http://lexsrv3.nlm.nih.gov/Specialist/Home/index.html
 
 downloads/LEXICON:
@@ -276,7 +300,7 @@ drum-dsl/BTO/COMPLETE: downloads/BrendaTissueOBO obo-to-dsl.pl
 drum-dsl/CHEBI/COMPLETE: downloads/chebi.obo obo-to-dsl.pl
 	./obo-to-dsl.pl <$<
 	touch $@
-	
+
 drum-dsl/CO/COMPLETE: downloads/cl-basic.obo obo-to-dsl.pl
 	./obo-to-dsl.pl <$<
 	touch $@
@@ -307,7 +331,7 @@ drum-dsl: drum-dsl/BTO/COMPLETE drum-dsl/CHEBI/COMPLETE drum-dsl/CO/COMPLETE dru
 # drum-dsl/SO/COMPLETE 
 
 clean::
-	rm -rf specialist.tsv drum-terms.tsv obo-terms.tsv hgnc-terms.tsv uniprot-terms.tsv drum-dsl
+	rm -rf specialist.tsv drum-terms.tsv obo-terms.tsv hgnc-terms.tsv uniprot-terms.tsv ncit-terms.tsv drum-dsl
 endif
 
 distclean:: clean

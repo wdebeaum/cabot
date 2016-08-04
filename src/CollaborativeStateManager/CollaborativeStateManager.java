@@ -12,9 +12,10 @@
 //
 package TRIPS.CollaborativeStateManager;
 
-import handlers.IDHandler;
-import handlers.InterpretSpeechActHandler;
-import handlers.TakeInitiativeHandler;
+import handlers.*;
+import extractors.*;
+
+import plans.*;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -22,10 +23,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.File;
 import java.util.*;
 import java.math.*;
 
-import extractors.EventExtractor;
+
 import TRIPS.KQML.*;
 import TRIPS.TripsModule.StandardTripsModule;
 
@@ -38,9 +40,11 @@ public class CollaborativeStateManager extends StandardTripsModule  {
     private boolean speechEnabled;
     private int callingProcess;
     private String hostName;
-
-	
-	
+    private OntologyReader ontologyReader;
+    private GoalPlanner goalPlanner;
+    private ActionPlanner actionPlanner;
+    private final String BASE_DIRECTORY = System.getenv("TRIPS_BASE");
+    
     //
     // 3. You should provide the following two constructors,
     //    both of which accept an array of String parameters. Usually
@@ -86,8 +90,12 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	name = "CSM";
 	// Perform standard initializations
 	super.init();
-
-
+	
+	goalPlanner = new GoalPlanner();
+	ontologyReader = new OntologyReader();
+	actionPlanner = new ActionPlanner();
+	ontologyReader.readEventOntologyFromFile(BASE_DIRECTORY + File.separator + "etc" + File.separator + "events");
+	ontologyReader.readGoalOntologyFromFile(BASE_DIRECTORY +File.separator + "etc" + File.separator + "goals");
 	// Subscriptions
 	try {
 	    KQMLPerformative perf =
@@ -103,6 +111,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
+
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (request &key :content (interpret-speech-act . *)))");
@@ -117,7 +126,20 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
-
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (request &key :content (update-csm . *)))");
+	    send(perf);
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (request &key :content (query-csm . *)))");
+	    send(perf);
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (request &key :content (set-parameters . *)))");
@@ -129,6 +151,14 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (request &key :content (load-properties-file . *)))");
+	    send(perf);		
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
+	
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (start-conversation . *)))");
 	    send(perf);		
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
@@ -172,6 +202,10 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			}
 			callingProcess = Integer.parseInt(pid);
 		}
+		else if (content0.equalsIgnoreCase("start-conversation"))
+		{
+			resetSystem();
+		}
 		else {
 		    errorReply(msg, "bad tell: " + content0);
 		}		
@@ -214,20 +248,43 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		else if (content0.equalsIgnoreCase("interpret-speech-act"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
-			InterpretSpeechActHandler isah = new InterpretSpeechActHandler(msg, content);
+			InterpretSpeechActHandler isah = new InterpretSpeechActHandler(msg, content, 
+													goalPlanner, ontologyReader, actionPlanner);
 
 			KQMLList responseContent = isah.process();
 			if (responseContent != null)
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith.stringValue());
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			
 		}
 		else if (content0.equalsIgnoreCase("take-initiative?"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
+			
 			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content);
 			KQMLList responseContent = tih.process();
 			if (responseContent != null)
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith.stringValue());
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+			
+			
+		}
+		else if (content0.equalsIgnoreCase("update-csm"))
+		{
+			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");	
+			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, goalPlanner, actionPlanner);
+			KQMLList responseContent = uch.process();
+			if (responseContent != null)
+			{
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+			}
+			
+		}
+		else if (content0.equalsIgnoreCase("query-csm"))
+		{
+			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
+			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content);
+			KQMLList responseContent = tih.process();
+			if (responseContent != null)
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			
 			
 		}
@@ -241,21 +298,22 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 
     
     private void sendContentViaPerformative(String performativeType, String receiver,
-    										KQMLObject content, String replyWith)
+    										KQMLObject content, KQMLObject replyWith)
     {
+    	if (receiver == null)
+    		receiver = "NIL";
+    	if (content == null)
+    		content = new KQMLString("NIL");
+    	if (replyWith == null)
+    		replyWith = new KQMLString("NIL");
 		KQMLPerformative performative = new KQMLPerformative(performativeType);
 		performative.setParameter(":RECEIVER", receiver);
 		performative.setParameter(":CONTENT", content);
-		performative.setParameter(":IN-REPLY-TO", replyWith);
+		if (replyWith != null)
+			performative.setParameter(":IN-REPLY-TO", replyWith);
 		send(performative);
     }
-    
 
-    
-    private KQMLList takeInitiativeContent(String result, KQMLObject goal, KQMLObject context)
-    {
-    	return null;
-    }
     
 	/**
 	 * Read the properties file from the given filename, and send results to the corresponding
@@ -315,6 +373,13 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	public void sendKQMLPerformative(KQMLPerformative performative)
 	{
 		send(performative);
+	}
+	
+	private void resetSystem()
+	{
+		
+		goalPlanner = new GoalPlanner();
+		actionPlanner = new ActionPlanner();
 	}
     
 	

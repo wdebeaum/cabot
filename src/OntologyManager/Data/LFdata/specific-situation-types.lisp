@@ -256,11 +256,14 @@
   :parent ont::move
   )
 
+#|
+; merged with FLUIDIC-MOTION
 ;; CAET
 (define-type ont::pour
   :wordnet-sense-keys ("pour%2:38:03")
   :parent ont::move
   )
+|#
 
 ;; CAET
 (define-type ont::stir
@@ -275,14 +278,15 @@
 
 (define-type ONT::move-by-means
  :wordnet-sense-keys ("take%2:38:02" "drive%2:38:11" "take%2:38:11")
- :parent ONT::MOVE
+; :parent ONT::MOVE
+ :parent ONT::TRANSPORTATION
  :arguments ((:ESSENTIAL ONT::formal  (F::phys-obj (F::spatial-abstraction (? sab F::line F::strip))))
              )
  )
 
 ;; ascend, rise, elevate
 (define-type ONT::move-upward
- :wordnet-sense-keys ("rise%2:37:00")
+ :wordnet-sense-keys ("raise%2:38:00")
  :parent ONT::MOVE
  )
 
@@ -384,11 +388,13 @@
   :parent ONT::MOVE
  )
 
-
+#|
+; merged with MOVE-UPWARD
 ;; heft, lift
 (define-type ONT::lift
  :parent ONT::MOVE
  )
+|#
 
 ;; head, approach, near
 (define-type ONT::move-toward
@@ -595,6 +601,8 @@
  :sem (F::SITUATION (F::Aspect F::Unbounded) (F::Time-span F::Extended))
  )
 
+#|
+; merge with RETURN
 (define-type ONT::GO-BACK
  :parent ONT::MOVE
  :sem (F::SITUATION (:required (F::Cause F::Agentive))(:default (F::Aspect F::bounded) (F::Time-span F::atomic)))
@@ -602,6 +610,7 @@
 	     (:OPTIONAL ONT::Source (F::Phys-obj))
              )
  )
+|#
 
 
 (define-type ONT::RETURN
@@ -645,7 +654,7 @@
 (define-type ONT::CATCH
  :wordnet-sense-keys ("catch%2:33:10")
  :parent ONT::CO-MOTION
- :sem (F::SITUATION (F::Aspect F::Unbounded) (F::Cause F::Agentive) (F::Trajectory +))
+ :sem (F::SITUATION (F::Aspect F::Bounded) (F::Cause F::Agentive) (F::Trajectory +))
  :arguments ((:OPTIONAL ONT::affected (F::Phys-obj (f::intentional +)))
              (:OPTIONAL ONT::agent (F::Phys-obj (f::intentional +)))
              )
@@ -653,8 +662,10 @@
 
 (define-type ONT::DEPART
  :wordnet-sense-keys ("depart%2:38:01" "part%2:38:00" "start%2:38:02" "start_out%2:38:00" "set_forth%2:38:00" "set_off%2:38:00" "set_out%2:38:00" "take_off%2:38:00")
- :parent ONT::DEPARTING
+; :parent ONT::DEPARTING
+ :parent ONT::EVENT-OF-ACTION
  :sem (F::SITUATION (F::Aspect F::Bounded) (F::Cause F::Force) (F::Time-span F::Atomic))
+ :arguments ((:OPTIONAL ONT::Source))
  )
 
 ;;; A more abstract motion. Involves object changing places, but
@@ -675,7 +686,8 @@
 
 (define-type ONT::DELIVER
   :wordnet-sense-keys ("deliver%2:35:00" "get%2:30:02" "let%2:30:01" "have%2:30:00")
- :parent ONT::TRANSPORTATION
+; :parent ONT::TRANSPORTATION
+ :parent ONT::TRANSFER
  :sem (F::Situation (F::Cause F::Agentive))
  :arguments ((:OPTIONAL ONT::RESULT ((? rcp F::Phys-obj f::abstr-obj) (F::intentional +)))
              (:OPTIONAL ONT::SOURCE ((? src F::Phys-obj f::abstr-obj) (F::intentional +)))
@@ -823,11 +835,11 @@
  		)
 
 ;; birth, death
-(define-type ONT::lifecycle-event
- :wordnet-sense-keys ("nascence%1:11:00" "nascency%1:11:00" "nativity%1:11:00" "birth%1:11:00" "death%1:11:00" "decease%1:11:00" "expiry%1:11:00")
+(define-type ONT::be-born
+ :wordnet-sense-keys ("nascence%1:11:00" "nascency%1:11:00" "nativity%1:11:00" "birth%1:11:00")
  :parent ONT::life-process
   :sem (f::situation (:default (f::aspect f::dynamic)))
- 		)
+  :arguments ((:essential ONT::affected-result (F::Phys-obj (f::type ont::mammal)))))
 
 (define-type ONT::live
  :wordnet-sense-keys ("exist%2:42:01" "live%2:42:06" "live%2:42:07")
@@ -836,7 +848,7 @@
  		)
 
 (define-type ONT::die
- :wordnet-sense-keys ("demise%1:28:00" "dying%1:28:00" "death%1:28:00" "death%1:26:01" "destruction%1:26:00" "end%1:26:00" "last%1:28:01" "death%1:28:01" "death%1:26:00" "death%1:19:00" "die%2:30:00" "decease%2:30:00" "perish%2:30:00" "go%2:30:00" "exit%2:30:00" "pass_away%2:30:00" "expire%2:30:00" "pass%2:30:11" "kick_the_bucket%2:30:00" "cash_in_one's_chips%2:30:00" "buy_the_farm%2:30:00" "conk%2:30:00" "give-up_the_ghost%2:30:00" "drop_dead%2:30:00" "pop_off%2:30:00" "choke%2:30:01" "croak%2:30:00" "snuff_it%2:30:00" "die%2:30:02")
+ :wordnet-sense-keys ("demise%1:28:00" "dying%1:28:00" "death%1:28:00" "death%1:26:01" "destruction%1:26:00" "end%1:26:00" "last%1:28:01" "death%1:28:01" "death%1:26:00" "death%1:19:00" "die%2:30:00" "decease%2:30:00" "perish%2:30:00" "go%2:30:00" "exit%2:30:00" "pass_away%2:30:00" "expire%2:30:00" "pass%2:30:11" "kick_the_bucket%2:30:00" "cash_in_one's_chips%2:30:00" "buy_the_farm%2:30:00" "conk%2:30:00" "give-up_the_ghost%2:30:00" "drop_dead%2:30:00" "pop_off%2:30:00" "choke%2:30:01" "croak%2:30:00" "snuff_it%2:30:00" "die%2:30:02"  "death%1:11:00" "decease%1:11:00" "expiry%1:11:00")
  :parent ONT::life-process
   :sem (f::situation (:default (f::aspect f::dynamic)))
  		)
@@ -909,7 +921,7 @@
 
 ;; top level for change: states, situations, objects
 (define-type ont::change
- :wordnet-sense-keys ("change%1:07:00" "variety%1:07:01" "change%1:06:01" "change%2:30:00" "change%1:04:00")
+ :wordnet-sense-keys ("change%1:07:00" "variety%1:07:01" "change%1:06:01" "change%2:30:00" "change%1:04:00" "change%1:19:00" "change%2:30:02" "change%2:30:08" "change%2:30:01")
   :parent ont::event-of-causation
   :sem (F::Situation (F::Cause F::force))
   :arguments (
@@ -1080,7 +1092,7 @@
  :wordnet-sense-keys ("attract%2:35:00" "attract%2:35:01" "affinity%1:19:01" "affinity%1:19:02")
  :parent ONT::cause-effect
   :arguments ((:ESSENTIAL ONT::agent ((? oc F::Phys-obj F::Abstr-obj)))
-	      (:ESSENTIAL ONT::affected ((? oc F::Phys-obj F::Abstr-obj)))
+	      (:ESSENTIAL ONT::affected ((? oc2 F::Phys-obj F::Abstr-obj)))
 	      ))
 
 ;; manage
@@ -1293,7 +1305,7 @@
  :comment "extended interaction using communication acts, symmetric  AGENT1"
  :sem (F::Situation (F::Cause F::Agentive))
  :arguments ((:ESSENTIAL ONT::agent ((? atp F::phys-obj F::abstr-obj) (F::intentional +)))
-	     (:ESSENTIAL ONT::agent1 ((? atp F::phys-obj F::abstr-obj) (F::intentional +)))
+	     (:ESSENTIAL ONT::agent1 ((? atp1 F::phys-obj F::abstr-obj) (F::intentional +)))
              )
  )
 
@@ -1601,8 +1613,7 @@
 
 (define-type ONT::proposition-equal
 ; :wordnet-sense-keys ("be%2:42:06" "be%2:42:07" "be%2:41:00" "be%2:42:02" "be_full%2:34:00" "be_quiet%2:32:00" "mean%2:42:03" "rest%2:41:00")
- :arguments ((:REQUIRED ONT::neutral ((? th19 F::abstr-obj f::situation)  (f::type ont::mental-construction))))
- 
+ :arguments ((:REQUIRED ONT::neutral ((? th19 F::abstr-obj f::situation)  (f::type (? t ont::mental-construction ont::fact)))))
                                      ;;  (?th (f::type ont::mental-construction))))
  :parent ONT::be
  )
@@ -2219,7 +2230,8 @@
 
 (define-type ONT::calc-add
  :parent ONT::calculation
- :arguments ((:OPTIONAL ONT::formal1)
+ :arguments ((:REQUIRED ONT::Formal (F::ABSTR-OBJ) (F::TYPE ONT::MATHEMATICAL-TERM))
+	     (:OPTIONAL ONT::formal1)
              )
  )
 
@@ -2265,13 +2277,6 @@
 	      )
  )
 
-(define-type ont::archive
-  :parent ont::retain
-  :arguments ((:essential ont::affected (?ttype (f::information f::information-content)))
-	     (:essential ont::source (?ttype (f::object-function f::instrument)))
-             )
-  )
-
 (define-type ont::protecting
  :wordnet-sense-keys ("preserve%2:42:01" "keep%2:42:02" "defend%2:33:00")
   :parent ont::event-of-causation
@@ -2280,6 +2285,8 @@
 	      )
  )
 
+#|
+; merged with ARCHIVE
 ;; store my files on the computer; archive the data
 (define-type ONT::store-info
   :parent ONT::storing
@@ -2287,6 +2294,7 @@
 	      (:OPTIONAL ONT::agent (F::phys-obj (F::intentional +)))
 	      )
  )
+|#
 
 (define-type ONT::dig
  :wordnet-sense-keys ("dig%2:35:01" "dig_out%2:35:00")
@@ -2421,7 +2429,8 @@
 
 (define-type ONT::Cancel
  :parent ONT::CAUSE-ACTION
- :arguments ((:OPTIONAL ONT::Formal ((? obj F::PHYS-OBJ F::ABSTR-OBJ) (f::intentional -))))
+ :arguments ((:OPTIONAL ONT::Formal ((? obj F::PHYS-OBJ F::ABSTR-OBJ) (f::intentional -)))
+	     (:OPTIONAL ONT::NEUTRAL ((? obj F::PHYS-OBJ F::ABSTR-OBJ) (f::intentional -))))
  )
 
 
@@ -2445,7 +2454,7 @@
  ;;; an object used in action
  :arguments ((:REQUIRED ONT::formal ((? oc F::Phys-obj F::Abstr-obj F::Situation)))
              ;;; use a book as a hammer; use force as a catalyst
-             (:OPTIONAL ONT::Formal1 ((? oc F::Phys-obj F::Abstr-obj F::Situation)))
+             (:OPTIONAL ONT::Formal1 ((? oc1 F::Phys-obj F::Abstr-obj F::Situation)))
              ;;; use a book to do something
 ;             (:OPTIONAL ONT::Purpose (F::Situation))
              (:OPTIONAL ONT::REASON (F::Situation))
@@ -2637,29 +2646,40 @@
              )
  )
 
+(define-type ONT::rise
+ :wordnet-sense-keys ("rise%2:38:00")
+ :parent ONT::event-of-undergoing-action
+ :arguments ((:OPTIONAL ONT::Agent)
+             )
+ )
+
 (define-type ONT::come-out-of
- :wordnet-sense-keys ("egress%1:04:01" "egression%1:04:00::" "emergence%1:04:00::")
+ :wordnet-sense-keys ("egress%1:04:01" "egression%1:04:00::" "emergence%1:04:00")
  :parent ONT::come-from
  :arguments ((:OPTIONAL ONT::Agent)
              )
  )
 
 (define-type ONT::push-out-of
- :parent ONT::come-out-of
+; :parent ONT::come-out-of
+ :parent ONT::cause-out-of
  )
 
 (define-type ONT::pull-out-of
- :parent ONT::come-out-of
+; :parent ONT::come-out-of
+ :parent ONT::cause-out-of
  )
 
 (define-type ONT::pull-off
  :wordnet-sense-keys ("draw_off%2:35:00" "draw_away%2:35:01" "pull_off%2:35:01")
- :parent ONT::come-from
+; :parent ONT::come-from
+ :parent ONT::cause-out-of
  :arguments ((:OPTIONAL ONT::Agent)
              )
  )
 
 (define-type ONT::socially-remove
+    :wordnet-sense-keys ("banishment%1:04:00" "expel%2:41:01" "expel%2:41:00" "ouster%1:04:00")
  :parent ONT::cause-come-from
  :arguments ((:REQUIRED ONT::Formal ((? thm F::phys-obj F::abstr-obj) (F::intentional +)))
              )
@@ -2695,7 +2715,8 @@
 
 (define-type ONT::parts-removed
   :wordnet-sense-keys ("precipitate%2:30:00")
-  :parent ONT::come-from
+; :parent ONT::come-from
+ :parent ONT::cause-out-of
   :comment "the part removed is the good part"
   :arguments ((:OPTIONAL ONT::Agent)
 	      (:OPTIONAL ONT::AFFECTED1)
@@ -3008,7 +3029,7 @@
  )
 
 (define-type ONT::increase
- :wordnet-sense-keys ("increase%2:30:00" "protuberate%2:42:01")
+ :wordnet-sense-keys ("increase%2:30:00" "protuberate%2:42:01" "lengthen%2:30:01")
  :parent ONT::change-magnitude
  )
 
@@ -3019,6 +3040,11 @@
 ;; rush, hasten, speed up
 (define-type ONT::increase-speed
  :wordnet-sense-keys ("hasten%2:36:00" "rush%2:36:00" "stimulate%2:36:00" "induce%2:36:01" "hasten%2:41:00" "expedite%2:41:00" "step_on_it%2:38:00" "belt_along%2:38:00" "bucket_along%2:38:00" "cannonball_along%2:38:00" "rush_along%2:38:00" "pelt_along%2:38:00" "race%2:38:00" "speed%2:38:03" "hie%2:38:00" "hasten%2:38:00" "hotfoot%2:38:00" "rush%2:38:00" "rush%2:30:00" "hasten%2:30:00" "hurry%2:30:00" "look_sharp%2:30:00" "festinate%2:30:00")
+ :parent ONT::increase
+ )
+
+(define-type ONT::increase-time
+ :wordnet-sense-keys ("prolong%2:30:00")
  :parent ONT::increase
  )
 
@@ -3042,10 +3068,13 @@
 	     )
  )
 
+; merged with ONT::CHANGE
+#|
 (define-type ONT::modify
- :wordnet-sense-keys ("change%1:19:00" "change%2:30:08" "deepen%2:30:02" "vary%2:30:01" "alter%2:30:00" "change%2:30:02" "change%2:30:01" "alter%2:30:01" "modify%2:30:10" "desegregate%2:41:00")
+ :wordnet-sense-keys ("change%1:19:00" "change%2:30:02" "change%2:30:08" "change%2:30:01" "desegregate%2:41:00")
  :parent ONT::adjust
  )
+|#
 
 (define-type ONT::HYDROLYSIS
     :wordnet-sense-keys ("hydrolysis%1:22:00" "hydrolyze%2:30:00" "hydrolyse%2:30:00")
@@ -3358,6 +3387,7 @@
 
 (define-type ONT::ATTACH
  :wordnet-sense-keys ("attach%2:35:01" "attach%2:35:02" "catch%2:35:08" "connect%2:35:00")
+ :arguments ((:required ont::agent (F::phys-obj (F::origin F::natural))))
  :parent ONT::JOINING
  :sem (F::Situation (F::Aspect F::Dynamic) (F::Cause F::Agentive))
  )
@@ -3412,7 +3442,7 @@
  :parent ONT::position
  :comment "two objects share a common subpart"
  :sem (F::Situation (F::Aspect F::Indiv-level) (F::Cause -))
- :arguments ((:REQUIRED ONT::neutral (F::Phys-obj (F::Spatial-abstraction (? sa1 F::Line F::Strip F::Spatial-region))))
+ :arguments ((:REQUIRED ONT::neutral (F::Phys-obj (F::Spatial-abstraction (? sa F::Line F::Strip F::Spatial-region))))
              (:REQUIRED ONT::neutral1 (F::Phys-obj (F::Spatial-abstraction (? sa1 F::Line F::Strip F::Spatial-region))
               ))
              (:ESSENTIAL ONT::location (F::phys-obj))
@@ -3704,6 +3734,14 @@
              )
  )
 
+(define-type ont::archive
+;  :parent ont::retain
+  :parent ont::record
+  :arguments ((:essential ont::affected (?ttype (f::information f::information-content)))
+	     (:essential ont::source (?ttype1 (f::object-function f::instrument)))
+             )
+  )
+
 ;; register for a conference, check in/out at a hotel, enroll in a program
 (define-type ONT::enroll
  :wordnet-sense-keys ("enroll%2:41:00" "inscribe%2:41:00" "enter%2:41:06" "enrol%2:41:00" "recruit%2:41:01" "enter%2:33:00")
@@ -3727,7 +3765,7 @@
  :parent ONT::record
  :sem (F::situation)
  :arguments ((:essential ont::neutral (?ttype (f::information f::information-content)))
-	     (:essential ont::source (?ttype (f::object-function f::instrument)))
+	     (:essential ont::source (?ttype1 (f::object-function f::instrument)))
              )
  )
 
@@ -3776,7 +3814,7 @@
  :parent ONT::giving
  :sem (F::Situation (F::Cause F::agentive) (F::Aspect F::bounded) (F::Time-span F::atomic))
  :arguments ((:ESSENTIAL ONT::Agent  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
-             (:ESSENTIAL ONT::affected1 ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
+             (:ESSENTIAL ONT::affected1 ((? agt1 F::Phys-obj f::abstr-obj) (F::intentional +)))
              (:ESSENTIAL ONT::affected ((? th26 F::Abstr-obj F::Situation F::phys-obj)))
              )
  )
@@ -4012,7 +4050,7 @@
 
 ;; FN
 (define-type ont::fluidic-motion
- :wordnet-sense-keys ("course%2:38:00" "feed%2:38:04" "flow%2:38:00" "run%2:38:01" "flow%2:38:01" "flux%2:38:00" "flow%2:38:02")
+ :wordnet-sense-keys ("course%2:38:00" "feed%2:38:04" "flow%2:38:00" "run%2:38:01" "flow%2:38:01" "flux%2:38:00" "flow%2:38:02" "pour%2:38:03")
     :parent ont::motion
     :sem (f::situation (f::trajectory +))
     :arguments ((:required ont::formal (f::phys-obj (f::form (? ff f::liquid f::gas f::wave))))
@@ -4025,7 +4063,7 @@
 
 ;; FN
 (define-type ont::hindering
- :wordnet-sense-keys ("hold_back%2:41:00" "keep_back%2:41:00" "keep%2:41:00" "restrain%2:41:01" "keep%2:41:01" "throttle%2:30:01" "confine%2:30:00" "bound%2:30:00" "limit%2:30:01" "trammel%2:30:00" "restrain%2:30:00" "restrict%2:30:00" "forbid%2:41:03" "preclude%2:41:00" "foreclose%2:41:00" "forestall%2:41:01" "handicap%2:33:00" "hinder%2:33:00" "hamper%2:33:00"  "barricade%1:06:00" "obstruction%1:06:00" "crush%2:41:00" "disrupt%2:30:01" "suppress%2:30:00")
+ :wordnet-sense-keys ("hold_back%2:41:00" "keep_back%2:41:00" "keep%2:41:00" "restrain%2:41:01" "keep%2:41:01" "throttle%2:30:01" "confine%2:30:00" "bound%2:30:00" "limit%2:30:01" "trammel%2:30:00" "restrain%2:30:00" "restrict%2:30:00" "forbid%2:41:03" "preclude%2:41:00" "foreclose%2:41:00" "forestall%2:41:01" "handicap%2:33:00" "hinder%2:33:00" "hamper%2:33:00"  "barricade%1:06:00" "obstruction%1:06:00" "crush%2:41:00" "disrupt%2:30:01" "suppress%2:30:00" "compromise%2:32:03")
     :parent ont::inhibit-effect
     )
 
@@ -4197,8 +4235,8 @@
 ;; 20120502 :origin jr :comment gloss-variant
 (define-type ONT::whereby
  :parent ONT::predicate
- :arguments ((:OPTIONAL ONT::OF)
-	     (:OPTIONAL ONT::VAL)
+ :arguments ((:OPTIONAL ONT::FIGURE)
+	     (:OPTIONAL ONT::GROUND)
              )
  )
 
@@ -4214,15 +4252,33 @@
  :parent ONT::situation-root
  :wordnet-sense-keys ("condition%1:26:02")
  :sem (f::situation (f::aspect f::indiv-level)) ;; prevent attachment of temporal adv
- :arguments ((:OPTIONAL ONT::of (F::phys-obj (F::origin F::natural)))
+ :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj (F::origin F::natural)))
              )
  )
 
 ;; infancy, childhood, adulthood
 (define-type ONT::lifecycle-stage
  :parent ONT::domain-property
- :arguments ((:OPTIONAL ONT::of (F::phys-obj (F::origin F::living)))
+ :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj (F::origin F::living)))
              )
+ )
+
+;; feebleness
+(define-type ONT::feebleness
+ :wordnet-sense-keys ("feebleness%1:26:00")
+ :parent ont::physical-condition
+ )
+
+;; fatigue, tiredness, exhaustion
+(define-type ONT::fatigue
+ :wordnet-sense-keys ("exhaustion%1:26:00" "fatigue%1:26:00" "tiredness%1:26:00")
+ :parent ont::feebleness
+ )
+
+;; weakness
+(define-type ONT::weakness
+ :wordnet-sense-keys ("weakness%1:07:00")
+ :parent ont::feebleness
  )
 
 ;; health, wellness
@@ -4234,25 +4290,44 @@
 (define-type ONT::medical-disorders-and-conditions
  :wordnet-sense-keys ("disorder%1:26:03")
  :parent ONT::physical-condition
- :arguments ((:OPTIONAL ONT::of (F::phys-obj (F::origin (? og2 f::human f::non-human-animal))))
+ :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj (F::origin (? og2 f::human f::non-human-animal))))
              )
  )
 
-;; fever, pain
+;; symptom
 (define-type ONT::medical-symptom
- :wordnet-sense-keys ("symptom%1:26:00" "sign%1:26:00" "fever%1:26:00" "febrility%1:26:00" "febricity%1:26:00" "pyrexia%1:26:00" "feverishness%1:26:00" "pain%1:26:00" "hurting%1:26:00" "pain_sensation%1:09:00" "painful_sensation%1:09:00" "syndrome%1:26:00" "amnesia%1:09:00" "backache%1:26:00" "stomachache%1:26:00" "chest_pain%1:26:00" "chill%1:26:01" "constipation%1:26:00" "constriction%1:09:00" "contraction%1:04:01" "cough%1:26:00" "cramp%1:26:00" "diarrhea%1:26:00" "dyspepsia%1:26:00" "edema%1:26:00" "heartburn%1:26:00" "hives%1:26:00" "hoarseness%1:07:00" "hyperventilation%1:04:00" "arrhythmia%1:26:00" "tachycardia%1:26:00" "lightheadedness%1:26:00" "nausea%1:26:00" "nosebleed%1:26:00" "numbness%1:26:00" "palpitation%1:26:00" "redness%1:26:00" "sneeze%1:26:00" "sniffle%1:04:00" "soreness%1:26:00" "spasm%1:26:00" "tightness%1:09:00" "jaundice%1:26:00")
+ :wordnet-sense-keys ("symptom%1:26:00" "sign%1:26:00" "syndrome%1:26:00" "hoarseness%1:07:00" "sniffle%1:04:00" "tightness%1:09:00")
  :parent ONT::medical-disorders-and-conditions
  )
 
-;; condition, fever
-(define-type ONT::medical-condition
- :wordnet-sense-keys ("condition%1:26:05" "sign%1:26:00" "arteriosclerosis%1:26:00" "eating_disorder%1:26:00"  "anorexia%1:26:00" "insanity%1:26:00" "cholelithiasis%1:26:00" "lithiasis%1:26:00" "hyperkalemia%1:26:00" "hypoglycemia%1:26:00" "kidney_stone%1:17:00" "malformation%1:26:00" "mania%1:26:00" "pathology%1:26:00" "phlebitis%1:26:00" "phobia%1:26:00" "seizure%1:26:00" "stroke%1:26:00" "thrombosis%1:26:00" "psychological_condition%1:26:00" "anesthesia%1:26:00" "angina%1:26:01" "anxiety%1:26:00" "nervous_disorder%1:26:00" "ataxia%1:26:00" "confusion%1:09:00" "depression%1:26:03" "distress%1:12:02" "dizziness%1:26:00" "drowsiness%1:26:00" "exhaustion%1:26:00" "fatigue%1:26:00" "headache%1:26:00" "irritation%1:26:00" "anorexia%1:26:00" "restlessness%1:07:00" "stress%1:26:01" "tiredness%1:26:00" "weakness%1:07:00" "addiction%1:26:00" "stroke%1:26:00") 
- :parent ONT::medical-disorders-and-conditions
+; for chill
+(define-type ONT::chill
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("chill%1:26:01")
  )
 
-(define-type ont::pregnancy
- :wordnet-sense-keys ("pregnancy%1:26:00")
- :parent ont::medical-condition
+; for constipation
+(define-type ONT::constipation
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("constipation%1:26:00")
+ )
+
+; for cough
+(define-type ONT::cough
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("cough%1:26:00")
+ )
+
+; for diarrhea
+(define-type ONT::diarrhea
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("diarrhea%1:26:00")
+ )
+
+; for dyspepsia
+(define-type ONT::dyspepsia
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("dyspepsia%1:26:00" "indigestion%1:26:00")
  )
 
 (define-type ont::dyspnea
@@ -4260,21 +4335,261 @@
  :parent ont::medical-symptom
  )
 
+; for edema
+(define-type ONT::edema
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("edema%1:26:00")
+ )
+
+; for fever
+(define-type ONT::fever
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("fever%1:26:00" "febrility%1:26:00" "febricity%1:26:00" "pyrexia%1:26:00" "feverishness%1:26:00")
+ )
+
+; for heartburn
+(define-type ONT::heartburn
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("heartburn%1:26:00")
+ )
+
+; for hives
+(define-type ONT::hives
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("hives%1:26:00")
+ )
+
+; for hyperkalemia
+(define-type ONT::hyperkalemia
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("hyperkalemia%1:26:00")
+ )
+
+; for hyperventilation
+(define-type ONT::hyperventilation
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("hyperventilation%1:04:00")
+ )
+
+; for hypoglycemia
+(define-type ONT::hypoglycemia
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("hypoglycemia%1:26:00")
+ ) 
+
+; for inflammation, redness, phlebitis
+(define-type ONT::inflammation
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("inflammation%1:26:00" "phlebitis%1:26:00" "redness%1:26:00")
+ ) 
+
+; for jaundice
+(define-type ONT::jaundice
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("jaundice%1:09:00")
+ )
+
+; for lightheadedness
+(define-type ONT::lightheadedness
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("lightheadedness%1:26:00" "dizziness%1:26:00")
+ )
+
+; for nausea
+(define-type ONT::nausea
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("nausea%1:26:00")
+ )
+
+; for nosebleed
+(define-type ONT::nosebleed
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("nosebleed%1:26:00")
+ )
+
+; for numbness
+(define-type ONT::numbness
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("numbness%1:26:00")
+ )
+
+; for pain
+(define-type ONT::pain
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("pain%1:26:00" "hurting%1:26:00" "pain_sensation%1:09:00" "painful_sensation%1:09:00" "soreness%1:26:00")
+ )
+
+; for backache
+(define-type ONT::backache
+ :parent ONT::pain
+ :wordnet-sense-keys ("backache%1:26:00")
+ )
+
+; for distress
+(define-type ONT::distress
+ :parent ONT::pain
+ :wordnet-sense-keys ("distress%1:26:00")
+ )
+
+; for headache
+(define-type ONT::headache
+ :parent ONT::pain
+ :wordnet-sense-keys ("headache%1:26:00")
+ )
+
+; for stomachache
+(define-type ONT::stomachache
+ :parent ONT::pain
+ :wordnet-sense-keys ("stomachache%1:26:00")
+ )
+
+; for palpitation
+(define-type ONT::palpitation
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("palpitation%1:26:00")
+ )
+
+;; seizure
+(define-type ont::seizure
+ :wordnet-sense-keys ("seizure%1:26:00")
+ :parent ont::medical-symptom
+ )
+
+; for sneeze
+(define-type ONT::sneeze
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("sneeze%1:26:00")
+ )
+
+; for cramp, spasm
+(define-type ONT::spasm
+ :parent ONT::medical-symptom
+ :wordnet-sense-keys ("cramp%1:26:00" "spasm%1:26:00")
+ )
+
+;; condition
+(define-type ONT::medical-condition
+ :wordnet-sense-keys ("condition%1:26:05" "sign%1:26:00" "malformation%1:26:00" "pathology%1:26:00") 
+ :parent ONT::medical-disorders-and-conditions
+ )
+
+;; anesthesia
+(define-type ont::anesthesia
+ :wordnet-sense-keys ("anesthesia%1:26:00")
+ :parent ont::medical-condition
+ )
+
+;; angina
+(define-type ont::angina
+ :wordnet-sense-keys ("angina%1:26:01")
+ :parent ont::medical-condition
+ )
+
+(define-type ont::pregnancy
+ :wordnet-sense-keys ("pregnancy%1:26:00")
+ :parent ont::medical-condition
+ )
+
+;; stroke
+(define-type ont::stroke
+ :wordnet-sense-keys ("stroke%1:26:00")
+ :parent ont::medical-condition
+ )
+
+;; thrombosis
+(define-type ont::thrombosis
+ :wordnet-sense-keys ("thrombosis%1:26:00")
+ :parent ont::medical-condition
+ )
+
+;; mental illness, mental disorder, psychological disorder
+(define-type ONT::mental-psychological-illness-or-disorder
+ :wordnet-sense-keys ("mental_illness%1:26:00" "mental_disorder%1:26:00") 
+ :parent ONT::medical-disorders-and-conditions
+ )
+
+;; addiction
+(define-type ont::addiction
+ :wordnet-sense-keys ("addiction%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+; for amnesia
+(define-type ONT::amnesia
+ :parent ONT::mental-psychological-illness-or-disorder
+ :wordnet-sense-keys ("amnesia%1:09:00")
+ )
+
+;; anorexia
+(define-type ont::eating-disorder
+ :wordnet-sense-keys ("anorexia%1:26:00" "eating_disorder%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; anxiety
+(define-type ont::anxiety
+ :wordnet-sense-keys ("anxiety%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; ataxia
+(define-type ont::nervous-disorder
+ :wordnet-sense-keys ("ataxia%1:26:00" "nervous_disorder%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; confusion
+(define-type ont::confusion
+ :wordnet-sense-keys ("confusion%1:09:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; depression
+(define-type ont::depression
+ :wordnet-sense-keys ("depression%1:26:03")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; insanity
+(define-type ont::insanity
+ :wordnet-sense-keys ("insanity%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; mania
+(define-type ont::mania
+ :wordnet-sense-keys ("mania%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; phobia
+(define-type ont::phobia
+ :wordnet-sense-keys ("phobia%1:26:00")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; stress
+(define-type ont::stress
+ :wordnet-sense-keys ("stress%1:26:01")
+ :parent ont::mental-psychological-illness-or-disorder
+ )
+
+;; bruise, contusion, bump
 (define-type ont::injury
- :wordnet-sense-keys ("concussion%1:11:00" "injury%1:26:00" "hurt%1:26:00" "harm%1:26:00" "trauma%1:26:02")
+ :wordnet-sense-keys ("concussion%1:11:00" "injury%1:26:00" "hurt%1:26:00" "harm%1:26:00" "trauma%1:26:02" "bruise%1:26:00" "contusion%1:26:00" "bump%1:26:00")
   :parent ont::medical-disorders-and-conditions
  )
 
-;; wound, lesion, bruise
+;; wound, lesion
 ; bruise can come under physical-symptom too but WN defines it as an injury.
 (define-type ONT::wound
-  :wordnet-sense-keys ("wound%1:26:00" "lesion%1:26:02" "bruise%1:26:00" "contusion%1:26:00" "sore%1:26:00")  
+  :wordnet-sense-keys ("wound%1:26:00" "lesion%1:26:02" "sore%1:26:00")  
   :parent ONT::injury
  )
 
 ;; sickness
 (define-type ONT::disease
- :wordnet-sense-keys ("health_problem%1:26:00" "unhealthiness%1:26:00" "ill_health%1:26:00" "illness%1:26:00" "unwellness%1:26:00" "malady%1:26:00" "sickness%1:26:00" "ailment%1:26:00" "complaint%1:26:00" "ill%1:26:00" "abnormality%1:26:00" "abnormalcy%1:26:00") 
+ :wordnet-sense-keys ("health_problem%1:26:00" "unhealthiness%1:26:00" "ill_health%1:26:00" "illness%1:26:00" "unwellness%1:26:00" "malady%1:26:00" "sickness%1:26:00" "ailment%1:26:00" "ill%1:26:00" "abnormality%1:26:00" "abnormalcy%1:26:00") 
  :parent ONT::medical-disorders-and-conditions
  )
 
@@ -4296,16 +4611,39 @@
  :wordnet-sense-keys ("anemia%1:26:00")
  )
 
-; for arthritis
+;; angina
+(define-type ont::angina-symp
+ :wordnet-sense-keys ("angina%1:26:00")
+ :parent ont::medical-symptom
+ )
+
+;; arteriosclerosis
+(define-type ont::arteriosclerosis
+ :wordnet-sense-keys ("arteriosclerosis%1:26:00")
+ :parent ont::disease
+ )
+
 (define-type ONT::arthritis
  :parent ONT::disease
- :wordnet-sense-keys ("arthritis%1:26:00" "gout%1:26:00" "osteoarthritis%1:26:00")
+ :wordnet-sense-keys ("arthritis%1:26:00")
+ )
+
+; for gout
+(define-type ONT::gout
+ :parent ONT::arthritis
+ :wordnet-sense-keys ("gout%1:26:00")
+ )
+
+; for osteoarthritis
+(define-type ONT::osteoarthritis
+ :parent ONT::arthritis
+ :wordnet-sense-keys ("osteoarthritis%1:26:00")
  )
 
 ; for asthma
 (define-type ONT::breathing-disorder
  :parent ONT::disease
- :wordnet-sense-keys ("asthma%1:26:00" "respiratory_disorder%1:26:00" "breathlessness%1:26:00")
+ :wordnet-sense-keys ("asthma%1:26:00" "respiratory_disorder%1:26:00")
  )
 
 ; for brain-disease
@@ -4319,10 +4657,34 @@
  :wordnet-sense-keys ("cancer%1:26:00" "malignancy%1:26:00" "malignance%1:26:00" "carcinoma%1:26:00" "melanoma%1:26:00" "malignant_melanoma%1:26:00" "lymphoma%1:26:00" "leukemia%1:26:00" "leukaemia%1:26:00" "leucaemia%1:26:00" "cancer_of_the_blood%1:26:00" "sarcoma%1:26:00" "angiosarcoma%1:26:00" "myeloma%1:26:00")
  )
 
-; for cardiovascular diseases, heart attack, high BP etc
+; for cardiovascular diseases etc
 (define-type ONT::cardiovascular-disease
  :parent ONT::disease
- :wordnet-sense-keys ("aneurysm%1:26:00" "cardiovascular_disease%1:26:00" "hypertension%1:26:00" "heart_attack%1:26:00")
+ :wordnet-sense-keys ("cardiovascular_disease%1:26:00")
+ )
+
+; for aneurysm
+(define-type ONT::aneurysm
+ :parent ONT::cardiovascular-disease
+ :wordnet-sense-keys ("aneurysm%1:26:00")
+ )
+
+; for arrhythmia
+(define-type ONT::arrhythmia
+ :parent ONT::cardiovascular-disease
+ :wordnet-sense-keys ("arrhythmia%1:26:00" "tachycardia%1:26:00")
+ )
+
+; for heart attack
+(define-type ONT::heart-attack
+ :parent ONT::cardiovascular-disease
+ :wordnet-sense-keys ("heart_attack%1:26:00")
+ )
+
+; for high BP, hypertension
+(define-type ONT::hypertension
+ :parent ONT::cardiovascular-disease
+ :wordnet-sense-keys ("hypertension%1:26:00")
  )
 
 (define-type ONT::diabetes
@@ -4346,11 +4708,6 @@
 (define-type ONT::flu
  :parent ONT::disease
  :wordnet-sense-keys ("flu%1:26:00" "influenza%1:26:00" "grippe%1:26:00")
- )
-
-(define-type ONT::indigestion
- :parent ONT::disease
- :wordnet-sense-keys ("stomach_upset%1:26:00" "indigestion%1:26:00" "dyspepsia%1:26:00" "upset_stomach%1:26:00")
  )
 
 ;; infection
@@ -4378,7 +4735,7 @@
  :wordnet-sense-keys ("pancreatitis%1:26:00")
  )
 
-; for pneumonia
+; for pneuomnia
 (define-type ONT::pneumonia
  :parent ONT::disease
  :wordnet-sense-keys ("pneumonia%1:26:00")
@@ -4389,6 +4746,28 @@
  :parent ONT::disease
  :wordnet-sense-keys ("sexually_transmitted_disease%1:26:00")
  )
+
+;; stones, cholelithiasis (gall stones), kidney stones
+(define-type ont::stones-disease
+ :wordnet-sense-keys ("cholelithiasis%1:26:00" "gallstone%1:17:
+00" "kidney_stone%1:17:00")
+ :parent ont::disease
+ )
+
+#|
+;; cholelithiasis (gall stones)
+(define-type ont::cholelithiasis
+ :wordnet-sense-keys ("cholelithiasis%1:26:00" "gallstone%1:17:
+00")
+ :parent ont::stones-disease
+ )
+
+;; kidney stones
+(define-type ont::kidney-stone
+ :wordnet-sense-keys ("kidney_stone%1:17:00")
+ :parent ont::stones-disease
+ )
+|#
 
 ; for tuberculosis
 (define-type ONT::tuberculosis

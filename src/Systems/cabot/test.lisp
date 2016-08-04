@@ -31,6 +31,80 @@
 ;;;
 (defvar *sample-dialogues*
   '(
+    (green-staircase-and-add-another-one-demo .
+     (
+      ;;;;;;;;;;;;;;  Part 1: shared goal discussion ;;;;;;;;;
+
+      ; S: I've been told we need to build a 3 step staircase.
+      ; << what's the systems initial model of what a staircase is... >>
+      ; PROPOSE (ADOPT BUILD <3-step staircase>)
+
+      "OK."
+      ; ACCEPT (ADOPT BUILD <3-step staircase>)
+
+      ;;;;;; <<start possible skip>> ;;;;;
+
+      ; S: Could you tell me what the steps are?
+      ; PROPOSE (ADOPT (DEFINE step))
+
+      "The steps are the top surfaces of the staircase."
+      ; (implicit ACCEPT (ADOPT (DEFINE step))
+      ; ASSERTION :contribute-to (DEFINE step)
+
+      ; S: I see.
+      ; (ACCEPT ASSERTION :contribute-to (DEFINE step))
+      ; (RELEASE-GOAL (DEFINE-step))
+
+      "What color?"
+      ; REQUEST (PROPOSE ?color :in-order-to (REFINE-GOAL (COLOR of <staircase> is ?color))
+
+      ; S: Let's make the steps green. 
+      ; (PROPOSE (REFINE-GOAL (COLOR of <steps> is GREEN))
+
+      ;;;;;;  <<end possible skip>> ;;;;;
+
+      ;;;;;;;;;;;;;;  Part 2: Construction (possibly with action on both sides?) ;;;;;;;;;
+
+      "Let's make the bottom row."
+      ; INTERPRET-SPEECH-ACT [PROPOSE [Make :affected-result [Row :mod bottom]]]
+      ; [CSM recognizes this is a subgoal of BUILD staircase]   i.e., PROPOSE [ADOPT [Make …] :as (SUBGOAL of …]]
+													 
+      ; S: Can you tell me how to do that?
+      ; [PROPOSE [INSTRUCT :agent USER :agent1 SYSTEM :formal [METHOD :figure [Make :affected-result [Row :mod bottom]]
+
+      "First, put a block on the table."
+      ; (implicit [ACCEPT [INSTRUCT [METHOD …]]]
+      ; (PROPOSE (ADOPT [put block on table] :as [SUBGOAL of [DESCRIBE [METHOD …]]
+
+      ; S: Ok.                                                                  
+      ; (ACCEPT (ADOPT [put block on table] :as [SUBGOAL of [DESCRIBE [METHOD …]])
+      ; <<send to PROXY>>
+
+      "Put another one next to it."
+
+      "And another one."
+
+      "Great. We've finished the row."
+      ; <<system has learned what a row is>>
+      ; [GOAL-RELEASE [INSTRUCT [METHOD ...
+
+      "Now add another one."
+      ; [PROPOSE ...
+
+      ; <<system adds a two block row>>
+
+      "Great!  And one more."
+
+      ; <<system add top row>>
+
+      "Great! Do you want to build another one?"
+
+      ; S: Why don't you get another one to do it!
+      
+      )
+     )
+
+    
     ;; V 0.1  tests basic functionality
     ;; Send an email message (basically a macro, can be done just
     ;; monitoring and sending keystrokes)

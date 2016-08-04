@@ -25,10 +25,11 @@ our %penn2trips_punc = (
   '-LSB-' => '[',
   '-RSB-' => ']',
   '-LCB-' => '{',
-  '-RCB-' => '}',
-  '``' => '"',
-  "''" => '"',
-  '`' => "'"
+  '-RCB-' => '}'
+#  These are more complicated with Unicode, see %penn2trips_word_re
+#  '``' => '"',
+#  "''" => '"',
+#  '`' => "'"
   );
 
 # Stanford's NER and parser convert British spellings to American ones
@@ -116,7 +117,23 @@ our %penn2trips_word_re = (
   'November' => qr/[Nn]ovember/,
   'December' => qr/[Dd]ecember/,
   # it also spells out the cent sign
-  'cents' => qr/cents|\x{00a2}/
+  'cents' => qr/cents|\x{00a2}/,
+  # quote marks and apostrophes become complicated with Unicode, so they're
+  # here instead of in %penn2trips_punc. Note that the "high-reversed-9"
+  # versions of left quotes are omitted because Stanford can't handle them
+  # anyway. Ditto "low" quotes.
+  '``' => qr/``|"|\x{201c}/,
+  "''" => qr/''|"|\x{201d}/,
+  '`' => qr/`|'|\x{2018}/,
+  "'" => qr/'|\x{2019}/,
+  # TODO use @TextTagger::Words::endings to avoid duplication?
+  "'s" => qr/(?:'|\x{2019})s/,
+  "'m" => qr/(?:'|\x{2019})m/,
+  "'d" => qr/(?:'|\x{2019})d/,
+  "'ll" => qr/(?:'|\x{2019})ll/,
+  "'re" => qr/(?:'|\x{2019})re/,
+  "'ve" => qr/(?:'|\x{2019})ve/,
+  "n't" => qr/n(?:'|\x{2019})t/
   );
 # add plurals to the above
 for my $key (keys %penn2trips_word_re) {
@@ -450,6 +467,9 @@ sub domainSpecificInfo2trips {
       	   [map { ['map', ':through', $_->{':through'}, ':to', $_->{':to'}] }
 	        @{$info->{mappings}}]
         if (exists($info->{mappings}));
+      push @$trips, ":ont-types",
+	   [map { lisp_intern(uc($_), "ONT") } @{$info->{'ont-types'}}]
+	if (exists($info->{'ont-types'}));
       push @$trips, ':member-type', $info->{'member-type'}
         if (exists($info->{'member-type'}));
       push @$trips, ':members', $info->{members} if (exists($info->{members}));
@@ -545,7 +565,7 @@ sub trips2tagNative
     if ($arg eq 'sources' and ref($val) eq 'ARRAY') {
       # special case to handle pipequotes in flat :sources lists from MetaMap
       $val = [map { un_pipe_quote($_) } @$val];
-    } elsif ($arg eq 'lftype' and ref($val) eq 'ARRAY') {
+    } elsif ($arg =~ /^(?:lftype|ont-types)$/ and ref($val) eq 'ARRAY') {
       # special case to handle flat :lftype lists
       $val = [map {
 	# undo pipe quotes
