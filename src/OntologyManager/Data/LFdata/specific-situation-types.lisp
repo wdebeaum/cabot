@@ -44,9 +44,9 @@
   :sem (F::SITUATION (F::Cause F::Agentive) (F::Trajectory -) (F::Aspect F::Dynamic))
   :arguments (
 ;	      (:optional ont::cost (f::abstr-obj (f::scale f::money-scale)) (:implements money))
-	      (:optional ont::EXTENT (f::abstr-obj (f::scale f::money-scale)) (:implements money))
+	      (:optional ont::EXTENT (f::abstr-obj (f::scale ont::money-scale)) (:implements money))
 	     (:REQUIRED ONT::affected ((? th11 F::Phys-obj F::Abstr-obj F::situation)) (:implements goods))
-	     (:optional ont::neutral (f::abstr-obj (f::scale f::money-scale)) (:implements money))
+	     (:optional ont::neutral (f::abstr-obj (f::scale ont::money-scale)) (:implements money))
 	     (:optional ont::result ((? rcp f::phys-obj f::abstr-obj) (f::intentional +)))
 	     (:optional ont::source ((? sc f::phys-obj f::abstr-obj))) ;; order the book from amazon dot com
              )
@@ -62,7 +62,7 @@
 (define-type ONT::earning
  :parent ONT::commerce-collect
  :sem (F::SITUATION (F::Aspect F::dynamic))
- :arguments ((:REQUIRED ONT::FORMAL ((? th12 F::Phys-obj F::Abstr-obj) (f::object-function f::currency) (f::intentional -))))
+ :arguments ((:REQUIRED ONT::affected ((? th12 F::Phys-obj F::Abstr-obj) (f::type ONT::MONEY) (f::object-function f::currency) (f::intentional -))))
  )
 
 (define-type ONT::borrow
@@ -133,7 +133,7 @@
  :sem (F::Situation (F::Trajectory -)(F::Aspect F::dynamic))
  :arguments ((:OPTIONAL ONT::Source  ((? atp F::phys-obj F::abstr-obj) (F::object-function f::currency)))  ;; charge it to/take it from my card/account
 ;             (:OPTIONAL ONT::Cost (f::abstr-obj (F::scale F::money-scale)) (:implements money))
-             (:OPTIONAL ONT::EXTENT (f::abstr-obj (F::scale F::money-scale)) (:implements money))
+             (:OPTIONAL ONT::EXTENT (f::abstr-obj (F::scale ont::money-scale)) (:implements money))
 	     (:optional ont::neutral ) ;; the thing that was paid for
              )
  )
@@ -234,7 +234,7 @@
   :sem (F::SITUATION (F::Cause F::Agentive) (F::Trajectory -) (F::Aspect F::Dynamic))
   :arguments (
 ;	      (:optional ont::cost (f::abstr-obj (f::scale f::money-scale)) (:implements money))
-	      (:optional ont::EXTENT (f::abstr-obj (f::scale f::money-scale)) (:implements money))
+	      (:optional ont::EXTENT (f::abstr-obj (f::scale ont::money-scale)) (:implements money))
 	     (:REQUIRED ONT::affected((? th16 F::Phys-obj F::Abstr-obj f::situation)))
 	     )
   )
@@ -489,7 +489,8 @@
  :parent ONT::physical-process
  :sem (F::Situation)
  :arguments ((:REQUIRED ONT::agent (F::phys-obj (F::origin F::living)))
-             (:OPTIONAL ONT::affected (F::phys-obj (F::form F::substance))) ;; e.g. an excretion
+	     (:REQUIRED ONT::affected (F::phys-obj (F::origin F::living)))
+             (:OPTIONAL ONT::affected1 (F::phys-obj (F::form F::substance))) ;; e.g. an excretion
 ;	     (:OPTIONAL ONT::property (f::abstr-obj)) ;; he woke up happy
              )
  )
@@ -1020,6 +1021,8 @@
 (define-type ONT::Stop
     :wordnet-sense-keys ("lay_off%2:42:00" "quit%2:42:04" "give_up%2:42:00" "cease%2:42:00" "stop%2:42:00" "discontinue%2:42:00" "cease%2:42:13" "terminate%2:42:00"  "terminate%2:30:01" "finish%2:42:00" "stop%2:42:13" "end%2:42:00" "run_out%2:42:00" "expire%2:42:00" "blow_out%2:43:00" "bog_down%2:38:01" "break%2:42:04" "get_off%2:41:00" "halt%2:38:01" "stop%2:38:01" "abort%2:29:00" "terminate%2:30:01")
     :parent ONT::inhibit-effect
+;    :arguments ((:ESSENTIAL ONT::affected ((? oc F::Situation)))  ; commented this out because we can say "stop the car"
+;		)    
  )
 
 ;; added because of importance in bio domain
@@ -1835,7 +1838,7 @@
  :wordnet-sense-keys ("discharge%2:33:02" "do%2:41:03" "drive%2:42:00" "function%2:35:00" "idle%2:35:00")
  :parent ONT::event-of-state
  :arguments ((:REQUIRED ONT::neutral ((? t F::phys-obj F::abstr-obj )(f::intentional -)))
-	     (:optional ONT::extent (f::abstr-obj (f::scale f::rate-scale)))
+	     (:optional ONT::extent (f::abstr-obj (f::scale ont::rate-scale)))
              )
  )
 
@@ -2744,7 +2747,7 @@
  :sem (F::Situation (f::cause -) (f::trajectory -))
  :arguments ((:REQUIRED ONT::formal ((? ttp F::Situation F::phys-obj) (F::Aspect (? asp f::dynamic f::stage-level)))) 
 ;             (:REQUIRED ONT::Duration  (F::abstr-obj (F::scale F::duration-scale)))
-             (:REQUIRED ONT::EXTENT  (F::abstr-obj (F::scale F::duration-scale)))
+             (:REQUIRED ONT::EXTENT  (F::abstr-obj (F::scale ont::duration-scale)))
              ;;; it will take the truck 5 minutes [to arrive]
              (:OPTIONAL ONT::neutral (f::phys-obj))
              )
@@ -2766,7 +2769,7 @@
  :sem (F::Situation (F::Cause -) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::Formal)
 ;             (:REQUIRED ONT::duration (F::abstr-obj (F::scale F::duration-scale)))
-             (:REQUIRED ONT::EXTENT (F::abstr-obj (F::scale F::duration-scale)))
+             (:REQUIRED ONT::EXTENT (F::abstr-obj (F::scale ont::duration-scale)))
 	     (:optional ont::agent ((? atp f::abstr-obj f::phys-obj) (f::intentional +)) (:implements ONT::affected))
              )
  )
@@ -2925,9 +2928,11 @@
  :parent ONT::transformation
  )
 
+#|
 (define-type ONT::develop
     :parent ont::transformation ;; GUM change new parent 20121030
   )
+|#
 
 (define-type ONT::life-transformation
  :wordnet-sense-keys ("develop%2:30:00" "fruit%2:36:01")
@@ -2978,7 +2983,7 @@
  :sem (F::SITUATION (F::Aspect F::Dynamic))
  :arguments (
              (:OPTIONAL ONT::Agent)
-             (:OPTIONAL ONT::RESULT (f::abstr-obj (f::scale f::color-scale)))
+             (:OPTIONAL ONT::RESULT (f::abstr-obj (f::scale ont::color-scale)))
              )
  )
 
@@ -3029,12 +3034,23 @@
  )
 
 (define-type ONT::increase
- :wordnet-sense-keys ("increase%2:30:00" "protuberate%2:42:01" "lengthen%2:30:01")
+ :wordnet-sense-keys ("increase%2:30:00" "lengthen%2:30:01")
  :parent ONT::change-magnitude
  )
 
 (define-type ONT::increase-number
+ :wordnet-sense-keys ("multiply%2:30:00")
  :parent ONT::increase
+ )
+
+(define-type ONT::double
+ :wordnet-sense-keys ("double%2:30:00")
+ :parent ONT::increase-number
+ )
+
+(define-type ONT::triple
+ :wordnet-sense-keys ("triple%2:30:00")
+ :parent ONT::increase-number
  )
 
 ;; rush, hasten, speed up
@@ -3051,6 +3067,11 @@
 (define-type ONT::decrease
  :wordnet-sense-keys ("decrease%2:30:00" "decrease%2:30:01" "diminish%2:30:00" "lessen%2:30:00" "fall%2:30:06" "weaken%2:30:01")
  :parent ONT::change-magnitude
+ )
+
+(define-type ONT::decrease-completely
+ :wordnet-sense-keys ("deplete%2:34:00" "exhaust%2:30:00")
+ :parent ONT::decrease
  )
 
 (define-type ONT::decrease-speed
@@ -3569,7 +3590,8 @@
 ;; outsmart, overcome, beat, vanquish
 (define-type ont::overcome
  :wordnet-sense-keys ("get_the_better_of%2:33:00" "overcome%2:33:03" "defeat%2:33:00")
-  :parent ont::manipulate
+;  :parent ont::manipulate
+  :parent ont::control-manage
   )
 
 ;; manage
@@ -3655,6 +3677,7 @@
  :parent ONT::event-of-action
  :sem (F::situation (F::Cause F::Agentive) (F::Time-span F::Extended))
  :arguments ((:ESSENTIAL ONT::agent (F::Phys-obj  (:required (f::origin (? org f::human f::non-human-animal)))))
+	     (:optional ONT::NEUTRAL )
              )
  )
 
@@ -3716,7 +3739,7 @@
  :arguments ((:OPTIONAL ONT::Agent (F::Phys-obj (F::Mobility F::Movable)))
 ;             (:OPTIONAL ONT::time-duration-rel (F::time (F::time-function f::time-unit)))
 ;	     (:OPTIONAL ONT::time-duration-rel (F::abstr-obj (F::scale f::duration-scale)))
-	     (:OPTIONAL ONT::EXTENT (F::abstr-obj (F::scale f::duration-scale)))
+	     (:OPTIONAL ONT::EXTENT (F::abstr-obj (F::scale ont::duration-scale)))
              ;;; wait for john
              (:OPTIONAL ONT::Formal (F::phys-obj))
              (:OPTIONAL ONT::effect (F::situation))
@@ -3804,7 +3827,7 @@
   :SEM (F::SITUATION)
   :arguments
   ((:required ONT::AGENT (f::Phys-obj (f::intentional +)))
-   (:required ONT::affected (f::Phys-obj (f::Origin F::Artifact)))
+   (:required ONT::affected (f::Phys-obj (f::Origin F::Artifact) (f::type ONT::ATTIRE)))
    )
   )
 

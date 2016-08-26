@@ -41,8 +41,12 @@
   (let* (;(reply (send-and-wait `(REQUEST :content (take-initiative? :goal ,goal :context ,context))))
 	 (realgoal (if (consp goal) (find-arg-in-act goal :what) goal))
 	 (reply (send-and-wait `(REQUEST :content (take-initiative? :goal ,realgoal :context ,context))))
-	 (result-value (find-arg-in-act reply :result))
+	 )
+	 ;(result-value (find-arg-in-act reply :result))
 	 
-	 (new-akrl-context-value (find-arg reply :context)))
+	 ;;(new-akrl-context-value (find-arg reply :context)))
     ;;(format t "%% Take INIT RETURNS ~S" reply)
     reply))
+
+(defun any-pending-speech-acts? (&key result goal context)
+  (send-and-wait `(REQUEST :content (any-pending-speech-acts))))

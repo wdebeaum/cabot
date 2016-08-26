@@ -2,6 +2,7 @@ package handlers;
 
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLPerformative;
+import java.util.*;
 
 public class QueryCSMHandler extends MessageHandler {
 
@@ -12,7 +13,7 @@ public class QueryCSMHandler extends MessageHandler {
 	}
 	
 	@Override
-	public KQMLList process() {
+	public List<KQMLList> process() {
 		// TODO Auto-generated method stub
 		return null;
 	}

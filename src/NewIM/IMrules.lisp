@@ -10,7 +10,7 @@
    ;; e.g., I want to buy a computer / i'd like to buy a computer (note: maybe overgenerates on "I'd want to buy a computer")
      ((ONT::SPEECHACT ?x ONT::SA_TELL :CONTENT ?!c)  
       (ONT::F ?!c (:* ONT::WANT ?www) :formal ?!theme :EXPERIENCER ?!v1 
-	:force (? f ONT::TRUE ONT::ALLOWED ONT::FUTURE))
+	:force (? f ONT::TRUE ONT::ALLOWED ONT::FUTURE ONT::POSSIBLE))
       ((? p ONT::PRO ONT::PRO-SET) ?!v1 ?type :PROFORM (? xx W::I W::WE))
       -want-to-proposal>
        (ONT::PROPOSE :who *USER* :to *ME*
@@ -628,9 +628,9 @@
 	   -confirm3>
 	   (ONT::ACCEPT :who *USER* :to *ME* :what ?x) )
 
-	  ;;  OKAY
+	  ;;  OKAY, good
 	  ((ONT::SPEECHACT ?!a ONT::SA_EVALUATE :CONTENT ?!vv)
-	    (ONT::F ?!vv (:* ONT::GOOD W::OKAY))
+	    (ONT::F ?!vv (:* ONT::GOOD (? xx W::GOOD W::OKAY)))
 	   -confirm-okay>
 	   (ONT::ACCEPT :who *USER* :to *ME* :what ?!vv)
 	   )

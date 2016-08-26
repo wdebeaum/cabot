@@ -1146,7 +1146,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
  )
 
 (defun convert-raw-score (score)
-  (+ .9 (* score .1)))
+  (+ .9 (* (* score score) .1)))
 
 (defun add-word-def-if-necessary (w pos)
   "The parser calls this when it sees an entry for a composite word -- if one of the subsequent 
@@ -1230,13 +1230,13 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 	templ)
     (print-debug "received request to add word ~S as ~S ~S ~%" word cat type)
     (if (and (and word cat type) (compatible-pos-and-ont-type cat type))
-	(case catrequenct
+	(case cat
 	  (w::n 
 	   (setq templ 'count-pred-templ)
-	   ;(setq type 'ont:proce:phys-object)
+	   ;(setq type 'ont::phys-object)
 	   (setq res (dynamic-add-lexeme (list word) 'w::n type templ)))
 	  (w::v
-	   (setq templ 'arg0-arg1-xp-tepl)
+	   (setq templ 'arg0-arg1-xp-templ)
 	   ;(setq type 'ont::situation-root)
 	   (setq res (dynamic-add-lexeme (list word) 'w::v type templ)))
 	  (w::adj

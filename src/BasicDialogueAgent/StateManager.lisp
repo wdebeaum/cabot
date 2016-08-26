@@ -889,6 +889,10 @@
 		       ;;(result-value (or (find-arg-in-act result :result) 'NO))
 		      )
 		  (cache-response-for-processing (list result))))
+	       (any-pending-speech-acts?
+		(let* ((result (apply #'any-pending-speech-acts? (instantiate-dstate-args (cdr act) user)))
+		       )
+		  (cache-response-for-processing (list result))))
 	       (set-cps-variable 
 		(set-CPS-variable (cadr act) (caddr act)))
 	       (generate
@@ -898,7 +902,10 @@
 	       (email-summary 
 		(send-email-summary channel user))
 	       (nop t)   ; don't do anything (for triggers)
+	       (continue
+		(cache-response-for-processing '((continue :arg dummy))))
 	       (true (clear-pending-speech-acts  uttnum channel))
+	       (next (release-pending-speech-act))
 	       (otherwise
 		(format t "~% WARNING: action not known: ~S:" act)))))
     (trace-msg 3 " result of execute-action is ~S" ans)
@@ -1022,6 +1029,7 @@
 	  (trace-msg 3 "Segment ended")
 	  (update-current-dstate nil user nil)
 	  (check-posted-alarms user channel)
+	  (release-pending-speech-act)
 	  )
     ;; shifting to a new state
     (let ((newstate (find-state stateID)))

@@ -5,7 +5,7 @@ import TRIPS.KQML.KQMLObject;
 
 public class TermExtractor {
 
-	public KQMLList extractTerm(String variable, KQMLList context)
+	public static KQMLList extractTerm(String variable, KQMLList context)
 	{
 		for (KQMLObject termObject : context)
 		{

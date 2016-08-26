@@ -19,8 +19,23 @@
 	 (result 
 	  (case (car content)
 	    ((adopt assertion)
-	     (list 'report :content (list 'acceptable :what content :context context))
-	     ))))
+	     (let* ((head (find-lf-in-context context (find-arg-in-act content :what)))
+		    (headtype (find-arg head :instance-of)))
+	       (format t "~% Evalutaing ~S with headtype ~S" content headtype)
+	       (case headtype
+		 (ont::cause-effect
+		  (let* ((prop (find-lf-in-context context (find-arg head :formal)))
+			 (color (find-arg prop :instance-of)))
+		    (if (eq color 'ONT::GREEN)
+			(list 'report :content (list 'failure :type 'CANNOT-PERFORM :what (second head)
+						     :reason '(not enough green blocks SIFT to provide the details) :context context))
+			(list 'report :content (list 'acceptable :what content :context context)))))
+		 ;;(list 'report :content (list 'failure :type 'FAILED-TO-INTERPRET :what content :reason '(SOME-REASON) :context context)
+		 (otherwise
+		  (list 'report :content (list 'acceptable :what content :context context))
+		  )
+		 )))
+	    )))
 	   	     
     ;;(format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
     (if reply-with
@@ -87,7 +102,12 @@
 	      (otherwise 
 	       (reply-to-message msg
 				 `(REPORT :content (WAIT)))))))
-	))))
+	(otherwise 
+	       (reply-to-message msg
+				 `(REPORT :content (WAIT))))))
+  
+	  
+	))
 
        
       

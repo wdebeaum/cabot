@@ -251,40 +251,49 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			InterpretSpeechActHandler isah = new InterpretSpeechActHandler(msg, content, 
 													goalPlanner, ontologyReader, actionPlanner);
 
-			KQMLList responseContent = isah.process();
+			List<KQMLList> responseContent = isah.process();
 			if (responseContent != null)
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+			{
+				for (KQMLList message : responseContent)
+					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+			}
 			
 		}
 		else if (content0.equalsIgnoreCase("take-initiative?"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			
-			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content);
-			KQMLList responseContent = tih.process();
+			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content, goalPlanner);
+			List<KQMLList> responseContent = tih.process();
 			if (responseContent != null)
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
-			
+			{
+				for (KQMLList message : responseContent)
+					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+			}
 			
 		}
 		else if (content0.equalsIgnoreCase("update-csm"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");	
 			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, goalPlanner, actionPlanner);
-			KQMLList responseContent = uch.process();
+			List<KQMLList> responseContent = uch.process();
 			if (responseContent != null)
 			{
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+				for (KQMLList message : responseContent)
+					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
 			}
 			
 		}
 		else if (content0.equalsIgnoreCase("query-csm"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
-			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content);
-			KQMLList responseContent = tih.process();
+			QueryCSMHandler qch = new QueryCSMHandler(msg, content);
+			List<KQMLList> responseContent = qch.process();
 			if (responseContent != null)
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+			{
+				for (KQMLList message : responseContent)
+					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+			}
 			
 			
 		}

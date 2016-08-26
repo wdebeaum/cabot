@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Sun Mar 20 21:05:24 EDT 2016 jallen>
+;;;; Time-stamp: <Fri Aug 26 17:50:43 EDT 2016 jallen>
 ;;;;
 
 (unless (find-package :trips)
@@ -104,7 +104,35 @@
       )
      )
 
-    
+     (mark-demo .  
+      ( (TELL :content (SET-SYSTEM-GOAL :content G1
+				      :context ((ONT::RELN G1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::STAIRS :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::KIND s1 :instance-of ONT::STEP :amount 3))))
+      
+       "OK. Let's make the blocks green"
+      ;;  we don't have enough blocks
+      "Make the top blocks red"
+      ;; OK
+       "shall we start with the bottom row"
+       ;; OK
+       ;;  Put a green block on the table
+       "OK"
+       ;; Put another one next to it
+       "OK"
+       ;; Now put a red one next to that one
+       "OK. Now we'll build the second row. Put a green block on the green block at the end"
+       ;; OK  <<does it>>
+       "Great. Now put a green one on top of it"
+       ;; Shouldn't that block be red?
+       "Oh yes. Make that a red block"
+       ;;OK
+       "Great. Now put a red block on the middle block"
+       ;; OK
+       "Super. We're done"
+       ))
+
     ;; V 0.1  tests basic functionality
     ;; Send an email message (basically a macro, can be done just
     ;; monitoring and sending keystrokes)
@@ -128,6 +156,21 @@
       ;;S: No it's green.
       )
      )
+    (new-demo
+     ("Hi"
+      ;;  Hello
+      "I want to build a row of blocks"
+      ;; OK. I need to build a tower.
+      "Here’s mine."
+      ;;  <<places three blocks on the table in a row>>  need some message if we are to run in dummy mode
+      ;; I don’t have enough blocks for my tower.
+      ;;I need three blocks.
+      "OK. You can reuse one of my blocks"
+      ;;      System: Can I move one of your block?
+      "No"
+      ;;  OK, how’s this
+      ;;      System: <<Proxy: build tower with bottom block in original position>>)
+      "That's good"))
     (integrated-demo .
      (;; message to CPSA setting goal: invoke BA --> set-goal: build-staircase
       (TELL :content (SET-SYSTEM-GOAL :content G1
@@ -1401,7 +1444,7 @@
 
 ;; Default sample dialogue for this domain
 (setf *test-dialog*
-  (cdr (assoc 'integrated-demo *sample-dialogues*)))
+  (cdr (assoc 'mark-demo *sample-dialogues*)))
 
 ;(setf *test-dialog*
 ;  (cdr (assoc 0.1 *sample-dialogues* :test #'eql)))

@@ -1,5 +1,7 @@
 package handlers;
 
+import java.util.List;
+
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLPerformative;
@@ -16,7 +18,7 @@ public abstract class MessageHandler {
 		this.content = content;
 	}
 	
-	public abstract KQMLList process();
+	public abstract List<KQMLList> process();
 	
 	public KQMLList failureMessage(String what, KQMLObject context)
 	{

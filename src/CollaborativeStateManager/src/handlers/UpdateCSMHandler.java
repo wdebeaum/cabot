@@ -1,7 +1,8 @@
 package handlers;
 
-import java.util.List;
+import java.util.*;
 
+import extractors.TermExtractor;
 import plans.ActionPlanner;
 import plans.GoalPlanner;
 import states.Goal;
@@ -28,7 +29,7 @@ public class UpdateCSMHandler extends MessageHandler {
 	}
 
 	@Override
-	public KQMLList process() {
+	public List<KQMLList> process() {
 		KQMLObject innerContentObj = content.getKeywordArg(":content");
 		innerContent = null;
 		
@@ -64,26 +65,61 @@ public class UpdateCSMHandler extends MessageHandler {
 			return handleFailedOn();
 		case "solved":
 			return handleSolved();
+		case "private-system-goal":
+			return handlePrivateSystemGoal();
+		case "problem":
+			return handleProblem();
+			
 		}
 		
-		KQMLList error = new KQMLList();
-		error.add("UNKNOWN-UPDATE-TYPE");
-		return failureMessage("NIL",context, 
-				error, new KQMLList());
+		System.out.println("Unrecognized UPDATE-CSM action type.");
+		
+		return null;
 		
 	}
 	
-	private KQMLList handleSolved() {
+	private List<KQMLList> handleSolved() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private KQMLList handleProposed()
+	private List<KQMLList> handleProposed()
 	{
 		return null;
 	}
+
+	private List<KQMLList> handlePrivateSystemGoal()
+	{
+		
+		String goalName;
+		System.out.println("Handling private system goal");
+		KQMLObject goalObject = innerContent.getKeywordArg(":CONTENT");
+		if (goalObject instanceof KQMLList)
+		{
+			System.out.println(goalObject.stringValue());
+			System.out.println("Adding goal from content");
+			goalPlanner.addPrivateGoal(new Goal((KQMLList)goalObject));
+		}
+		else
+		{
+			goalName = goalObject.stringValue();
+			KQMLList resultGoal = TermExtractor.extractTerm(goalName, (KQMLList)context);
+			if (resultGoal == null)
+			{
+				System.out.println("Goal not found in context");
+				return null;
+			}
+			
+			Goal newPrivateGoal = new Goal(resultGoal);
+			System.out.println("Adding private goal " + newPrivateGoal.getVariableName());
+			goalPlanner.addPrivateGoal(newPrivateGoal);
+			
+		}
+		
+		return null;
+	}
 	
-	private KQMLList handleFailedOn()
+	private List<KQMLList> handleFailedOn()
 	{
 		
 		KQMLObject goalNameObject = innerContent.getKeywordArg(":WHAT");
@@ -119,14 +155,97 @@ public class UpdateCSMHandler extends MessageHandler {
 		return null;
 	}
 	
-	private KQMLList handleAcceptedSolution()
+	private List<KQMLList> handleProblem()
+	{
+		
+		KQMLObject actionObject = innerContent.getKeywordArg(":WHAT");
+		KQMLObject problemType = innerContent.getKeywordArg(":TYPE");
+		String problemTypeString = "";
+		if (problemType != null)
+			problemTypeString = problemType.stringValue().toUpperCase();
+		
+		KQMLList cpsAct = null;
+		String goalName = null;
+		
+		if (actionObject instanceof KQMLList)
+			cpsAct = (KQMLList)actionObject;
+		else
+			goalName = actionObject.stringValue();
+		
+		switch (problemTypeString)
+		{
+		case "CANNOT-PERFORM":
+			if (cpsAct != null)
+				cannotPerform(cpsAct);
+			else if (goalName != null)
+				cannotPerform(goalName);
+			return null;
+		}
+
+					
+		System.out.println("No such goal to set as problem");
+		return null;
+	}
+	
+	private void cannotPerform(KQMLList cpsAct)
+	{
+		if (cpsAct == null)
+		{
+			System.out.println("Invalid CPS act");
+			return;
+		}
+		KQMLObject goalObject = cpsAct.getKeywordArg(":WHAT");
+		String goalName = null;
+		if (goalObject != null)
+		{
+			goalName = goalObject.stringValue();
+			if (goalPlanner.hasGoal(goalName))
+			{
+				goalPlanner.getGoal(goalName).setFailed(true);
+				System.out.println("Set goal " + goalName + " as failed");
+				return;
+			}
+		}
+
+	}
+	
+	private void cannotPerform(String goalName)
+	{
+
+
+		if (goalPlanner.hasGoal(goalName))
+		{
+			goalPlanner.getGoal(goalName).setFailed(true);
+			System.out.println("Set goal " + goalName + " as failed");
+			return;
+		}
+		else
+		{
+			System.out.println("No such goal " + goalName);
+		}
+
+	}
+	
+	private List<KQMLList> handleAcceptedSolution()
 	{
 		return null;
 	}
 	
-	private KQMLList handleAccepted()
+	private List<KQMLList> handleAccepted()
 	{
 		KQMLList acceptContent = (KQMLList)(innerContent.getKeywordArg(":CONTENT"));
+		
+		if (acceptContent == null)
+		{
+			System.out.println("No inner content parameter");
+			return null;
+		}
+		
+		if (acceptContent.getKeywordArg(":WHAT") == null)
+		{
+			System.out.println("No :WHAT parameter");
+			return null;
+		}
 		String goalName = acceptContent.getKeywordArg(":WHAT").stringValue();
 		System.out.println("Accepting goal: " + goalName);
 		//TODO: Give better error message
@@ -150,21 +269,41 @@ public class UpdateCSMHandler extends MessageHandler {
 		return null;
 	}
 	
-	private KQMLList handleNoInitiativeTaken()
+	private List<KQMLList> handleNoInitiativeTaken()
 	{
+		KQMLObject goalNameObject = innerContent.getKeywordArg(":WHAT");
+		String goalName = null;
+		if (goalNameObject != null)
+			goalName = goalNameObject.stringValue();
+		// This was a specific goal that failed
+		if (goalName != null && goalPlanner.hasGoal(goalName))
+		{
+			goalPlanner.getGoal(goalName).setSystemTookInitiative(false);
+			System.out.println("Set goal " + goalName + " as initiative not taken");
+			return null;
+		}
+		
+					
+		System.out.println("No such goal to set as initiative taken");
 		return null;
 	}
 
-	private KQMLList handleInitiativeTakenOnGoal()
+	private List<KQMLList> handleInitiativeTakenOnGoal()
 	{
-		return null;
-	}
-	
-	private KQMLList missingGoal(String goalName)
-	{
-		KQMLList failureReason = new KQMLList();
-		failureReason.add("MISSING-GOAL");
+		KQMLObject goalNameObject = innerContent.getKeywordArg(":WHAT");
+		String goalName = null;
+		if (goalNameObject != null)
+			goalName = goalNameObject.stringValue();
+		// This was a specific goal that failed
+		if (goalName != null && goalPlanner.hasGoal(goalName))
+		{
+			goalPlanner.getGoal(goalName).setSystemTookInitiative(true);
+			System.out.println("Set goal " + goalName + " as initiative taken");
+			return null;
+		}
 		
-		return failureMessage(goalName, context,failureReason);
+					
+		System.out.println("No such goal to set as initiative taken");
+		return null;
 	}
 }

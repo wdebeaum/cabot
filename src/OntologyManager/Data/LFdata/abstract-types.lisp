@@ -51,7 +51,7 @@
 (define-type ONT::property-val
  :parent ONT::domain-property
  :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (f::intentional -))
-		    (:default (f::scale -)
+		    (:default ;(f::scale -)
 		     (f::intensity -) (f::orientation -)))
  :arguments ((:REQUIRED ONT::FIGURE)
 	     (:optional ONT::FORMAL  (f::situation))
@@ -131,6 +131,29 @@
 		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
   )
 
+;; as hot as it can be
+(define-type ONT::as-much-as
+  :parent ONT::domain-property
+  :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
+		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
+  )
+
+;;  too hot to go outside
+
+(define-type ONT::TOO-MUCH
+  :parent ONT::domain-property
+  :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
+		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
+  )
+
+;; so hungry I could cry
+(define-type ONT::SO-MUCH-THAT
+  :parent ONT::domain-property
+  :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
+		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
+  )
+
+
 ;; for adjective scale values to be translated properly to the akrl, the intensity values (hi, med, lo) need to be defined in the ontology
 (define-type ONT::hi
   :parent ONT::max-val
@@ -161,6 +184,12 @@
               )
   )
 
+(define-type ONT::system
+  :wordnet-sense-keys ("system%1:06:00" "system%1:14:00")
+  :comment "An interconnected group of objects, abstract or physical"
+ :parent ONT::group-object
+ )
+
 (define-type ONT::formation
  :parent ONT::group-object
  )
@@ -168,6 +197,8 @@
 (define-type ONT::row-formation
  :wordnet-sense-keys ("row%1:14:00" "row%1:17:00")
  :parent ONT::formation
+ :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj))  ; to distinguish between steps as steps in a plan and steps in a staircase
+             )
  )
 
 ;; crowd, audience
@@ -370,11 +401,10 @@
 		(:optional ONT::REASON))
     )
 
-;;; This is for speed values - fast, slow, etc. Use LF_Rate for notions
-;;; such as functional nouns "speed" and "rate"
-;; not under physical-property-val b.c. e.g. fast/slow service fast/slow talking
+;;; This is for speed values - fast, slow, etc
 (define-type ONT::Speed-val
  :parent ONT::process-val
+ :sem  (F::abstr-obj (F::scale ont::speed-scale))
  :arguments ((:REQUIRED ONT::FIGURE ((? type F::phys-obj F::situation F::abstr-obj)))   ;; e.g., "rate" is an abstract object
              )
  )
@@ -382,6 +412,7 @@
 (define-type ONT::quantity-related-property-val
  :parent ONT::property-val
  :arguments ((:optional ONT::GROUND)
+	     (:optional ONT::STANDARD)
              )
  )
 
@@ -639,6 +670,8 @@
 (define-type ONT::COLOR-VAL
  :parent ONT::visible-PROPERTY-VAL
  :sem (F::Abstr-obj (F::MEasure-function F::VALUE) (f::scale ont::color-scale))
+ :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj))  ; to distinguish between steps as steps in a plan and steps in a staircase
+             )
  )
 
 (define-type ONT::red
@@ -732,6 +765,7 @@
 
 (define-type ont::persistence-val
  :parent ont::process-val
+ :sem (F::Abstr-obj (F::scale ONT::TIME-MEASURE-SCALE) (F::TIME-SCALE F::INTERVAL))
  )
 
 (define-type ont::persistent
@@ -812,6 +846,11 @@
 (define-type ONT::LOCATION-VAL
  :parent ONT::spatial
  :arguments ((:REQUIRED ONT::FIGURE ((? lof f::phys-obj f::situation f::abstr-obj))))
+ )
+
+(define-type ONT::MIDDLE-LOCATION-VAL
+  :wordnet-sense-keys ("middle%5:00:00:intermediate:00" "middle%5:00:01:central:01" "middle%3:00:00")
+ :parent ONT::LOCATION-VAL
  )
 
 (define-type ONT::TOP-LOCATION-VAL
@@ -1631,7 +1670,7 @@
 (define-type ONT::LENGTH-UNIT
  :wordnet-sense-keys ("linear_measure%1:23:00" "linear_unit%1:23:00" "week%1:28:00" "hebdomad%1:28:00")
  :parent ONT::tangible-unit
- :sem (F::Abstr-obj (F::Scale Ont::length-scale))
+ :sem (F::Abstr-obj (F::Scale Ont::length))
  )
 
 ;; acre, sqare feet
@@ -1779,6 +1818,12 @@
 	     ))
 
 ;; percent
+(define-type ONT::multiple
+ :parent ONT::MATHEMATICAL-TERM
+ :sem (F::Abstr-obj )
+ )
+
+;; percent
 (define-type ONT::percent
  :wordnet-sense-keys ("percentage%1:24:00" "percent%1:24:00" "per_centum%1:24:00" "pct%1:24:00")
 ; :parent ONT::quantitative-relation
@@ -1887,6 +1932,7 @@
 		 )
      )
 
+#|
 (define-type ONT::END
  :parent ONT::BOUND
   :wordnet-sense-keys ("end%1:28:00" "end%1:15:01")
@@ -1896,6 +1942,7 @@
  :parent ONT::BOUND
   :wordnet-sense-keys ("beginning%1:28:00")
  )
+|#
 
 ;; the resolution of an image
 (define-type ONT::RESOLUTION
@@ -1942,6 +1989,10 @@
  :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj (F::origin F::artifact)))
              )
  )
+
+(define-type ONT::SPEED-SCALE
+    :parent ONT::TIME-RATE
+    )
 
 ;; dollars -- need a unit definition for '5 dollars'
 (define-type ONT::MONEY-UNIT
@@ -3917,6 +3968,8 @@
 
 (define-type ont::scale
   :parent ont::abstract-object
+  :arguments ((:ESSENTIAL ONT::figure)
+		)
   )
 
 (define-type ont::any-scale
@@ -3940,19 +3993,23 @@
   )
 
 (define-type ont::weight-scale
-  :parent ont::size-scale
+;  :parent ont::size-scale
+  :parent ont::scale
   )
 
 (define-type ont::linear-scale
-  :parent ont::size-scale
+;  :parent ont::size-scale
+  :parent ont::scale
   )
  
 (define-type ont::area-scale
-  :parent ont::size-scale
+;  :parent ont::size-scale
+  :parent ont::scale
   )
 
 (define-type ont::volume-scale
-  :parent ont::size-scale
+;  :parent ont::size-scale
+  :parent ont::scale
   )
 
 (define-type ont::temperature-scale
@@ -3960,10 +4017,15 @@
   )
 
 (define-type ont::money-scale
-  :parent ont::size-scale
+;  :parent ont::size-scale
+  :parent ont::scale
   )
 
 (define-type ont::rate-scale
+  :parent ont::scale
+  )
+
+(define-type ont::ratio-scale
   :parent ont::scale
   )
 
@@ -3980,7 +4042,8 @@
   )
 
 (define-type ont::time-measure-scale
-  :parent ont::scale
+;  :parent ont::scale
+  :parent ont::linear-scale
   )
 
 (define-type ont::duration-scale
@@ -3988,7 +4051,8 @@
   )
 
 (define-type ont::age-scale
-  :parent ont::scale
+;  :parent ont::scale
+  :parent ont::linear-scale
   )
 
 (define-type ont::other-scale

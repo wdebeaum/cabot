@@ -166,7 +166,10 @@
     ))
 
 (defun length-score (i)
-  (compute-length-score (or (entry-size i) 1)))
+  (compute-length-score (or (entry-size i) 
+			    (if (and (numberp (entry-end i)) (numberp (entry-start i)))
+				(- (entry-end i) (entry-start i)))
+			    1)))
 
 (defun length-entry-score (e)
   "computes a factor based on average prob. of a constituent of length L"
@@ -174,11 +177,11 @@
 
 (defun compute-length-score (size)
   "computes a factor based on average prob. of a constituent of length L"
-  (let* ((number-constit (or size 1));; (/ size *word-length*))
+  (let* ((number-constit (/ (or size 1) *word-length*))
 	 (raw-factor (compute-log-factor number-constit))
 	 (over-one (- raw-factor 1))
 	 (factor (if (>= *score-length-multiplier* 1)
-		     raw-factor
+		     	     raw-factor
 		     (if (> *score-length-multiplier* 0)
 			 (+ 1 (* *score-length-multiplier* over-one))
 			 1))))
@@ -471,7 +474,7 @@
     ;; now boost entries with domain specific info
     (normalize
      (if (get-value c 'w::kr-type)
-	 (* score 1.02)
+	 (* score 1.01)
 	 score))
     ))
 
@@ -729,7 +732,7 @@
 	   (Make-New-BU-Active-Arcs entry (entry-name entry))
 	   (Chart-Extend entry (entry-name entry))))
 
-	;; If the new-score is higher than the next-score, and still non-zero, then
+	;; If the news-score is higher than the next-score, and still non-zero, then
 	;; add it back to the agenda, to get re-processed once it is again the highest
 	;; probability constituent.
 	((> new-score 0)

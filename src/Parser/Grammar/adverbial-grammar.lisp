@@ -30,12 +30,12 @@
      -advbl-simple>
      (head (adv (WH -) (sem ?sem) (ARGUMENT-MAP ?!argmap) ;;(Sort PRED) 
                 (VAR ?v) (SUBCAT -) (LF ?lf) (implicit-arg -) (constraint ?con)
-		(sem ($ F::ABSTR-OBJ (F::intensity ?ints) (F::orientation ?orient)))
+		(sem ($ F::ABSTR-OBJ (F::intensity ?ints) (F::orientation ?orient) (F::Scale ?scale)))
 		(comparative -) (prefix -)
 		(particle ?p)
 		)
       )
-     (append-conjuncts (conj1 ?con) (conj2 (& (?!argmap ?arg) 
+     (append-conjuncts (conj1 ?con) (conj2 (& (?!argmap ?arg)  (scale ?scale)
 					      (orientation ?orient) (intensity ?ints)))
 		       (new ?newc))
      )
@@ -196,7 +196,8 @@
     ;;  BINARY-CONSTRAINT adverbials that allow omitted objects, e.g., nearby, near, below, about, ...
     ;; TEST: The dog chased the cat below.
     ((ADVBL (ARG ?arg) (QTYPE ?wh) (FOCUS ?var)
-      (LF (% PROP (VAR ?v) (CLASS ?lf) (CONSTRAINT (& (?submap (% *PRO* (var *) (SEM ?subcatsem))) (?argmap ?arg)))
+	    (LF (% PROP (VAR ?v) (CLASS ?lf) (CONSTRAINT (& (?submap (% *PRO* (var *) (CLASS ONT::ANY-SEM)
+									(SEM ?subcatsem))) (?argmap ?arg)))
                    (sem ?sem) (transform ?trans)))
       ;;(SORT CONSTRAINT)
       (role ?lf) (subcatsem ?subcatsem)
@@ -363,7 +364,9 @@
      (prep (LEX ?pt) (headcat ?hc))
      (head (cardinality (lf ?lf)  (var ?v)))
       )
-    
+
+    ; "in" already has a sense that takes an adjective
+    #|
     ;; rule for prepositional subcats with adjectives, such as
     ;; TEST: classify this as benign
     ;; I'd like one in red
@@ -374,6 +377,7 @@
      (prep (LEX ?pt) (headcat ?hc))
      (head (adjp (lf ?lf) (case (? case obj -))  (var ?v) (arg ?arg) (set-modifier -)))  ;; set-modifier - excludes numbers
       )
+    |#
 
     ))  ;; end ADVERBIALS
 
@@ -454,7 +458,8 @@
       )
      -adv-vp-pre-complex-s>  .97
      (advbl (SORT BINARY-CONSTRAINT) 
-      (ATYPE (? x PRE PRE-VP)) 
+;      (ATYPE (? x PRE PRE-VP)) 
+      (ATYPE (? x PRE-VP)) 
       (ARGUMENT (% S (SEM ?argsem))) ;;($ f::situation))))  
       (GAP -) 
       (ARG ?v) (VAR ?mod)
@@ -489,18 +494,19 @@
      (add-to-conjunct (val (MODS ?mod)) (old ?lf) (new ?new))
      )
 
-    ;;  resultative construction using adjectives: e.g., wipe the table clean
+    ;;  resultative construction using adjectives with transitives: e.g., wipe the table clean
     ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
          ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
       (advbl-needed -) (complex +) (result-present +) (subjvar ?subjvar)(GAP ?gap)
       )
-     -vp-result> .98   ;;  want to prefer explicitly subcategorized attachments
+     -vp-result-withtransitive> .98   ;;  want to prefer explicitly subcategorized attachments
      (head (vp- (VAR ?v) 
 		(seq -)  ;;  post mods to conjoined VPs is very rare
 		(DOBJ (% NP (Var ?npvar) (sem ?sem)))
 		(constraint ?con) (tma ?tma) (result-present -)
 		;;(subjvar ?subjvar)
-		(aux -) (gap ?gap)
+		;;(aux -)   c.f., It had gone bad
+		(gap ?gap)
 		(ellipsis -)
 		))
      (adjp (ARGUMENT (% NP (sem ?sem))) 
@@ -513,6 +519,33 @@
       )
      (add-to-conjunct (val (RESULT ?mod)) (old ?con) (new ?new))
      )
+
+        ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
+         ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
+      (advbl-needed -) (complex +) (result-present +) (subjvar ?subjvar)(GAP ?gap)
+      )
+     -vp-result-with-intransitive> .98   ;;  want to prefer explicitly subcategorized attachments
+     (head (vp- (VAR ?v) 
+		(seq -)  ;;  post mods to conjoined VPs is very rare
+		(DOBJ -)
+		(SUBJ (% NP (Var ?npvar) (LEX ?LEX) (sem ?sem)))
+		(constraint ?con) (tma ?tma) (result-present -)
+		;;(subjvar ?subjvar)
+		;;(aux -)   c.f., It had gone bad
+		(gap ?gap)
+		(ellipsis -)
+		))
+     (adjp (ARGUMENT (% NP (sem ?sem))) 
+      (SEM ($ f::abstr-obj (F::type (? ttt ONT::path))))
+      (GAP -)
+      ;; (subjvar ?subjvar)
+      (SET-MODIFIER -)  ;; mainly eliminate numbers 
+      (ARG ?npvar) (VAR ?mod)
+      ;;(role ?advrole) 
+      )
+     (add-to-conjunct (val (RESULT ?mod)) (old ?con) (new ?new))
+     )
+
      
 
       ;;  resultative construction using adverbs: e.g., sweep the dust into the corner
@@ -526,14 +559,15 @@
 		(DOBJ (% NP (Var ?npvar) (sem ?sem)))
 		(constraint ?con) (tma ?tma) (result-present -)
 		;;(subjvar ?subjvar)
-		(aux -) (gap ?gap)
+		;;(aux -) 
+		(gap ?gap)
 		(ellipsis -)
 		))
 
      (advbl (ARGUMENT (% NP ;; (? xxx NP S)  ;; we want to eliminate V adverbials, he move quickly  vs he moved into the dorm
 			 (sem ?sem))) (GAP -)
       ;; (subjvar ?subjvar)
-      (SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::domain-property))))
+      (SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::path))))
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
       (ARG ?npvar) (VAR ?mod)
       ;;(role ?advrole) 
@@ -664,7 +698,7 @@
       (old ?con) (new ?newcon))
      (change-feature-values (OLD ?lf) (NEW ?newlf) (newvalues ((CONSTRAINT ?newcon)))))
 
-    ;; He ran away terrified.
+    ;; He ran away, terrified.  (added comma)
     ((S (LF ?newlf) ;(PREADVBL +)
        (tma ?tma) 
       (adj-s-prepost +)  ;;  we use this to stop such S's from being relative clauses etc
@@ -676,6 +710,7 @@
 	      (subjvar ?subjvar) (adj-s-prepost -)
 	      )
            )
+     (punc (lex w::punc-Comma))
      (adjp (ARGUMENT (% NP)) (set-modifier -)
 	 (gap -) 
 	 (ARG ?subjvar) (VAR ?mod)
@@ -918,7 +953,7 @@
     
 
     ;;  as ADJ as-PP
-    ((ADJP (LF (% PROP (CLASS (:* ONT::SAME-AS-ON-SCALE ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
+    ((ADJP (LF (% PROP (CLASS (:* ONT::AS-MUCH-AS ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
       (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap) 
       (argument ?argmt) (premod +) 
       )
@@ -929,28 +964,77 @@
 	    (gap ?gap) (premod -) 
                  ))
      (word (lex w::as))
-     (np (var ?vnp))
+     (np (var ?vnp) (gap -))
      (add-to-conjunct (val (ground ?vnp)) (old ?con) (new ?newc))
      )
 
-    ;; so ADJ that ...
-     ((ADJP (LF (% PROP (CLASS (:* ONT::ENOUGH-ON-SCALE-FOR ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
+     ;;  as ADJ as-PP
+    ((ADJP (LF (% PROP (CLASS (:* ONT::AS-MUCH-AS ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
+      (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap) 
+      (argument ?argmt) (premod +) 
+      )
+     -as-adj-as-s>
+     (word (lex W::as))
+     (head (ADJP (lf (% PROP (CLASS (:* ?c ?w)) (VAR ?v) (CONSTRAINT ?con) (sem ?sem)))
+	    (val ?val) (agr ?agr) (mass ?mass) (argument ?argmt) (arg ?arg)
+	    (gap ?gap) (premod -) 
+                 ))
+     (word (lex w::as))
+     (S (var ?sv) (gap -))
+     (add-to-conjunct (val (standard ?sv)) (old ?con) (new ?newc))
+     )
+
+    ;;  as quickly as my dog
+    ((ADVBL (LF (% PROP (CLASS (:* ONT::AS-MUCH-AS ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
+      (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap) 
+      (argument ?argmt) (premod +) 
+      )
+     -as-adv-as-np>
+     (word (lex W::as))
+     (head (ADVBL (lf (% PROP (CLASS (:* ?c ?w)) (VAR ?v) (CONSTRAINT ?con) (sem ?sem)))
+	    (val ?val) (agr ?agr) (mass ?mass) (argument ?argmt) (arg ?arg)
+	    (gap ?gap) (premod -) 
+                 ))
+     (word (lex w::as))
+     (np (var ?vnp) (gap -))
+     (add-to-conjunct (val (standard ?vnp)) (old ?con) (new ?newc))
+     )
+
+    ;;  as ADV as he can be
+    ((ADVBL (LF (% PROP (CLASS (:* ONT::AS-MUCH-AS ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
+      (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap) 
+      (argument ?argmt) (premod +) 
+      )
+     -as-adv-as-s>
+     (word (lex W::as))
+     (head (ADVBL (lf (% PROP (CLASS (:* ?c ?w)) (VAR ?v) (CONSTRAINT ?con) (sem ?sem)))
+	    (val ?val) (agr ?agr) (mass ?mass) (argument ?argmt) (arg ?arg)
+	    (gap ?gap) (premod -) 
+                 ))
+     (word (lex w::as))
+     (S (var ?sv) (gap -))
+     (add-to-conjunct (val (standard ?sv)) (old ?con) (new ?newc))
+     )
+
+    ;; so ADJ/ADVBL that ...
+     ((ADJP (LF (% PROP (CLASS (:* ONT::SO-MUCH-THAT ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
            (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap) 
       (argument ?argmt) (premod +) 
       )
      -so-adj-that>
      (word (lex W::so))
-     (head (ADJP (lf (% PROP (CLASS (:* ?c ?w)) (VAR ?v) (CONSTRAINT ?con) (sem ?sem))) 
+     (head ((? cat ADJP ADVBL)
+	    (lf (% PROP (CLASS (:* ?c ?w)) (VAR ?v) (CONSTRAINT ?con) (sem ?sem))) 
 	    (val ?val) (agr ?agr) (mass ?mass) (argument ?argmt) (arg ?arg)
 	    (gap ?gap) (premod -) 
                  ))
-     (word (lex w::that))
-     (S (var ?vs))
-     (add-to-conjunct (val (ground ?vs)) (old ?con) (new ?newc))
+     ;;(word (lex w::that))
+     (cp (var ?vs) (gap -) (ctype (? ctype W::S-THAT-MISSING W::S-THAT-OVERT)))
+     (add-to-conjunct (val (standard ?vs)) (old ?con) (new ?newc))
      )
-
+#||
     ;; so ADV that ...
-     ((ADVBL (LF (% PROP (CLASS (:* ONT::ENOUGH-ON-SCALE-FOR ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
+     ((ADVBL (LF (% PROP (CLASS (:* ONT::SO-MUCH-THAT ?w)) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
            (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap) 
       (argument ?argmt) (premod +) 
       )
@@ -964,7 +1048,7 @@
      (S (var ?vs))
      (add-to-conjunct (val (ground ?vs)) (old ?con) (new ?newc))
      )
-
+||#
     ;; TEST: red enough
     ((ADJP (LF (% PROP (CLASS ?c) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
            (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap)
@@ -1211,6 +1295,7 @@
     (pp headcat lex)
     (advbl gap headcat lex neg)
     )
+
 ((vp- (constraint ?new)
      (tma ?tma)
      (gap ?!gap) (var ?v)
@@ -1249,8 +1334,8 @@
    ;; TEST: walk a short distance
    ((advbl (arg ?arg) (role (:* ONT::distance W::quantity)) (var *)
 	   (sort binary-constraint)
-	   (LF (% PROP (VAR *) (CLASS (:* ONT::extent-predicate ?scale)) (sem ?sem)
-		  (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))))
+	   (LF (% PROP (VAR *) (CLASS ONT::extent-predicate) (sem ?sem)
+		  (CONSTRAINT (& (FIGURE ?arg) (scale ?scale) (GROUND ?v)))))
 	   (atype (? x W::PRE W::POST))
 	   (argument (% (? ARGCAT8043 W::S
                            W::NP
@@ -1260,8 +1345,9 @@
     (head (np (var ?v) (sort unit-measure) (sem ?sem) 
 	      (bare -) ;; we suppress this rule for distances without a specific amount (e.g., "miles")
 	      ;; the semantic restriction is not sufficient to prevent measure-unit phrases such as "a bit" or "a set" as distances so using the lfs to restrict
-	      (sem ($ f::abstr-obj (f::scale f::linear-scale)))
-	      (class  (:* ont::quantity ?scale));;(? lft ont::angle-unit ont::length-unit ont::percent ont::distance))
+	      (lf (% description (constraint (& (scale ?scale)))))
+	      (sem ($ f::abstr-obj (f::scale (? sc ont::scale ont::linear-d))))
+	      (class  ont::quantity);;(? lft ont::angle-unit ont::length-unit ont::percent ont::distance))
 	      ;; well, 'he walked miles before he reached water'; 'he crawled inches to the next exit' ...; and this restriction prevents the non-unit NPs so if it's reinstated we need two rules
 ;	      (lf (% description (sort set))) ;; this restriction is needed to prevent bare measure units as adverbials
 	      ))

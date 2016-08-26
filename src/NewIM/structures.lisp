@@ -56,7 +56,18 @@
 
 (defun make-lf-list (rec)
   "extracts the full LFs for the specified IDS in the REC"
-  (mapcar #'referent-lf (utt-record-referring-expressions rec)))
+  (mapcar #'(lambda (e)
+	      (let ((rlf (referent-lf e)))
+		(if (member ':start rlf)
+		    rlf		
+		    (append 
+		     rlf
+		     (list :start (referent-start e) :end (referent-end e)))
+		    )
+		)
+	      )
+	  
+	  (utt-record-referring-expressions rec)))
 
 ;; IM-record maintains a global record of every speech act processed and what is happening about it
 (defvar *max-SA-count* 10000)

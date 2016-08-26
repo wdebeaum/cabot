@@ -522,8 +522,10 @@
 ; figure is trajectory, ground is within the trajectory
 ; via, by way of
 (define-type ont::obj-in-path
- :parent ont::dir-in-terms-of-obj
- )
+    :arguments ((:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation)))
+		(:essential ONT::GROUND  (F::Phys-obj (F::form F::object)))) 
+    :parent ont::path
+    )
 
 
 ;; ***************************************************************
@@ -651,7 +653,7 @@
  :parent ONT::PREDICATE
  :sem  (F::abstr-obj)
  :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
-	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length-scale)))
+	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length)))
              )
  )
 
@@ -659,7 +661,7 @@
 (define-type ONT::spatial-distance-rel
  :parent ONT::extent-predicate
  :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation (f::trajectory +) (F::aspect (? asp F::unbounded F::stage-level)) (F::time-span F::extended)))
-	      (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length-scale)))
+	      (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length)))
              )
  )
 
@@ -714,7 +716,8 @@
  :parent ONT::TEMPORAL-MODIFIER
  :arguments ((:ESSENTIAL ONT::FIGURE ((? of f::situation f::time)))
 ;             (:essential ont::GROUND (f::abstr-obj (F::Scale Ont::duration-scale) (F::type ont::time-unit)))
-             (:essential ont::GROUND ((? gd F::abstr-obj F::time) (F::time-scale f::interval)))
+;             (:essential ont::GROUND ((? gd F::abstr-obj F::time) (F::time-scale f::interval)))
+             (:essential ont::GROUND (F::abstr-obj (F::Scale Ont::duration-scale) (F::type ont::time-unit)))
   ))
 
 #|
@@ -825,7 +828,7 @@
 ;;; some things apply only to time specifications like 5am/noon
 (define-type ONT::time-clock-rel
  :parent ONT::temporal-location
- :arguments ((:ESSENTIAL ONT::GROUND (F::time (F::time-function (? fn F::clock-time F::day-point))))
+ :arguments ((:ESSENTIAL ONT::GROUND (F::time (F::time-function (? fn F::clock-time F::day-point)) (f::time-scale f::point)))
 ;	     (:ESSENTIAL ONT::SIT-VAL (F::situation))
              )
  )
@@ -977,6 +980,6 @@
   :arguments (;(:optional ont::of ((? t f::phys-obj f::situation)))
 	      ;(:essential ont::val (f::abstr-obj (f::measure-function f::value) (f::scale (? sc f::rate-scale ont::money-scale))))
 	      (:optional ont::figure ((? t2 f::phys-obj f::situation)))
-	      (:essential ont::ground (f::abstr-obj (f::measure-function f::value) (f::scale (? sc2 f::rate-scale ont::money-scale))))
+	      (:essential ont::ground (f::abstr-obj (f::measure-function f::value) (f::scale (? sc2 ont::rate-scale ont::money-scale))))
 	      )
   )

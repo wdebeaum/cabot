@@ -1,7 +1,7 @@
 ;;;;
 ;;;; defsys.lisp for Dagent- the generic dialogue agent 
 ;;;;
-;;;;;;;; Time-stamp: <Mon Aug  1 12:02:11 EDT 2016 jallen>
+;;;;;;;; Time-stamp: <Tue Aug  9 23:25:14 EDT 2016 jallen>
 ;;;;
 
 
@@ -42,7 +42,7 @@
 
 (dfc:defcomponent :dagent
   :use (:common-lisp :util)
-  :system (:depends-on (:util :dagent-code :parser :im)))
+  :system (:depends-on (:util :im :parser :dagent-code)))
 
 
 (dfc:defcomponent-method dfc:init-component :after ()
