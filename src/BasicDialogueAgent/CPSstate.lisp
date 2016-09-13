@@ -4,15 +4,19 @@
 (in-package :dagent)
 
 (defun set-system-goal (&key content context)
-  (let ((user (lookup-user 'desktop)))
+  (let* ((user (lookup-user 'desktop))
     ;; eventually get rid of the next two and do within the model
     ;;(set-CPS-variable :current-shared-goal content)
     ;;(set-CPS-variable :system-context context)
-    (update-csm (list 'PRIVATE-SYSTEM-GOAL :content content :context context))
-    (setf (user-time-of-last-interaction user) (get-time-of-day))
-    (cache-response-for-processing `((CSM-RESPONSE XX PRIVATE-SYSTEM-GOAL :content ,content :context ,context)))
-    (invoke-state 'initiate-CPS-goal user nil nil)))
-
+	 (goal ;;(if (equal content '(IDENTIFY :agent ONT::USER :what WH-TERM :as (GOAL)))
+		 ;;  '(PRIVATE-SYSTEM-GOAL :content (IDENTIFY :agent ont::USER  :what X :as (GOAL))
+		   (list 'PRIVATE-SYSTEM-GOAL :content content :context context)))
+		    
+      (update-csm goal)
+      (setf (user-time-of-last-interaction user) (get-time-of-day))
+      (cache-response-for-processing (list (list* 'CSM-RESPONSE 'XXX goal)))
+      (invoke-state 'initiate-CPS-goal user nil nil))
+    )
 
 ;;;  Here's the code that manages the interface to the CSM
 

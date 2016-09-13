@@ -350,6 +350,9 @@
 ;; oops, some confusion about the plurality of this slot...
 (defmacro ld::aliases (&rest names) `(ld::alias ,@names))
 
+(defmacro ld::comment (str)
+  `(setf (comment (current-concept)) ,str))
+
 (defmacro ld::provenance (&body body)
   ;; convert initial symbol to `(name ,symbol)
   (when (symbolp (car body))
@@ -557,7 +560,7 @@
 			(-ly '(none ly))
 			(|-S-3P| '(sing plur))
 			(-vb '(|12S123PBASE| |3S| ing past pastpart nom agentnom))
-			(-none '(none sing))
+			(-none '(none sing |12S123PBASE|))
 			))
 	      (dolist (sf-suff *syn-feats-to-suffix*)
 		(destructuring-bind (sf . suffix) sf-suff

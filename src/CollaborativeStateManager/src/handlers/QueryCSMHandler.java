@@ -13,7 +13,7 @@ public class QueryCSMHandler extends MessageHandler {
 	}
 	
 	@Override
-	public List<KQMLList> process() {
+	public KQMLList process() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -12,6 +12,7 @@ public class Goal {
 	KQMLList term;
 	boolean accepted;
 	boolean failed;
+	boolean completed;
 	boolean systemTookInitiative;
 	List<KQMLList> failureMessages;
 	
@@ -27,6 +28,7 @@ public class Goal {
 		this.parent = parent;
 		accepted = false;
 		failed = false;
+		completed = false;
 		systemTookInitiative = false;
 		childGoals = new LinkedList<Goal>();
 		failureMessages = new ArrayList<KQMLList>();
@@ -106,6 +108,27 @@ public class Goal {
     	return adopt;
     }
 	
-	
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("Goal:" + getVariableName());
+		if (parent != null)
+		{
+			sb.append("\nParent: " + parent.getVariableName());
+		}
+		return sb.toString(); 
+	}
+
+	public boolean isAccepted() {
+		return accepted;
+	}
+
+	public boolean isCompleted() {
+		return completed;
+	}
+
+	public void setCompleted(boolean completed) {
+		this.completed = completed;
+	}
 	
 }

@@ -96,7 +96,10 @@
 (define-type ont::adjacent
   :wordnet-sense-keys ("adjacent%5:00:00:close:01")
   :parent ont::near-reln
-  :arguments ((:essential ONT::FIGURE ((? of1  f::phys-obj f::abstr-obj))))
+  :arguments ((:essential ONT::FIGURE ) ;((? of1  f::phys-obj f::abstr-obj)))
+	      (:ESSENTIAL ONT::GROUND ((? grd F::Phys-obj)))
+	     
+	      )
   )
 
 ; figure is large distance on the scale
@@ -522,7 +525,7 @@
 ; figure is trajectory, ground is within the trajectory
 ; via, by way of
 (define-type ont::obj-in-path
-    :arguments ((:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation)))
+    :arguments ((:ESSENTIAL ONT::FIGURE ((? type F::Situation F::phys-obj) (F::type (? path-type ont::motion ont::apply-force ont::route)) (F::trajectory +)))
 		(:essential ONT::GROUND  (F::Phys-obj (F::form F::object)))) 
     :parent ont::path
     )
@@ -652,8 +655,10 @@
 (define-type ONT::extent-predicate
  :parent ONT::PREDICATE
  :sem  (F::abstr-obj)
- :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
-	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length)))
+ :arguments (;(:ESSENTIAL ONT::FIGURE (F::Situation))
+	     (:ESSENTIAL ONT::FIGURE (F::Situation (f::type ont::change-magnitude)))
+;	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length)))
+	     (:ESSENTIAL ONT::GROUND (F::abstr-obj))  ; no scale (e.g., increase by three dogs)
              )
  )
 
@@ -756,6 +761,26 @@
  :parent ONT::FREQUENCY
  )
 
+(define-type ONT::always
+ :parent ONT::FREQUENCY
+ )
+
+(define-type ONT::often
+ :parent ONT::FREQUENCY
+ )
+
+(define-type ONT::sometimes
+ :parent ONT::FREQUENCY
+ )
+
+(define-type ONT::seldom
+ :parent ONT::FREQUENCY
+ )
+
+(define-type ONT::never
+ :parent ONT::FREQUENCY
+ )
+
 ;;; for things like per day, a day - must apply to bounded events (no quite stong enough, but as close as we can get with the features we have)
 (define-type ONT::iteration-period
  :parent ONT::temporal-location
@@ -790,9 +815,18 @@
 
 ;; still, yet, so far, ....
 (define-type ONT::time-rel-so-far
- :parent ONT::event-time-rel
- :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
+; :parent ONT::event-time-rel
+  :parent ONT::EVENT-DURATION-MODIFIER
+  :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
              )
+ )
+
+(define-type ONT::event-time-rel-now
+ :parent ONT::event-time-rel
+ )
+
+(define-type ONT::event-time-rel-culmination
+ :parent ONT::event-time-rel
  )
 
 ;; event times not including situations

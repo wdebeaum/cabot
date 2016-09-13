@@ -18,7 +18,7 @@ public abstract class MessageHandler {
 		this.content = content;
 	}
 	
-	public abstract List<KQMLList> process();
+	public abstract KQMLList process();
 	
 	public KQMLList failureMessage(String what, KQMLObject context)
 	{
@@ -76,4 +76,20 @@ public abstract class MessageHandler {
     	
     	return reportContent;
     }
+    
+	protected KQMLList missingGoalToModify(String what, KQMLObject context)
+	{
+		KQMLList failureReason = new KQMLList();
+		failureReason.add("MISSING-GOAL-TO-MODIFY");
+
+		KQMLList newContext = new KQMLList();
+		newContext.addAll((KQMLList)context);
+		KQMLList solutionList = new KQMLList();
+		KQMLList selectList = new KQMLList();
+		selectList.add("SELECT-GOAL-TO-MODIFY");
+		
+		solutionList.add(selectList);
+		
+		return failureMessage(what, newContext,failureReason, solutionList);
+	}
 }

@@ -8,11 +8,13 @@ public class OntologyReader {
 
 	private HashMap<String,String> events; // Event type -> parent
 	private HashMap<String,ArrayList<String>> goals;
+	private HashSet<String> models;
 	
 	public OntologyReader()
 	{
 		events = new HashMap<String, String>();
 		goals = new HashMap<String, ArrayList<String>>();
+		models = new HashSet<String>();
 	}
 	
 	public void readGoalOntologyFromFile(String filename)
@@ -49,16 +51,53 @@ public class OntologyReader {
 				    	System.out.print(goal.toUpperCase() + ":" );
 				    	for (String parent : parentList)
 				    		System.out.print(parent + ",");
+				    	System.out.println();
 			    	}
 			    	else
 			    	{
 			    		goals.put(goal.toUpperCase(),null);
+			    		System.out.println(goal.toUpperCase());
 			    	}
 			    }
 			    in.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.err.println("Could not open goal file " + filename.toString() + " for reading.");
+			} finally {
+				try {
+					if (in != null)
+						in.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}		
+	}
+	
+	public void readModelOntologyFromFile(String filename)
+	{
+		InputStream in = null;
+		try {
+			in = new FileInputStream(filename);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
+				
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line = null;
+				System.out.println("Reading models...");
+				
+			    while ((line = reader.readLine()) != null) {
+			    	String model = line;
+			    	if (model.trim().length() > 0)
+			    		models.add(model);
+			    }
+			    in.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.err.println("Could not open events file " + filename.toString() + " for reading.");
 			} finally {
 				try {
 					if (in != null)
@@ -137,4 +176,10 @@ public class OntologyReader {
 	{
 		return events.containsKey(term.toUpperCase());
 	}
+	
+	public boolean isKnownModel(String term)
+	{
+		return models.contains(term);
+	}
+	
 }

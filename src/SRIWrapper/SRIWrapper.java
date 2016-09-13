@@ -12,22 +12,21 @@
 //
 package TRIPS.SRIWrapper;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.math.*;
 
 import spatialreasoning.Plan;
 import spatialreasoning.Step;
 import utilities.JsonReader;
+import utilities.KQMLUtilities;
 import utilities.TextToSpeech;
 import messages.BlockMessagePuller;
 import messages.BlockMessageReader;
+import messages.BlockMessageSender;
 import messages.CommDataReader;
+import models.*;
+import environment.*;
 
 import org.json.simple.JSONObject;
 
@@ -51,6 +50,7 @@ public class SRIWrapper extends StandardTripsModule  {
     private Thread commDataReaderThread;
     private Thread blockMessageReaderThread;
     private Plan plan;
+    private ModelBuilder modelBuilder;
 	
 	
     //
@@ -100,12 +100,39 @@ public class SRIWrapper extends StandardTripsModule  {
 	super.init();
 
 	//TextToSpeech tts = new TextToSpeech("");
+	try {
+		BlockMessageSender.sendPostRequest(new Block("0.1,0.1,0.1"));
+	}
+	catch (IOException e)
+	{
+		e.printStackTrace();
+	}
 	
 	//LatticeDemo.test(new String[0]);
+	modelBuilder = new ModelBuilder();
+	plan = new Plan(modelBuilder);
+	plan.steps.add(new Step("getresponse",""));
+	plan.steps.add(new Step("say", "Hello, can you show me what a row is?"));
+	plan.steps.add(new Step("getresponse","")); // Here is a row.
+	//plan.steps.add(new Step("say", "How many blocks can be in a row?"));
+	//plan.steps.add(new Step("getresponse","")); // Any number. Add another one.
+	//plan.steps.add(new Step("placeblock", "linear"));
+	plan.steps.add(new Step("placeblock", new String[]{"relative","0,.17,0"}));
+	plan.steps.add(new Step("say", "Is this a row?"));
+	plan.steps.add(new Step("getresponse","")); // No, they have to be in a line.
+	plan.steps.add(new Step("say", "I see. How about this?"));
+	//plan.steps.add(new Step("placeblock", new String[]{"relative",".25,0,0"}));
+	plan.steps.add(new Step("placeblock", "linear"));
+	plan.steps.add(new Step("getresponse","")); // Yes, that's a row. 
+	plan.steps.add(new Step("getresponse","")); // Let's build it upwards this time.
+	plan.steps.add(new Step("placeblock", new String[]{"linearY","1"}));
+	plan.steps.add(new Step("placeblock", new String[]{"linearY","2"}));
+	plan.steps.add(new Step("placeblock", new String[]{"linearY","3"}));
+	plan.steps.add(new Step("getresponse",""));
+	//plan.steps.add(new Step("placeblock", new String[]{"absolute","-0.22,-0.32,0.085"}));
+	//plan.steps.add(new Step("placeblock", new String[]{"absolute","-0.22,-0.32,0.17"}));
+	//plan.steps.add(new Step("placeblock", new String[]{"absolute","-0.22,-0.32,0.26"}));
 	
-	plan = new Plan();
-//	plan.steps.add(new Step("say", "Hello, today we're going to make a staircase."));
-//	plan.steps.add(new Step("say", "First, we'll need two blocks."));
 //	plan.steps.add(new Step("checkpredicate", new String[]{"ONGROUND", "2"}));
 //	plan.steps.add(new Step("say", "Good, can you move them so they are right up against each other?"));
 //	plan.steps.add(new Step("checkpredicates", new String[]{"TOUCHING", "NEXTTO"}));
@@ -158,13 +185,6 @@ public class SRIWrapper extends StandardTripsModule  {
 	}
 	try {
 	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (word . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
-	try {
-	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (utterance . *)))");
 	    send(perf);
 	} catch (IOException ex) {
@@ -193,7 +213,21 @@ public class SRIWrapper extends StandardTripsModule  {
 	}
 	try {
 	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (LOG-SPEECHACT . *)))");
+	    send(perf);
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
+	try {
+	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (STOPPED-SPEAKING . *)))");
+	    send(perf);
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (request &key :content (evaluate . *)))");
 	    send(perf);
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
@@ -248,7 +282,13 @@ public class SRIWrapper extends StandardTripsModule  {
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
-	
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (request &key :content (what-next . *)))");
+	    send(perf);		
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}	
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (SPOKEN . *)))");
@@ -328,27 +368,16 @@ public class SRIWrapper extends StandardTripsModule  {
 		}
 		else if (content0.equalsIgnoreCase("utterance")) {
 		    KQMLObject text = content.getKeywordArg(":text");
-		    KQMLObject startTime = content.getKeywordArg(":start-time");
-		    KQMLObject endTime = content.getKeywordArg(":end-time");
 		    KQMLObject uttNum = content.getKeywordArg(":uttnum");
 		    
 		    if (text == null || uttNum == null) {
 		    	errorReply(msg, "malformed UTTERANCE message");
 		    } 
-		    else if (startTime == null || endTime == null)
-		    {
-		    	// Speech utterance
-		    	int uttNumValue = Integer.parseInt(uttNum.stringValue());
-		    }
 		    else {
 		    	// Store the utterance to be referenced later and matched with the demonstration
-		    	String [] words = text.stringValue().split(" ");
 		    	
-		    	long startTimeValue = 
-		    			(long)(Double.parseDouble(startTime.stringValue()) * 100);
-		    	long endTimeValue = 
-		    			(long)(Double.parseDouble(endTime.stringValue()) * 100);
 		    	int uttNumValue = Integer.parseInt(uttNum.stringValue());
+		    	//plan.processUtterance(text.stringValue());
 		    }
 		}
 		else if (content0.equalsIgnoreCase("start-conversation")) {
@@ -396,6 +425,23 @@ public class SRIWrapper extends StandardTripsModule  {
 			System.out.println("Shutting down");
 			shutdown();
 		}
+		else if (content0.equalsIgnoreCase("what-next"))
+		{
+			KQMLObject goalName = content.getKeywordArg(":active-goal");
+			KQMLList context = (KQMLList)(content.getKeywordArg(":context"));
+			//TODO: Add in step generation here
+			
+		}
+		else if (content0.equalsIgnoreCase("evaluate"))
+		{
+			KQMLList innerContent = (KQMLList)content.getKeywordArg(":CONTENT");
+			KQMLList context = (KQMLList)(content.getKeywordArg(":context"));
+			plan.processKQML(innerContent, context);
+		}
+		else if (content0.equalsIgnoreCase("INTERPRET-SPEECH-ACT"))
+		{
+			
+		}
 		else if (content0.equalsIgnoreCase("set-parameters"))
 		{
 
@@ -442,8 +488,6 @@ public class SRIWrapper extends StandardTripsModule  {
 		else {
 		    errorReply(msg, "bad request: " + content0);
 		}
-
-		
     }
     
 	/**

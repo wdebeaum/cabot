@@ -18,10 +18,23 @@ SRCS = 	SRIWrapper.java \
 	src/spatialreasoning/PredicateType.java \
 	src/spatialreasoning/Predicate.java \
 	src/utilities/TextToSpeech.java \
+	src/utilities/FormatConversion.java \
 	src/messages/NetworkConfiguration.java \
 	src/messages/CommDataReader.java \
+	src/messages/BlockMessageSender.java \
 	src/spatialreasoning/Plan.java \
 	src/spatialreasoning/Step.java \
+	src/spatialreasoning/Selection.java \
+	src/environment/StructureInstance.java \
+	src/models/ModelBuilder.java \
+	src/models/StructureModel.java \
+	src/models/FeatureInference.java \
+	src/features/Feature.java \
+	src/features/FeatureGroup.java \
+	src/features/BlockFeatureGroup.java \
+	src/features/CountFeature.java \
+	src/features/TemporalSequenceFeature.java \
+	src/features/DirectionFeature.java 
 
 	
 

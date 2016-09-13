@@ -68,17 +68,17 @@ public class BlockMessagePuller implements Runnable {
 		{
 			if (!pause)
 			{
-				System.out.println("Reading metadata");
+				//System.out.println("Reading metadata");
 				JSONObject blockMetadataInfoObject = JsonReader.readURL("http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-metadata.json");
 				if (blockMetadataInfoObject == null)
 					System.out.println("Error reading apiInfo");
 		
-				System.out.println("Reading block data");
+				//System.out.println("Reading block data");
 				JSONObject blockStateInfoObject = JsonReader.readURL("http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-state.json");
 				if (blockMetadataInfoObject == null)
 					System.out.println("Error reading apiInfo");
-				else
-					System.out.println(blockStateInfoObject.toJSONString());
+//				else
+//					System.out.println(blockStateInfoObject.toJSONString());
 				
 				try {
 					if (statesRecorded > 0)

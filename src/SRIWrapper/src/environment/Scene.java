@@ -19,6 +19,7 @@ public class Scene {
 	public String timestamp;
 	public static volatile Scene currentScene = null;
 	public Block pointedTo;
+	private Block proxyBlock;
 
 	
 	public Scene(JSONObject blocksJson, JSONObject blocksMetadataJson)
@@ -55,6 +56,7 @@ public class Scene {
 		
 		pointedTo = null;
 		currentScene = this;
+		proxyBlock = null;
 	}
 	
 	public String describeScene()
@@ -157,6 +159,11 @@ public class Scene {
 		return true;
 	}
 	
+	public StructureInstance getWholeStructureInstance(String name)
+	{
+		return new StructureInstance(name, integerBlockMapping.values());
+	}
+	
 	public KQMLList getKQMLRepresentation()
 	{
 
@@ -178,4 +185,14 @@ public class Scene {
 		
 		return sceneDescription;
 	}
+
+	public Block getProxyBlock() {
+		return proxyBlock;
+	}
+
+	public void setProxyBlock(Block proxyBlock) {
+		this.proxyBlock = proxyBlock;
+	}
+	
+	
 }

@@ -8,7 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import extractors.TermExtractor;
 import TRIPS.KQML.KQMLList;
+import states.Action;
 import states.Goal;
 
 public class GoalPlanner {
@@ -18,16 +20,28 @@ public class GoalPlanner {
 	private Goal activeGoal;
 	private Goal privateGoal;
 	private boolean globalSystemInitiative = false;
+	private boolean overrideSystemInitiative = false;
+	private boolean overrideSystemInitiativeValue = false;
 	
 	public GoalPlanner()
 	{
 		goalConnections = new HashMap<Goal,Goal>();
 		variableGoalMapping = new HashMap<String,Goal>();
 		privateGoal = null;
+		activeGoal = null;
 	}
 	
-	public void addGoal(Goal goal, String parentVariableName)
+	public boolean addGoal(Goal goal, String parentVariableName)
 	{
+		if (goal == null)
+			return false;
+		
+		if (hasGoal(goal.getVariableName()))
+		{
+			System.out.println("Goal " + goal.getVariableName() + " already in planner.");
+			return false;
+		}
+		
 		String upperCaseParentVariableName = null;
 		if (parentVariableName != null)
 			upperCaseParentVariableName = parentVariableName.toUpperCase();
@@ -36,11 +50,13 @@ public class GoalPlanner {
 		goal.setParent(getGoal(upperCaseParentVariableName));
 		System.out.println("Added goal " + goal.getVariableName() + " with parent "
 				+ upperCaseParentVariableName);
+		
+		return true;
 	}
 	
-	public void addGoal(Goal goal)
+	public boolean addGoal(Goal goal)
 	{
-		addGoal(goal,null);
+		return addGoal(goal,null);
 	
 	}
 	
@@ -138,20 +154,30 @@ public class GoalPlanner {
 		return null;
 	}
 	
-	public void replaceGoal(Goal newGoal, Goal oldGoal)
+	public boolean replaceGoal(Goal newGoal, Goal oldGoal)
 	{
+		if (newGoal == null || oldGoal == null)
+		{
+			System.out.println("A goal in replacement was null");
+			return false;
+		}
 		Goal parent = oldGoal.getParent();
 		newGoal.setParent(parent);
-		if (oldGoal == activeGoal)
+		if (oldGoal == activeGoal || activeGoal == null)
+		{
+			System.out.println("Set goal: " + newGoal.getVariableName() + " as active goal");
 			activeGoal = newGoal;
+		}
 		removeGoal(oldGoal.getVariableName());
 		if (parent == null)
 			addGoal(newGoal,null);
 		else
 			addGoal(newGoal,parent.getVariableName());
+		
+		return true;
 	}
 	
-	public void removeGoal(String variableName)
+	public boolean removeGoal(String variableName)
 	{
 		String upperCaseVariableName = variableName.toUpperCase();
 		if (variableGoalMapping.containsKey(upperCaseVariableName))
@@ -161,9 +187,11 @@ public class GoalPlanner {
 				activeGoal = null;
 			variableGoalMapping.remove(upperCaseVariableName);
 			goalConnections.remove(goalToRemove);
-			
+			return true;
 			// TODO: Remove child goals of removed parent
 		}
+		
+		return false;
 	}
 	
 	public Goal getGoal(String variableName)
@@ -189,15 +217,43 @@ public class GoalPlanner {
 		return activeGoal;
 	}
 
-	public void setActiveGoal(Goal goal) {
-		if (!goalConnections.containsKey(goal))
-			addGoal(goal);
-		this.activeGoal = goal;
+	public boolean setActiveGoal(Goal goal) {
+		boolean succeeded = false;
+		
+		if (hasGoal(goal.getVariableName()))
+		{
+			this.activeGoal = goal;
+			return true;
+		}
+		
+		succeeded = addGoal(goal);
+		
+		if (succeeded)
+			this.activeGoal = goal;
+		
+		
+		return succeeded;
 	}
 	
-	public void setActiveGoal(String goal)
+	// Adds the goal from context if not already present
+	public boolean setActiveGoal(String goal, KQMLList context)
 	{
-		setActiveGoal(getGoal(goal));
+		if (hasGoal(goal))
+			return setActiveGoal(getGoal(goal));
+		else
+		{
+			KQMLList goalTerm = TermExtractor.extractTerm(goal, context);
+			if (goalTerm != null)
+				return setActiveGoal(new Goal(goalTerm));
+			else
+				return false;
+		}
+		
+	}
+	
+	public boolean setActiveGoal(String goal)
+	{
+		return setActiveGoal(getGoal(goal));
 	}
 
 	public List<Goal> generatePossibleGoals(Collection<String> goalTypes)
@@ -223,6 +279,43 @@ public class GoalPlanner {
 	public Goal getPrivateGoal() {
 		return privateGoal;
 	}
+	
+	public Goal getNonActionAncestor(Goal goal)
+	{
+		Goal parent = goal.getParent();
+
+		while (parent != null)
+		{
+			if (!(parent instanceof Action ))
+				return parent;
+			else
+				parent = parent.getParent();
+		}
+		return parent;
+	}
+	
+	public void setCompleted(Goal goal)
+	{
+		goal.setCompleted(true);
+		System.out.println("Completed goal " + goal.getVariableName());
+		
+		if (goal.getParent() != null)
+		{
+
+			boolean succeeded = setActiveGoal(goal.getParent());
+			if (succeeded)
+				System.out.println("Set active goal to " +
+					goal.getParent().getVariableName());
+			else
+				System.out.println("Failed to set active goal to " +
+						goal.getParent().getVariableName());
+		}
+	}
+	
+	public Goal getNonActionAncestor(String goalName)
+	{
+		return  getNonActionAncestor(getGoal(goalName));
+	}
 
 	public boolean isGlobalSystemInitiative() {
 		return globalSystemInitiative;
@@ -230,6 +323,23 @@ public class GoalPlanner {
 
 	public void setGlobalSystemInitiative(boolean globalSystemInitiative) {
 		this.globalSystemInitiative = globalSystemInitiative;
+	}
+
+	public boolean isOverrideSystemInitiative() {
+		return overrideSystemInitiative;
+	}
+
+	public void setOverrideSystemInitiative(boolean overrideSystemInitiative) {
+		this.overrideSystemInitiative = overrideSystemInitiative;
+	}
+
+	public boolean getOverrideSystemInitiativeValue() {
+		return overrideSystemInitiativeValue;
+	}
+
+	public void setOverrideSystemInitiativeValue(
+			boolean overrideSystemInitiativeValue) {
+		this.overrideSystemInitiativeValue = overrideSystemInitiativeValue;
 	}
 	
 	

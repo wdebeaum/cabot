@@ -42,7 +42,6 @@ public class CollaborativeStateManager extends StandardTripsModule  {
     private String hostName;
     private OntologyReader ontologyReader;
     private GoalPlanner goalPlanner;
-    private ActionPlanner actionPlanner;
     private final String BASE_DIRECTORY = System.getenv("TRIPS_BASE");
     
     //
@@ -93,9 +92,9 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	
 	goalPlanner = new GoalPlanner();
 	ontologyReader = new OntologyReader();
-	actionPlanner = new ActionPlanner();
 	ontologyReader.readEventOntologyFromFile(BASE_DIRECTORY + File.separator + "etc" + File.separator + "events");
 	ontologyReader.readGoalOntologyFromFile(BASE_DIRECTORY +File.separator + "etc" + File.separator + "goals");
+	ontologyReader.readModelOntologyFromFile(BASE_DIRECTORY +File.separator + "etc" + File.separator + "models");
 	// Subscriptions
 	try {
 	    KQMLPerformative perf =
@@ -249,13 +248,12 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			InterpretSpeechActHandler isah = new InterpretSpeechActHandler(msg, content, 
-													goalPlanner, ontologyReader, actionPlanner);
+													goalPlanner, ontologyReader);
 
-			List<KQMLList> responseContent = isah.process();
+			KQMLList responseContent = isah.process();
 			if (responseContent != null)
 			{
-				for (KQMLList message : responseContent)
-					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			}
 			
 		}
@@ -263,24 +261,22 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			
-			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content, goalPlanner);
-			List<KQMLList> responseContent = tih.process();
+			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content, goalPlanner, ontologyReader);
+			KQMLList responseContent = tih.process();
 			if (responseContent != null)
 			{
-				for (KQMLList message : responseContent)
-					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			}
 			
 		}
 		else if (content0.equalsIgnoreCase("update-csm"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");	
-			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, goalPlanner, actionPlanner);
-			List<KQMLList> responseContent = uch.process();
+			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, goalPlanner);
+			KQMLList responseContent = uch.process();
 			if (responseContent != null)
 			{
-				for (KQMLList message : responseContent)
-					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			}
 			
 		}
@@ -288,11 +284,10 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			QueryCSMHandler qch = new QueryCSMHandler(msg, content);
-			List<KQMLList> responseContent = qch.process();
+			KQMLList responseContent = qch.process();
 			if (responseContent != null)
 			{
-				for (KQMLList message : responseContent)
-					sendContentViaPerformative("TELL", "DAGENT", message, replyWith);
+				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			}
 			
 			
@@ -388,7 +383,6 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	{
 		
 		goalPlanner = new GoalPlanner();
-		actionPlanner = new ActionPlanner();
 	}
     
 	

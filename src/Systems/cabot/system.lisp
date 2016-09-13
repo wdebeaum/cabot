@@ -50,7 +50,7 @@
 	;; average number of letters in a word (not critical)
 	(parser::*word-length* 8)
 	;; boost factor based on length of input covered
-	(parser::*score-length-multiplier* .6)
+	(parser::*score-length-multiplier* .4)
 	;; not clear this is helpful
 	(parser::*score-corner-multiplier* 0)
 	;; indicate we should use POS information
@@ -97,7 +97,7 @@
 	
 	((parser::customize-cost-table 
 	  '((ont::SA_QUERY 1.2) 
-	     (ont::IDENTIFY 2) 
+	     (ont::SA_IDENTIFY 2) 
 	     (ont::SA_pred-fragment 2) 
 	     (ont::SA_request 1) 
 	     (ont::SA_YN-QUESTION 1) 
@@ -105,7 +105,7 @@
 	     (w::advblp 1.3)
 	     (ont::SA_CONFIRM 1) 
 	     (ont::SA_WH-QUESTION 1) 
-	     (ont::TELL 1)
+	     (ont::SA_TELL 1)
 	     (w::CP 2) 
 	     (w::VP 1.1) 
 	     (w::punc .5))))
@@ -117,7 +117,8 @@
 (setq im::*cps-control* t)
 (setq im::*substitute-types-in-pros* t)
 (setq im::*compute-force-from-tmas* t)
-(setq im::*max-allowed-utts-in-turn* 2) ;; we're being a little generous to try to pick up more referring expressions
+;(setq im::*max-allowed-utts-in-turn* 2) ;; we're being a little generous to try to pick up more referring expressions
+(setq im::*max-allowed-utts-in-turn* 3) ;; we're being a little generous to try to pick up more referring expressions
 (setq im::*external-name-resolution* nil)  ;; will eventually be set to T when we do reference resolution in context
 (setq im::*show-lf-graphs* t)
 (setq im::*lf-output-by-utterance* t)
@@ -149,7 +150,7 @@
 (setq logging2::*logging-enabled* nil)
 
 ;; domain preferences
-;(load "domain-sense-preferences")
+(load "domain-sense-preferences")
 ;(load "domain-words.lisp")
 
 ;;  DM settings
@@ -180,5 +181,5 @@
 ;; if you need to use either of the following Dummy features, uncomment them
 ;; LOCALLY, but please do not commit without comments!
 
-;;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
+;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")

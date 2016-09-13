@@ -223,6 +223,14 @@
     (head (uttword (lf (?lf)) (lex ?lex) (sa ?sa)))
     (punc (lex punc-comma) (var ?v1)))
 
+     ;;  e.g., thanks for the gift, sorry that I interrupted
+   ((Utt (lf (% SPEECHACT (VAR *) (CLASS ?sa) (constraint (& (content (?lf :content ?lex :reason ?sc))))))
+         (var *) (uttword +))
+    -utt4b-with-subcat>
+    (head (uttword (lf (?lf)) (lex ?lex) (sa ?sa) (subcat ?!subcat) (subcat (% ?xx (car ?sc)))))
+    ?!subcat
+    (punc (lex punc-comma) (var ?v1)))
+
      
    ;;  the one compound utt rule - allows uttword+ utterance to preceed other utts
    ;; test: hello hello
@@ -2399,7 +2407,23 @@
     -np-utt-simple> .98
     (head (np (wh -) (sort (? x pred unit-measure)) (complex -) (var ?v) (sem ($ ?!type)))))
 
-    ;; complex nps (e.g., disjunctions, conjunctions) are dispreferred over parses with disjunction more deeply attached
+   ; The dog?
+   ((utt (lf (% speechact (var *) (class ont::SA_YN-QUESTION) (constraint (& (content ?v) (punctype ?p))) )) (var *)
+	 (punc +) (punctype ?p)) 
+    -np-utt-simple-q> .98
+    (head (np (wh -) (sort (? x pred unit-measure)) (complex -) (var ?v) (sem ($ ?!type))))
+    (punc (punctype ?p) (lex w::punc-question-mark))
+    )
+
+   ; What next?  What color?
+   ((utt (lf (% speechact (var *) (class ont::SA_WH-QUESTION) (constraint (& (content ?v) (focus ?v) (punctype ?p))) )) (var *)
+	 (punc +) (punctype ?p))
+    -np-utt-simple-whq> .98
+    (head (np (wh Q) (sort (? x pred unit-measure)) (complex -) (var ?v) (sem ($ ?!type))))
+    (punc (punctype ?p) (lex w::punc-question-mark))
+    )
+   
+   ;; complex nps (e.g., disjunctions, conjunctions) are dispreferred over parses with disjunction more deeply attached
     ((utt (lf (% speechact (var *) (class ont::sa_identify) (constraint (& (content ?v))))) (var *))
      -np-utt> .97
      (head (np (wh -) (sort (? x pred unit-measure)) (complex +) (var ?v) (sem ($ ?!type)))))
@@ -2631,7 +2655,7 @@
      (cp (var ?reason)))
 
     ((utt (var *) (sem ($ f::proposition)) (uttword +)
-      (lf (% speechact (var *) (class (? sa ont::sa_apologize ont::sa_thank)) (constraint (& (content ?reason)))))
+      (lf (% speechact (var *) (class (? sa ont::sa_apologize ont::sa_thank)) (constraint (& (reason ?reason)))))
       (punctype (? x decl imp)))
      -utt-sa-for>
      (head (uttword (lf (?lf)) (lex ?lex) (var ?v) (sa (? sa ont::sa_apologize ont::sa_thank))))

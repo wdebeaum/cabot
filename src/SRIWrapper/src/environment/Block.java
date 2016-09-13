@@ -11,7 +11,7 @@ import TRIPS.KQML.KQMLList;
 public class Block {
 
 	public final static double MAX_GROUND_HEIGHT = .09;
-	
+	public final static double BLOCK_WIDTH = 0.171;
 	int id;
 	public DoubleMatrix position;
 	public DoubleMatrix rotation;
@@ -19,6 +19,10 @@ public class Block {
 	public String label;
 	private static final double POSITION_EPSILON = .01;
 	private static final double ROTATION_EPSILON = .01;
+	private static final double DISTANCE_EPSILON = .13;
+	private boolean proxyInstructed; // Did the proxy say to put this here?
+	private boolean userOwned;
+	private boolean moved;
 	
 	public Block(JSONObject jsonState)
 	{
@@ -37,6 +41,38 @@ public class Block {
 		for(int i = 0; i < 4; i++) 
 			rotationElementDoubles[i] = Double.parseDouble(rotationElements[i]); 
 		rotation = new DoubleMatrix(rotationElementDoubles);
+		proxyInstructed = false;
+		userOwned = false;
+	}
+	
+	public Block(String positionString)
+	{
+		id = 1;
+		confidence = 1;
+		String[] positionElements = positionString.split(",");
+		double[] positionElementDoubles = new double[3];
+		for(int i = 0; i < 3; i++) 
+			positionElementDoubles[i] = Double.parseDouble(positionElements[i]); 
+		position = new DoubleMatrix(positionElementDoubles);
+		
+		
+		rotation = DoubleMatrix.zeros(4);
+		rotation.put(3,1);
+		proxyInstructed = false;
+		userOwned = false;
+	}
+	
+	public Block(DoubleMatrix position)
+	{
+		id = 1;
+		confidence = 1;	
+		this.position = position;
+		
+		
+		rotation = DoubleMatrix.zeros(4);
+		rotation.put(3,1);
+		proxyInstructed = false;
+		userOwned = false;
 	}
 	
 	public boolean onGround()
@@ -81,6 +117,11 @@ public class Block {
 		
 		return true;
 			
+	}
+	
+	public boolean hasSimilarPosition(Block b)
+	{
+		return position.distance2(b.position) < DISTANCE_EPSILON;
 	}
 	
 	public KQMLList getKQMLRepresentation()
@@ -143,6 +184,43 @@ public class Block {
 		blockContent.add(bottomRight);
 		
 		return blockContent;
+	}
+	
+	public String getJSONRepresentation()
+	{
+		JSONObject jsonBlock = new JSONObject();
+		DoubleMatrix yInvertPosition = position.mul(new DoubleMatrix(new double[]{1,-1,1}));
+		jsonBlock.put("id", "" + id);
+		jsonBlock.put("position", FormatConversion.doubleMatrixToJSONString(yInvertPosition));
+		jsonBlock.put("rotation", FormatConversion.doubleMatrixToJSONString(rotation));
+		jsonBlock.put("confidence", "" + confidence);
+		
+		
+		return jsonBlock.toString();
+	}
+
+	public boolean isProxyInstructed() {
+		return proxyInstructed;
+	}
+
+	public void setProxyInstructed(boolean proxyInstructed) {
+		this.proxyInstructed = proxyInstructed;
+	}
+
+	public boolean isUserOwned() {
+		return userOwned;
+	}
+
+	public void setUserOwned(boolean userOwned) {
+		this.userOwned = userOwned;
+	}
+
+	public boolean isMoved() {
+		return moved;
+	}
+
+	public void setMoved(boolean moved) {
+		this.moved = moved;
 	}
 	
 	

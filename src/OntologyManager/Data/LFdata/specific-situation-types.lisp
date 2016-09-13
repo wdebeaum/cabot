@@ -34,6 +34,14 @@
   :parent ont::acquire
   )
 
+#| working on refining it
+(define-type ont::acquire-responsibility
+ :wordnet-sense-keys ("undertake%2:41:01" "assume%2:41:00" "take_on%2:41:01" "take_over%2:41:01")
+  :parent ont::acquire
+  :arguments ((:REQUIRED ONT::neutral ((? th F::Situation F::Abstr-obj) (f::type ONT::mental-construction))))
+  )
+|#
+
 (define-type ont::amass
  :wordnet-sense-keys ("accumulate%2:30:00" "cumulate%2:30:00" "conglomerate%2:30:00" "pile_up%2:30:00" "gather%2:30:00" "amass%2:30:00")
   :parent ont::acquire
@@ -3771,7 +3779,8 @@
  :parent ONT::event-of-causation
  :sem (F::situation)
  :arguments ((:REQUIRED ONT::Formal (f::phys-obj (f::intentional +))) ;; check in a person
-	     (:optional ont::result ((? oc f::phys-obj f::situation))) ;; at a hotel, in a program
+	     (:optional ont::neutral ((? oc f::phys-obj f::situation f::abstr-obj))) ;; at a hotel, in a program
+	   
              )
  )
 

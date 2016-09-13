@@ -962,6 +962,10 @@
 (defun extract-feature-from-act (&key result expr feature)
   (format t "~%extracting features: expr = ~S feature = ~S result = ~S" expr feature (find-arg-in-act expr feature))
   (im::match-vals nil result (find-arg-in-act expr feature)))
+
+(defun replace-feature-val-in-act (&key result act feature newval)
+  (format t "~%replacing value: act = ~S feature = ~S value = ~S" act feature newval)
+  (im::match-vals nil result (replace-arg-in-act act feature newval)))
   
 (defun invoke-generator (msg user channel uttnum)
   "here we invoke the BA with a message and record the result for the followup state.

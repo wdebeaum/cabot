@@ -3,8 +3,8 @@ package handlers;
 import java.util.*;
 
 import extractors.TermExtractor;
-import plans.ActionPlanner;
 import plans.GoalPlanner;
+import states.Action;
 import states.Goal;
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
@@ -17,19 +17,17 @@ public class UpdateCSMHandler extends MessageHandler {
 	KQMLObject context;
 	String updateType;
 	GoalPlanner goalPlanner;
-	ActionPlanner actionPlanner;
 	String activeGoal = null;
 	
 	public UpdateCSMHandler(KQMLPerformative msg, KQMLList content,
-			GoalPlanner goalPlanner, ActionPlanner actionPlanner) {
+			GoalPlanner goalPlanner) {
 		super(msg, content);
 		this.goalPlanner = goalPlanner;
-		this.actionPlanner = actionPlanner;
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public List<KQMLList> process() {
+	public KQMLList process() {
 		KQMLObject innerContentObj = content.getKeywordArg(":content");
 		innerContent = null;
 		
@@ -69,6 +67,14 @@ public class UpdateCSMHandler extends MessageHandler {
 			return handlePrivateSystemGoal();
 		case "problem":
 			return handleProblem();
+		case "ba-waiting":
+			return handleBaWaiting();
+		case "set-default-initiative":
+			return handleDefaultInitiative();
+		case "set-override-initiative":
+			return handleOverrideInitiative();
+		case "answer":
+			return handleAnswer();
 			
 		}
 		
@@ -78,17 +84,59 @@ public class UpdateCSMHandler extends MessageHandler {
 		
 	}
 	
-	private List<KQMLList> handleSolved() {
+	private KQMLList handleOverrideInitiative()
+	{
+		System.out.println("Handling override initiative setting");
+		KQMLObject initiativeOverrideObject = innerContent.getKeywordArg(":OVERRIDE");
+		KQMLObject initiativeValueObject = innerContent.getKeywordArg(":VALUE");
+		if (initiativeOverrideObject == null || initiativeValueObject == null)
+			return null;
+		
+		if (initiativeOverrideObject != null)
+		{
+			if (initiativeOverrideObject.stringValue().equalsIgnoreCase("NIL"))
+				goalPlanner.setOverrideSystemInitiative(false);
+			else if (initiativeOverrideObject.stringValue().toUpperCase().contains("T"))
+				goalPlanner.setOverrideSystemInitiative(true);
+		}
+		
+		if (initiativeValueObject != null)
+		{
+			if (initiativeValueObject.stringValue().equalsIgnoreCase("NIL"))
+				goalPlanner.setOverrideSystemInitiativeValue(false);
+			else if (initiativeValueObject.stringValue().toUpperCase().contains("T"))
+				goalPlanner.setOverrideSystemInitiativeValue(true);			
+		}
+
+		return null;		
+	}
+	
+	private KQMLList handleDefaultInitiative()
+	{
+		System.out.println("Handling default initiative setting");
+		KQMLObject initiativeObject = innerContent.getKeywordArg(":VALUE");
+		if (initiativeObject == null)
+			return null;
+		
+		if (initiativeObject.stringValue().equalsIgnoreCase("NIL"))
+			goalPlanner.setGlobalSystemInitiative(false);
+		else if (initiativeObject.stringValue().toUpperCase().contains("T"))
+			goalPlanner.setGlobalSystemInitiative(true);
+		
+		return null;
+	}
+	
+	private KQMLList handleSolved() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private List<KQMLList> handleProposed()
+	private KQMLList handleProposed()
 	{
 		return null;
 	}
 
-	private List<KQMLList> handlePrivateSystemGoal()
+	private KQMLList handlePrivateSystemGoal()
 	{
 		
 		String goalName;
@@ -119,7 +167,7 @@ public class UpdateCSMHandler extends MessageHandler {
 		return null;
 	}
 	
-	private List<KQMLList> handleFailedOn()
+	private KQMLList handleFailedOn()
 	{
 		
 		KQMLObject goalNameObject = innerContent.getKeywordArg(":WHAT");
@@ -155,7 +203,7 @@ public class UpdateCSMHandler extends MessageHandler {
 		return null;
 	}
 	
-	private List<KQMLList> handleProblem()
+	private KQMLList handleProblem()
 	{
 		
 		KQMLObject actionObject = innerContent.getKeywordArg(":WHAT");
@@ -211,8 +259,6 @@ public class UpdateCSMHandler extends MessageHandler {
 	
 	private void cannotPerform(String goalName)
 	{
-
-
 		if (goalPlanner.hasGoal(goalName))
 		{
 			goalPlanner.getGoal(goalName).setFailed(true);
@@ -226,12 +272,12 @@ public class UpdateCSMHandler extends MessageHandler {
 
 	}
 	
-	private List<KQMLList> handleAcceptedSolution()
+	private KQMLList handleAcceptedSolution()
 	{
 		return null;
 	}
 	
-	private List<KQMLList> handleAccepted()
+	private KQMLList handleAccepted()
 	{
 		KQMLList acceptContent = (KQMLList)(innerContent.getKeywordArg(":CONTENT"));
 		
@@ -252,30 +298,43 @@ public class UpdateCSMHandler extends MessageHandler {
 		
 		if (goalPlanner.hasGoal(goalName))
 		{
-			goalPlanner.setActiveGoal(goalName);
+			Goal g = goalPlanner.getGoal(goalName);
+			if (g instanceof Action)
+			{
+				g.setAccepted();
+				System.out.println("Action " + goalName + " accepted.");
+			}
+			else
+				goalPlanner.setActiveGoal(goalName);
 			System.out.println("Active goal now: " + goalName);
 		}
-		else if (actionPlanner.hasAction(goalName))
+		else // Do we want to add this if we don't know of the goal?
 		{
-			actionPlanner.getAction(goalName).setAccepted(true);
-			System.out.println("Action " + goalName + " accepted.");
-		}
-		else
-		{
-			System.out.println("No such goal or action in system.");
-			return null;
+			KQMLList goalLF = TermExtractor.extractTerm(goalName, (KQMLList)context);
+			if (goalLF == null)
+			{
+				System.out.println("Not a valid goal to add to the system");
+				return null;
+			}
+			Goal newGoal = new Goal(goalLF);
+			goalPlanner.addGoal(newGoal);
+			newGoal.setAccepted();
+			goalPlanner.setActiveGoal(newGoal);
+			System.out.println("Active goal now: " + goalName);
 		}
 		
 		return null;
 	}
 	
-	private List<KQMLList> handleNoInitiativeTaken()
+	private KQMLList handleNoInitiativeTaken()
 	{
 		KQMLObject goalNameObject = innerContent.getKeywordArg(":WHAT");
 		String goalName = null;
 		if (goalNameObject != null)
 			goalName = goalNameObject.stringValue();
-		// This was a specific goal that failed
+		
+		
+		// This was a specific goal with initiative not taken
 		if (goalName != null && goalPlanner.hasGoal(goalName))
 		{
 			goalPlanner.getGoal(goalName).setSystemTookInitiative(false);
@@ -284,17 +343,17 @@ public class UpdateCSMHandler extends MessageHandler {
 		}
 		
 					
-		System.out.println("No such goal to set as initiative taken");
+		//System.out.println("No such goal to set as initiative taken");
 		return null;
 	}
 
-	private List<KQMLList> handleInitiativeTakenOnGoal()
+	private KQMLList handleInitiativeTakenOnGoal()
 	{
 		KQMLObject goalNameObject = innerContent.getKeywordArg(":WHAT");
 		String goalName = null;
 		if (goalNameObject != null)
 			goalName = goalNameObject.stringValue();
-		// This was a specific goal that failed
+		// This was a specific goal that with initiative taken
 		if (goalName != null && goalPlanner.hasGoal(goalName))
 		{
 			goalPlanner.getGoal(goalName).setSystemTookInitiative(true);
@@ -304,6 +363,30 @@ public class UpdateCSMHandler extends MessageHandler {
 		
 					
 		System.out.println("No such goal to set as initiative taken");
+		return null;
+	}
+	
+	private KQMLList handleBaWaiting()
+	{
+		return null;
+	}
+	
+	// TODO: Store answer?
+	private KQMLList handleAnswer()
+	{
+		KQMLObject goalNameObject = innerContent.getKeywordArg(":GOAL");
+		String goalName = null;
+		if (goalNameObject != null)
+			goalName = goalNameObject.stringValue();
+		// This was a specific goal that with initiative taken
+		if (goalName != null && goalPlanner.hasGoal(goalName))
+		{
+			goalPlanner.setCompleted(goalPlanner.getGoal(goalName));
+			System.out.println("Set goal " + goalName + " as completed via answer");
+			return null;
+		}
+		
+		System.out.println("No such goal to be answered");
 		return null;
 	}
 }

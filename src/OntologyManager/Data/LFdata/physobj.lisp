@@ -323,6 +323,10 @@
 		      (F::mobility f::fixed) (f::container +))
     )
 
+(define-type ONT::TOWER
+  :wordnet-sense-keys ("tower%1:06:00")
+  :parent ONT::man-made-structure
+)
 
 ;how to deal with this?
 ;State and country are too similar. Perhaps country should be a child of state?
@@ -1845,7 +1849,7 @@
     :parent ONT::device
     :wordnet-sense-keys ("model%1:09:03")
     :sem (F::Phys-obj (F::Origin F::Artifact))
-    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::Origin F::Artifact) ))
+    :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::Origin F::Artifact) (f::type ONT::manufactured-object)))
 		)
     )
 

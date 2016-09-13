@@ -1,19 +1,34 @@
 package states;
 
-public class Action {
-	String name;
+import TRIPS.KQML.KQMLList;
+
+public class Action extends Goal {
+
 	Goal contributesTo;
-	private boolean accepted;
+	String actionType;
 	
-	public Action(String name)
-	{
-		this.name = name;
-		accepted = false;
+	public Action(KQMLList term) {
+		super(term);
+		actionType = "unknown";
+		// TODO Auto-generated constructor stub
 	}
-	
-	public String getName()
-	{
-		return name;
+
+	public Action(KQMLList term, Goal parent) {
+		super(term, parent);
+		actionType = "unknown";
+		// TODO Auto-generated constructor stub
+	}
+
+	public Action(String variableName, KQMLList context, Goal parent) {
+		super(variableName, context, parent);
+		actionType = "unknown";
+		// TODO Auto-generated constructor stub
+	}
+
+	public Action(String variableName, KQMLList context) {
+		super(variableName, context);
+		actionType = "unknown";
+		// TODO Auto-generated constructor stub
 	}
 
 	public Goal getContributesTo() {
@@ -24,15 +39,13 @@ public class Action {
 		this.contributesTo = contributesTo;
 	}
 
-	public boolean isAccepted() {
-		return accepted;
+	public String getActionType() {
+		return actionType;
 	}
 
-	public void setAccepted(boolean accepted) {
-		this.accepted = accepted;
+	public void setActionType(String actionType) {
+		this.actionType = actionType;
 	}
-
-	
 	
 	
 }

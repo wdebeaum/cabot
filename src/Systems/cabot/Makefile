@@ -9,7 +9,7 @@ NAME = trips-cabot
 
 include ../Makefile-common
 
-CSM_DATA = events goals
+CSM_DATA = events goals models
 
 install:: install-data
 

@@ -229,8 +229,17 @@
 		     (% *PRO* (VAR ?v) (SEM ?sem)
 			(STATUS ont::PRO) (class ?lf) (constraint (& (proform ?lex)))))))
 	  (NObareSpec +) (WH (? wh Q -)) (wh-var ?v))	 
+	 -possessive3-Q>
+	 (head (PRO (CASE POSS) (WH Q)
+		    (STATUS ont::PRO-DET) (SEM ?sem) (VAR ?v) (LF ?lf) (lex ?lex) (input ?i))))
+
+	((possessor (LF ONT::DEFINITE) (AGR ?agr) (ARG ?arg) (MASS ?m)
+	  (RESTR (& (assoc-poss
+		     (% *PRO* (VAR ?v) (SEM ?sem)
+			(STATUS ont::PRO) (class ?lf) (constraint (& (proform ?lex)))))))
+	  (NObareSpec +) (WH -))
 	 -possessive3>
-	 (head (PRO (CASE POSS) (WH (? wh Q -))
+	 (head (PRO (CASE POSS) (WH -)
 		    (STATUS ont::PRO-DET) (SEM ?sem) (VAR ?v) (LF ?lf) (lex ?lex) (input ?i))))
 #||
 	((possessor (LF DEFINITE) (AGR ?agr) (ARG ?arg) (mass ?m)
@@ -1430,7 +1439,7 @@
       (N-N-MOD +) (QUAL -) (relc ?relc) (subcat ?subcat)
       (post-subcat -)
          )
-     -n-plur-n1-> 0.97 ;; prevent this from happening too often
+     -n-plur-n1-> 0.95 ;; prevent this from happening too often
      (n1 (AGR 3p) (abbrev -)
 	 (var ?v1) (sem ?sem) (restr ?modr) 
 	 (CLASS ?modc) (PRO -) (N-N-MOD -) (COMPLEX -) (SUBCAT -) (GAP -)
@@ -2237,16 +2246,17 @@
          -unit-np-number-indef-explicit-scale>
 	 (NUMBER (val ?num) (VAR ?nv) (AGR ?agr) (restr ?r))
  	 (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
-		   (KIND -) (sem ?sem) (sem ($ f::abstr-obj  (f::scale ?sc)))
+		   (KIND -) (sem ?sem) (sem ($ f::abstr-obj  (f::scale ?unit-sc)))
 		   (argument ?argument) (RESTR ?restr)
 		   (post-subcat -)
 		))
 	 (pp (ptype in) (gap -)
-	  (sem ($ f::abstr-obj (F::scale ?sc))))
+	  (sem ($ f::abstr-obj (F::type (? xx ont::domain)))))
+	 ;;(class-greatest-lower-bound (in1 ?unit-sc) (in2 ?explicit-sc) (out ?sc))
          (add-to-conjunct (val (& (value ?num))) (old ?r) (new ?newr))
 	 (add-to-conjunct (val (& (amount (% *PRO* (status ont::indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
 				  (unit ?c)
-				  (scale ?sc))) (old ?restr) (new ?constr))
+				  (scale (? xx ont::domain)))) (old ?restr) (new ?constr))
 	 )
 
    ;;  NP with SPECS that subcategorize for "of" PP's that are count and definite

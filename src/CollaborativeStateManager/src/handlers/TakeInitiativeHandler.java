@@ -4,22 +4,26 @@ import TRIPS.KQML.*;
 
 import java.util.*;
 
+import extractors.OntologyReader;
 import extractors.TermExtractor;
 import plans.GoalPlanner;
+import states.Goal;
 
 public class TakeInitiativeHandler extends MessageHandler {
 
 	private GoalPlanner goalPlanner;
+	private OntologyReader ontologyReader;
 	
-	public TakeInitiativeHandler(KQMLPerformative msg, KQMLList content, GoalPlanner goalPlanner)
+	public TakeInitiativeHandler(KQMLPerformative msg, KQMLList content,
+			GoalPlanner goalPlanner, OntologyReader ontologyReader)
 	{
 		super(msg,content);
 		this.goalPlanner = goalPlanner;
+		this.ontologyReader = ontologyReader;
 	}
 	
-	public List<KQMLList> process()
+	public KQMLList process()
 	{
-		ArrayList<KQMLList> result = new ArrayList<KQMLList>();
 		
 		//KQMLList goal = (KQMLList)(content.getKeywordArg(":GOAL"));
 		
@@ -30,29 +34,51 @@ public class TakeInitiativeHandler extends MessageHandler {
 		if (goalObject == null)
 		{
 			System.out.println("Goal parameter not set");
-			return null;
+			return missingGoalToModify("NIL", context);
 		}
 		String goalWhat = goalObject.stringValue();
+		
+		if (goalPlanner.isOverrideSystemInitiative())
+		{
+			if (goalPlanner.getOverrideSystemInitiativeValue() == true)
+				return takeInitiativeContent("YES", goalWhat, context);
+			else
+				return takeInitiativeContent("NO", goalWhat, context);
+		}
 		
 		KQMLList goalLF = null;
 		for (KQMLObject lfTerm : (KQMLList)context)
 		{
 			if (((KQMLList)lfTerm).get(1).stringValue().equalsIgnoreCase(goalWhat))
+			{
 				goalLF = (KQMLList)lfTerm;
+				goalPlanner.addGoal(new Goal(goalLF));
+			}
 		}
+
+		// Not in context, check the planner
+		if (goalLF == null && goalPlanner.hasGoal(goalWhat))
+		{
+			System.out.println("Searching goalplanner for variable: " + goalWhat);
+			goalLF = goalPlanner.getGoal(goalWhat).getKQMLTerm();
+		}
+		
+		// Not in context or planner, return error
 		if (goalLF == null)
 		{
-			if (goalPlanner.hasGoal(goalWhat))
-			{
-				System.out.println("Searching goalplanner for variable: " + goalWhat);
-				goalLF = goalPlanner.getGoal(goalWhat).getKQMLTerm();
-			}
-			else
-			{
-				System.out.println("No such goal in planner");
-				return null;
-			}
+			System.out.println("No such goal in planner");
+			return missingGoalToModify(goalWhat, context);
 		}
+		
+		Goal goal = null;
+		if (goalPlanner.hasGoal(goalWhat))
+			goal = goalPlanner.getGoal(goalWhat);
+		
+		if (goal.isCompleted())
+		{
+			return takeInitiativeContent("NO", goalWhat, context);
+		}
+		System.out.println("Goal " + goal.getVariableName() + " not completed");
 		
 		String goalType = goalLF.getKeywordArg(":INSTANCE-OF").stringValue();
 		System.out.println("Goal type: *" + goalType + "*");
@@ -63,6 +89,26 @@ public class TakeInitiativeHandler extends MessageHandler {
 		else if (goalTypeUpper.contains("IDENTIFY") || 
 				goalTypeUpper.contains("EVALUATE") || goalTypeUpper.contains("QUERY"))
 			takeInitContent = takeInitiativeContent("YES", goalWhat, context);
+		else if (goalTypeUpper.contains("CREATE"))
+		{
+			KQMLObject affectedResultObject = goalLF.getKeywordArg(":AFFECTED-RESULT");
+			if (affectedResultObject != null)
+			{
+				String affectedResult = affectedResultObject.stringValue();
+				KQMLList affectedResultTerm = TermExtractor.extractTerm(affectedResult,
+						(KQMLList)context);
+				String affectedResultType = affectedResultTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+				
+				// "Let's build a *model*."
+				if (affectedResultType.contains("REPRESENTATION"))
+					takeInitContent = takeInitiativeContent("NO", goalWhat, context);
+				else if (ontologyReader.isKnownModel(affectedResultType))
+					takeInitContent = takeInitiativeContent("YES", goalWhat, context);
+				else
+					takeInitContent = takeInitiativeContent("NO", goalWhat, context);
+			}
+			takeInitContent = takeInitiativeContent("NO", goalWhat, context);
+		}
 		else
 		{
 			KQMLObject agentObject = goalLF.getKeywordArg(":AGENT");
@@ -83,7 +129,7 @@ public class TakeInitiativeHandler extends MessageHandler {
 						if (goalPlanner.isGlobalSystemInitiative())
 							takeInitContent = takeInitiativeContent("YES", goalWhat, context);
 						else
-							takeInitContent = takeInitiativeContent("YES", goalWhat, context);
+							takeInitContent = takeInitiativeContent("NO", goalWhat, context);
 					}
 					else if (agentEquals.stringValue().equalsIgnoreCase("ONT::USER"))
 					{
@@ -99,10 +145,14 @@ public class TakeInitiativeHandler extends MessageHandler {
 			
 		}
 		if (takeInitContent == null)
-			takeInitContent = takeInitiativeContent("NO", goalWhat, context);
+		{
+			if (goalPlanner.isGlobalSystemInitiative())
+				takeInitContent = takeInitiativeContent("YES", goalWhat, context);
+			else
+				takeInitContent = takeInitiativeContent("NO", goalWhat, context);
+		}
 		
-		result.add(takeInitContent);
-		return result;
+		return takeInitContent;
 		
 	}
 	
