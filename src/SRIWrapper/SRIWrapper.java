@@ -436,7 +436,47 @@ public class SRIWrapper extends StandardTripsModule  {
 		{
 			KQMLList innerContent = (KQMLList)content.getKeywordArg(":CONTENT");
 			KQMLList context = (KQMLList)(content.getKeywordArg(":context"));
-			plan.processKQML(innerContent, context);
+			//plan.processKQML(innerContent, context);
+			
+			String speechAct = content.get(0).stringValue();
+			String goal = content.getKeywordArg(":WHAT").stringValue();
+			KQMLList goalLF = KQMLUtilities.findTermInKQMLList(goal, context);
+			String goalType = goalLF.getKeywordArg(":INSTANCE-OF").stringValue();
+			
+			if (speechAct.equalsIgnoreCase("ADOPT") )
+			{
+				if ( goalType.equalsIgnoreCase("ONT::CREATE"))
+				{
+					String objectToMakeID = goalLF.getKeywordArg(":AFFECTED-RESULT").stringValue();
+					KQMLList objectToMakeLF = KQMLUtilities.findTermInKQMLList(objectToMakeID, context);
+					String objectToMake = objectToMakeLF.getKeywordArg(":INSTANCE-OF").stringValue();
+					String cleanObjectToMake = objectToMake.split("::")[1];
+					
+					if (!modelBuilder.currentModel.name.equals(cleanObjectToMake))
+					{
+						TextToSpeech.say("What is a " + cleanObjectToMake + "?");
+						//steps.add(new Step("querymodeldefinition", cleanObjectToMake));
+						modelBuilder.processNewModel(cleanObjectToMake);
+					}
+				}
+				else if (goalType.equalsIgnoreCase("ONT::QUERY-MODEL"))
+				{
+					String eventToQueryID = goalLF.getKeywordArg(":NEUTRAL").stringValue();
+					KQMLList eventToQuery = KQMLUtilities.findTermInKQMLList(eventToQueryID, context);
+					String modelTermID = eventToQuery.getKeywordArg(":NEUTRAL1").stringValue();
+					KQMLList modelTerm = KQMLUtilities.findTermInKQMLList(modelTermID, context);
+					String modelName = modelTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+					String cleanModelName = modelName.split("::")[1]; 
+					//steps.add(new Step("checkmodel", cleanObjectToMake));
+					boolean result = modelBuilder.getModelInstantiation(cleanModelName)
+								.testModelOnStructureInstance(Scene.currentScene.integerBlockMapping.values());
+				}
+			}
+			else if(speechAct.equalsIgnoreCase("ASSERTION"))
+			{
+				KQMLList assertions = (KQMLList)goalLF.getKeywordArg(":EVENTS");
+				
+			}
 		}
 		else if (content0.equalsIgnoreCase("INTERPRET-SPEECH-ACT"))
 		{

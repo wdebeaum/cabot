@@ -58,6 +58,7 @@ public class Plan {
 				KQMLList modelTerm = KQMLUtilities.findTermInKQMLList(modelTermID, context);
 				String modelName = modelTerm.getKeywordArg(":INSTANCE-OF").stringValue();
 				String cleanModelName = modelName.split("::")[1]; 
+				//steps.add(new Step("checkmodel", cleanObjectToMake));
 				//boolean result = modelBuilder.getModelInstantiation(cleanModelName)
 					//		.testModelOnStructureInstance(newBlocks);
 			}

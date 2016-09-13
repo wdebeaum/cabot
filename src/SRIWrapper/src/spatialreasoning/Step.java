@@ -99,6 +99,8 @@ public class Step {
 		case "querymodeldefinition":
 			TextToSpeech.say("What is a " + arguments[0] + "?");
 			return true;
+		case "checkmodel":
+			return true;
 		case "getresponse":
 			if (lastUtterance == null)
 				return false;

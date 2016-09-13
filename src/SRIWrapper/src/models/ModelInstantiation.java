@@ -129,9 +129,9 @@ public class ModelInstantiation {
 		return results;
 	}
 	
-	public boolean testModelOnStructureInstance(Set<Block> newBlocks)
+	public boolean testModelOnStructureInstance(Collection<Block> newBlocks)
 	{
-		currentStructureInstance.setBlocks(newBlocks);
+		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
 		
 		for (FeatureConstraint constraint : constraints)
 		{
