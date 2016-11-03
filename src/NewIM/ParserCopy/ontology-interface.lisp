@@ -122,25 +122,17 @@ compare the two values with eq and return nil or their shared value."
    ((or (ontology-hierarchical-feature-p feat) (keywordp feat))
     ;; we should be conscious of lexical info here
     (let* ((sublf (ontologymanager::strip-lf-form sub ':*))
-	   (superlf (ontologymanager::strip-lf-form super ':*)))
-      (cond       
-       ((eql superlf super)
-	;; if super does not have a lexical form, then simple subtype matching on lfs works
-	(or (and (ontologymanager::subtype sublf superlf)
-		 sub)
-	    (and (consp sublf) (eq (car sublf) 'ont::set-of)
-		 (consp superlf) (eq (car superlf) 'ont::set-of)
-		 (let ((xx (subtype feat (cadr sublf) (cadr superlf))))
-		   (if xx (list 'ont::set-of xx))))))
-       ((eql sublf sub)
-	;; if super has lexical form, and sub does not, this is a definite fail
-	nil)
-       ((equal sub super) sub)
-       (t ;; both sub and super have lexical form - they can only be subtypes if they are equal
-	nil
-	)
-       )
-      ))
+	   (superlf (ontologymanager::strip-lf-form super ':*))
+	   )
+      (cond  
+	;; if SUB is subtype of SUPER and SUPER has no lexical feature, we succeed, other we fail
+	((and (ontologymanager::subtype sublf superlf)
+	      (symbolp super))
+	 sub)
+	;; except when they are identical
+	((equal sublf superlf)
+	 sub)
+      )))
    ((and (syntax-hierarchical-feature-p feat)
 	 (ontologymanager::subtype-in sub super *syntax-type-hierarchy*))
     )
@@ -164,12 +156,13 @@ compare the two values with eq and return nil or their shared value."
        )
       ))
    ((eq sub super)
-    sub)
+    sub) 
    
    (t nil)
    ))
   
 (defun subtype-check (a b)
-  (subtype 'w::sem a b))
+  ;;  for reference resolution, we ignore the lexical feature -- e.g., (:* ont::PERSON w::person) will match (:* ont::MALE-PERSON W::john)
+  (subtype 'w::sem a  (simplify-generic-type b)))
 
 	

@@ -51,7 +51,7 @@
 ; in, within, inside (of)
 (define-type ont::in-loc
   :parent ont::pos-as-containment-reln
-  :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj)
+  :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj) (f::intentional -) 
 				   )))
   )
 
@@ -822,6 +822,11 @@
  )
 
 (define-type ONT::event-time-rel-now
+ :parent ONT::event-time-rel
+ )
+
+(define-type ONT::implicit-overlap
+    :comment "this is the implicit relation between the events in sentences like He walked down the street whistling a tune"
  :parent ONT::event-time-rel
  )
 

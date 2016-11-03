@@ -98,7 +98,8 @@
  :parent ONT::event-of-causation
  :comment "An AGENT does something that results in loss of possession or control of the AFFECTED"
  :sem (F::SITUATION)
- :arguments ((:REQUIRED ONT::Agent ((? ag F::Phys-obj f::abstr-obj) (F::intentional +)) (:implements donor))
+ :arguments ((:REQUIRED ONT::Agent ((? ag F::Phys-obj f::abstr-obj) ;(F::intentional +)
+				    ) (:implements donor))
 	     ;; can relinquish phys-obj as well as power, authority
              (:REQUIRED ONT::affected ((? tc  F::Phys-obj f::abstr-obj f::situation)))
 	     ;; need to update this to allow organizations as recipients
@@ -167,7 +168,7 @@
   )
 
 (define-type ONT::surrender
- :wordnet-sense-keys ("concede%2:40:00" "yield%2:40:01" "cede%2:40:01" "grant%2:40:04" "chuck_up_the_sponge%2:33:00" "despair%2:37:00" "relent%2:42:00" "submit%2:33:00" "yield%2:33:00")
+ :wordnet-sense-keys ("cede%2:40:01" "chuck_up_the_sponge%2:33:00" "concede%2:40:00" "despair%2:37:00" "grant%2:40:04" "relent%2:42:00" "submit%2:33:00" "yield%2:33:00" "yield%2:40:01")
   :parent ONT::relinquish
   :comment " an AGENT relinquishes AFFECTED unwillingly"
   )
@@ -209,7 +210,7 @@
   )
 
 (define-type ONT::Appropriate
- :wordnet-sense-keys ("take%2:32:09" "claim%2:32:03" "take_up%2:38:03" "strike%2:38:08" "take%2:38:00" "assume%2:38:00" "occupy%2:41:04" "take%2:41:00" "fill%2:41:00" "get_hold_of%2:35:00" "take%2:35:00" "catch%2:35:00" "grab%2:35:00" "take_hold_of%2:35:01" "snatch%2:35:02" "take%2:40:15")
+ :wordnet-sense-keys ("take%2:32:09" "claim%2:32:03" "take_up%2:38:03" "strike%2:38:08" "take%2:38:00" "assume%2:38:00" "occupy%2:41:04" "take%2:41:00" "fill%2:41:00" "get_hold_of%2:35:00" "take%2:35:00" "catch%2:35:00" "grab%2:35:00" "take_hold_of%2:35:01" "snatch%2:35:02" "take%2:40:15" "loot%2:40:01" "loot%2:40:00")
  :parent ONT::acquire-by-action
  :sem (F::SITUATION (F::Cause F::Agentive) (F::Trajectory -) (F::Aspect F::Dynamic))
  :arguments ((:REQUIRED ONT::AGENT ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
@@ -1101,7 +1102,7 @@
 
 (define-type ONT::ATTRACT
  :wordnet-sense-keys ("attract%2:35:00" "attract%2:35:01" "affinity%1:19:01" "affinity%1:19:02")
- :parent ONT::cause-effect
+ :parent ONT::event-of-causation
   :arguments ((:ESSENTIAL ONT::agent ((? oc F::Phys-obj F::Abstr-obj)))
 	      (:ESSENTIAL ONT::affected ((? oc2 F::Phys-obj F::Abstr-obj)))
 	      ))
@@ -1577,7 +1578,7 @@
 ;;  This is for "the truck needs repair"
 
 (define-type ONT::NECESSITY
- :wordnet-sense-keys ("want%1:17:00" "need%1:17:00" "demand%1:26:00" "need%1:26:00" "need%2:34:01" "demand%2:42:00" "call_for%2:42:00" "involve%2:42:07" "take%2:42:00" "require%2:42:00" "need%2:42:00" "postulate%2:42:00" "ask%2:42:00" "necessitate%2:42:00" "require%2:34:00" "need%2:34:00" "want%2:34:00" "motivation%1:03:00" "motive%1:03:00" "need%1:03:00")
+ :wordnet-sense-keys ("need%2:34:01" "demand%2:42:00" "necessitate%2:42:00" "require%2:34:00")
  :parent ONT::event-of-state
  :sem (F::SITUATION (F::Aspect F::static) (F::Time-span F::extended) (F::Cause -) (F::Trajectory -))
  ;;; basically any - restriction comes from somewhere else
@@ -2025,6 +2026,7 @@
 
 (define-type ONT::nonverbal-say
     :parent ONT::say
+    :wordnet-sense-keys ("signal%1:10:00" "email%2:32:00" "write%2:32:00" "write%2:32:08")
     :comment "saying using a medium other that speech"
     :arguments ((:ESSENTIAL ONT::Formal)
 		)
@@ -2033,6 +2035,7 @@
 
 (define-type ONT::collaborate
  :parent ONT::agent-interaction
+  :wordnet-sense-keys ("collaborate%2:41:00")
  :arguments ((:REQUIRED ONT::Formal)
              (:REQUIRED ONT::agent)
              )
@@ -2178,6 +2181,7 @@
  )
 
 (define-type ONT::teach-train
+    :wordnet-sense-keys ("teach%2:32:00" "teach%2:30:00" "train%2:31:00" "train%2:41:02" "train%2:41:00" "train%2:41:01""train%2:32:00")
     :parent ONT::SHOW
     )
 
@@ -2241,25 +2245,28 @@
 
 (define-type ONT::calc-add
  :parent ONT::calculation
+ :wordnet-sense-keys ("add%2:31:00")
  :arguments ((:REQUIRED ONT::Formal (F::ABSTR-OBJ) (F::TYPE ONT::MATHEMATICAL-TERM))
 	     (:OPTIONAL ONT::formal1)
              )
  )
 
 (define-type ONT::calc-subtract
- :parent ONT::calculation
- :arguments ((:OPTIONAL ONT::formal1)
+    :wordnet-sense-keys ("subtract%2:31:00")
+    :parent ONT::calculation
+    :arguments ((:OPTIONAL ONT::formal1)
              )
  )
 
 (define-type ONT::calc-multiply
  :parent ONT::calculation
+  :wordnet-sense-keys ("multiply%2:31:00")
  :arguments ((:OPTIONAL ONT::formal1)
              )
  )
 
 (define-type ONT::calc-divide
- :wordnet-sense-keys ("go%2:42:13")
+ :wordnet-sense-keys ("go%2:42:13" "divide%2:31:00")
  :parent ONT::calculation
  :arguments ((:OPTIONAL ONT::formal1)
              )
@@ -2295,17 +2302,6 @@
 	      (:OPTIONAL ONT::agent (F::phys-obj (F::intentional +)) (:implements cause))
 	      )
  )
-
-#|
-; merged with ARCHIVE
-;; store my files on the computer; archive the data
-(define-type ONT::store-info
-  :parent ONT::storing
-  :arguments ((:REQUIRED ONT::Formal ((? ttype F::Abstr-obj f::phys-obj) (f::information (? fi f::data f::information-content))))
-	      (:OPTIONAL ONT::agent (F::phys-obj (F::intentional +)))
-	      )
- )
-|#
 
 (define-type ONT::dig
  :wordnet-sense-keys ("dig%2:35:01" "dig_out%2:35:00")
@@ -3284,7 +3280,7 @@
 
 
 (define-type ONT::add-include
- :wordnet-sense-keys ("include%2:30:00" "introduce%2:38:00")
+ :wordnet-sense-keys ("include%2:30:00" "introduce%2:38:00" "add%2:30:00")
  :parent ONT::adjust
  :sem (F::SITUATION)
  :arguments ((:OPTIONAL ont::result ((? cthm f::situation f::phys-obj F::abstr-obj))))
@@ -3306,7 +3302,7 @@
 
 (define-type ONT::ATTACK
  :wordnet-sense-keys ("attack%2:33:00" "attack%2:32:00" "attack%2:33:02" "attack%2:29:00")
- :parent ONT::OBJECTIVE-INFLUENCE
+ :parent ONT::event-of-causation
  )
 
 ;; for configure, arrange X (into Y) e.g. he arranged them into groups of three
@@ -3351,7 +3347,8 @@
 
 (define-type ONT::separation
  :wordnet-sense-keys ("separate%2:35:01" "disunite%2:35:00" "divide%2:35:01" "part%2:35:01" "break%2:41:13" "divide%2:38:00" "divide%2:42:00")
-    :parent ONT::change-state
+    :parent ONT::event-of-causation
+    :comment "abstract, social or physical dissociation"
     :sem (F::SITUATION (:default (F::Cause F::agentive)) (:required (F::trajectory -)))
     :arguments ((:OPTIONAL ONT::Agent)
 		(:OPTIONAL ONT::Agent1)
@@ -3386,6 +3383,7 @@
 ;; this isn't a child of ont::combine-objects because of incompatibility of f::trajectory feature
 (define-type ONT::Joining
  :wordnet-sense-keys ("join%2:35:00" "conjoin%2:35:00")
+ :comment "abstract, social, or physical connection of objects"
  :parent ONT::event-of-causation
  :sem (F::Situation (F::Trajectory -))
  :arguments ((:OPTIONAL ONT::AGENT (F::Phys-obj))
@@ -3776,7 +3774,7 @@
 ;; register for a conference, check in/out at a hotel, enroll in a program
 (define-type ONT::enroll
  :wordnet-sense-keys ("enroll%2:41:00" "inscribe%2:41:00" "enter%2:41:06" "enrol%2:41:00" "recruit%2:41:01" "enter%2:33:00")
- :parent ONT::event-of-causation
+ :parent ONT::joining
  :sem (F::situation)
  :arguments ((:REQUIRED ONT::Formal (f::phys-obj (f::intentional +))) ;; check in a person
 	     (:optional ont::neutral ((? oc f::phys-obj f::situation f::abstr-obj))) ;; at a hotel, in a program
@@ -4418,7 +4416,7 @@
 ; for jaundice
 (define-type ONT::jaundice
  :parent ONT::medical-symptom
- :wordnet-sense-keys ("jaundice%1:09:00")
+ :wordnet-sense-keys ("jaundice%1:26:00")
  )
 
 ; for lightheadedness
@@ -4809,7 +4807,9 @@
 
 ;;; nauseous/sick/sore, chills, nausea, sickness
 ;;; e.g. He feels sick, Her feet are sore
-;;;   other types have nouns, this type has adjectives. For now, keep them separate. —Actually added chills, nausea & sickness too even though they are nouns but because one can feel them, WN has different sense keys for such uses and the illness type noun type use which still is under medical-disorders-and-conditions!
+;;;   other types have nouns, this type has adjectives. For now, keep them separate. 
+;;;  Actually added chills, nausea & sickness too even though they are nouns but because one can feel them, 
+;;;   WN has different sense keys for such uses and the illness type noun type use which still is under medical-disorders-and-conditions!
 (define-type ONT::PHYSICAL-SENSATION
  :wordnet-sense-keys ("nauseous%3:00:00:ill:01" "nauseated%3:00:00:ill:01" "queasy%3:00:00:ill:01" "sickish%3:00:00:ill:01" "chill%1:26:01" "shivering%1:26:00" "nausea%1:26:00" )
  :parent ONT::PERCEPTION

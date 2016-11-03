@@ -600,13 +600,14 @@
    ;; TEST: up and to the right
    ;; TEST: up and down
    ((ADVBL (ARG ?arg) (sem ?sem) (VAR *) (gap ?g)
-	   (LF (% PROP (CLASS ?conj) (VAR *) (sem ?sem) (CONSTRAINT (& (sequence (?v1 ?v2))))
-		  )))
+	   (LF (% PROP (CLASS ?class) (VAR *) (sem ?sem) (CONSTRAINT (& (sequence (?v1 ?v2)) (operator ?conj))
+		  ))))
      -advbl-conj1>
      (ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf1) (VAR ?v1)(sem ?sem1))) (gap ?g) (argument ?argmt))
      (CONJ (LF ?conj) (but-not -) (but -))
      (head (ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf2) (VAR ?v2) (sem ?sem2))) (gap ?g) (argument ?argmt)))
-     (sem-least-upper-bound (in1 ?sem1) (in2 ?sem2) (out ?sem))
+    (sem-least-upper-bound (in1 ?sem1) (in2 ?sem2) (out ?sem))
+    (class-least-upper-bound (in1 ?lf1) (in2 ?lf2) (out ?class))
     )
 
     ;; down the hill but to the right
@@ -1333,49 +1334,49 @@
    ;; TEST: move it one inch
    ;; TEST: move it two degrees
    ;; TEST: walk a short distance
-   ((advbl (arg ?arg) (role (:* ONT::distance W::quantity)) (var *)
+   ;; TEST: The market fell three percent
+   ((advbl (arg ?arg) ;;(role (:* ONT::distance W::quantity)) 
+     (var *)
 	   (sort binary-constraint)
 	   (LF (% PROP (VAR *) (CLASS ONT::extent-predicate) (sem ?sem)
 		  (CONSTRAINT (& (FIGURE ?arg) (scale ?scale) (GROUND ?v)))))
 	   (atype (? x W::PRE W::POST))
-	   (argument (% (? ARGCAT8043 W::S
-                           W::NP
-			   W::VP)
-			(SEM (? SEM8044 ($ F::SITUATION (F::trajectory +)))))))
+     (argument (% W::S
+                          ;; W::NP
+			  ;; W::VP)
+		  (SEM (? SEM8044 ($ F::event-of-change))))) ;;SITUATION (F::trajectory +)))))))
+     )
     -distance-np-advbl> .97
     (head (np (var ?v) (sort unit-measure) (sem ?sem) 
 	      (bare -) ;; we suppress this rule for distances without a specific amount (e.g., "miles")
 	      ;; the semantic restriction is not sufficient to prevent measure-unit phrases such as "a bit" or "a set" as distances so using the lfs to restrict
 	      (lf (% description (constraint (& (scale ?scale)))))
-	      (sem ($ f::abstr-obj (f::scale (? sc ont::scale ont::linear-d))))
+	      (sem ($ f::abstr-obj (f::scale (? sc ont::scale ont::measure-domain))))
 	      (class  ont::quantity);;(? lft ont::angle-unit ont::length-unit ont::percent ont::distance))
 	      ;; well, 'he walked miles before he reached water'; 'he crawled inches to the next exit' ...; and this restriction prevents the non-unit NPs so if it's reinstated we need two rules
 ;	      (lf (% description (sort set))) ;; this restriction is needed to prevent bare measure units as adverbials
 	      ))
     )
 
-   ;; Added by Myrosia 2004/04/08
-   ;; ing VPs as adverbials
-   ;; assigned a low priority, and restriction for no gaps to limit the application
-   ;; swift 05/03/2004 added aspectual restriction so it doesn't modify static verbs
-   ;; TEST: Barking, the dog chased the cat.
+      ;; ing VPs as adverbials
+      ;; TEST: Barking, the dog chased the cat.
    ;; TEST: The dog chased the cat barking.
    ((advbl (arg ?arg) (sem ($ f::abstr-obj (f::information -) (f::intentional -)))
      (argument (% S (sem ($ f::situation (f::aspect f::dynamic))))) 
      (sort pred) (gap -) (atype (? atp pre post))
      (role ONT::MANNER) (var **)
-     (LF (% PROP (CLASS ONT::Manner) (VAR **) 
+     (LF (% PROP (CLASS ONT::IMPLICIT-OVERLAP) (VAR **) 
 	    (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))
 	    (sem ($ f::abstr-obj (f::information -) (f::intentional -)))))
      )
-    -vp-ing-advbl> 0.93
+    -vp-ing-advbl> .98
     (head (vp (vform ing) (var ?v) (gap -) (aux -) (advbl-necessary -)
 	   (constraint ?con)  (transform ?transform) (class ?class)
 	   (subj (% np (sem ?subjsem)))
 	   (subjvar (% *PRO* (VAR *) (gap -) (sem ?subjsem)))
 	   ))
     )
-
+#||   I don't think we can distinguish RESULT well from temporal overlap
  ((advbl (arg ?arg) (sem ($ f::abstr-obj (f::information -) (f::intentional -)))
      (argument (% S (sem ($ f::situation (f::aspect f::dynamic))))) 
      (sort pred) (gap -) (atype (? atp pre post))
@@ -1390,7 +1391,7 @@
 	   (subj (% np (sem ?subjsem)))
 	   (subjvar (% *PRO* (VAR *) (gap -) (sem ?subjsem)))
 	   ))
-    )
+    )||#
 
    ;; the following rule could be handled lexically, with a new sense of IN, but
    ;; its seems idiosyncratic enough to warrant a special rule.

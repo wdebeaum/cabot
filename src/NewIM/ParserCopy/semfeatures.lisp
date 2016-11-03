@@ -39,10 +39,13 @@
   "Build the tables to drive SEM array building and unification:
     TYPES: the set of sem types allowed; common-features - features shared by all types;
     INDIV-FEATURES - a list, of each type, of the individual features"
-    
   (let* ((max-indiv-size 
-         (apply #'max (mapcar #'list-length indiv-features)))
-         (indiv-feat-list (reduce #'append (mapcar #'cdr indiv-features)))
+	  (if (not (null indiv-features))
+	      (apply #'max (mapcar #'list-length indiv-features))
+	      0))
+         (indiv-feat-list (if (not (null indiv-features))
+			      (reduce #'append (mapcar #'cdr indiv-features))
+			      ))
          (common-size (list-length common-features))
          (start-indiv-count (+ common-size 1))
 	 )
@@ -61,12 +64,11 @@
     (setf (gethash 'common *index-to-feature*) (make-array *sem-size* :initial-element nil))			
     (init-feature-to-index common-features 1 :type 'common)
     (mapcar #'(lambda (x)
-		(setf (gethash (car x) *index-to-feature*) (make-array *sem-size* :initial-element nil))			
-                (init-feature-to-index (cdr x) start-indiv-count :type (car x)))
-            indiv-features)
+		(setf (gethash x *index-to-feature*) (make-array *sem-size* :initial-element nil)))			
+                ;;(init-feature-to-index (cdr x) start-indiv-count :type (car x)))
+            types)
     (setq *default-sem-array* nil) ;;(build-sem-array nil nil))
     (values)))
-
 
 (defun init-feature-to-index (feats index &key (type nil))
   "Builds hash table to map features names to array indices"
@@ -117,7 +119,7 @@
     
 (defun build-sem-variable (constit rule-id)
   "Given a constit, build a sem variable"
-  (break)
+  ;;(break)
   (make-var :name (gen-v-num 'sem) ;;(gen-symbol 'sem) 
 	    :values (build-sem-array constit rule-id)))
       
@@ -135,8 +137,15 @@
        (t (format t " ~S " v)))))
   (format t "]"))
 
-;; unifying SEM arrays
+;; This is a top-level function for unifying to sem structures
+(defun unify-sem-structures (sem1 sem2)
+  (multiple-value-bind (result bindings score undos)
+      (unify-sems sem1 sem2 nil)
+    (undo-bindings undos)
+    (values result bindings score)))
 
+;; unifying SEM arrays
+;;   note: not a top level function
 (defun unify-sems (sem1 sem2 undos)
   "unifies two semantic feature vectors and returns the result and a probability reflecting the goodness of match (if flexible-semantic-matching is turned on)"
   (if (and (var-p sem1) (var-p sem2))
@@ -144,15 +153,15 @@
           (arr2 (var-values sem2)))
       (cond
 	((null arr1)
-	 (values sem2 nil nil undos))
+	 (values sem2 nil 1 undos))
 	((null arr2)
-	 (values sem1 nil nil undos))
+	 (values sem1 nil 1 undos))
 	((arrayp arr1)
 	 (cond
 	   ;; usual case, two arrays
 	   ((arrayp arr2)
 	    (if (ident-sem-array arr1 arr2)  ;; if they are ground and identical, we don't need a new copy
-		(values sem1 nil nil undos)
+		(values sem1 nil 1 undos)
 		(multiple-value-bind (ans bndgs prob newundos)
 		    (unify-sem-arrays arr1 arr2 undos)
 		  (if (null ans) 

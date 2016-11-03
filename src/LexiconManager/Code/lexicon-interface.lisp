@@ -514,9 +514,11 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 
 (defun trips-pos-for-wn-sense-keys (wn-sense-keys)
   "return trips POS tags from wn senses. This check has been added because the statistical POS tagging does not always agree w/ the tagged sense"
-  (remove-duplicates (remove-if #'null (mapcar (lambda (key)
-						 (wf::trips-pos-for-wn-sense-key key))
-					       wn-sense-keys)))
+  (if wf::*use-wordfinder*
+      (remove-duplicates (remove-if #'null (mapcar (lambda (key)
+						     (wf::trips-pos-for-wn-sense-key key))
+						   wn-sense-keys)))
+      wn-sense-keys)
   )
  
 (defun cernl-hack-is-umls-concept (domain-info)
@@ -700,9 +702,10 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 	 (compatible-defs nil)
 	 (other-defs nil)
 	)
-    (when wn-sense-keys (dolist (key wn-sense-keys) ; convert wn senses to TRIPS ontology types
-			  (let ((mapped-sense (car (wf::best-ont-type-for-sense-key key))))
-			    (when mapped-sense (pushnew mapped-sense ont-types :test #'equal))))
+    (when (and wf::*use-wordfinder* wn-sense-keys)
+      (dolist (key wn-sense-keys) ; convert wn senses to TRIPS ontology types
+	(let ((mapped-sense (car (wf::best-ont-type-for-sense-key key))))
+	  (when mapped-sense (pushnew mapped-sense ont-types :test #'equal))))
 	  (setq tagged-senses ont-types)
 	  (setq tagged-senses-remaining ont-types))
     ;; search the retrieved word definitions for a matching sense
@@ -741,7 +744,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 	  (cond ((and pos (compatible-pos-and-ont-type pos ont-type))
 		 ;; create a new entry with the given pos and sense as long as they are compatible
 		 (print-debug "~%point 2")
-		 (let ((new-entry (car (make-unknown-word-entry w pos .99 nil (gen-id w) (list ont-type) nil penn-tags (list ont-type) domain-info))))
+		 (let ((new-entry (car (make-unknown-word-entry w pos (find-score-in-domain-info domain-info) nil (gen-id w) (list ont-type) nil penn-tags (list ont-type) domain-info))))
 		   (when new-entry (push new-entry compatible-defs)))
 		 (print-debug "making new sense for ~S as ~S ~S~%" w pos ont-type)
 		 )
@@ -765,6 +768,13 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
     compatible-defs)
   )
 
+(defun find-score-in-domain-info (info)
+ (let* ((terms (cdr (car info)))
+	(scores (mapcar #'(lambda (x) (find-arg-in-act x :score)) terms))
+	(scores-num (remove-if-not #'numberp scores))) ; domain-info might not have :score
+   (or (if scores-num (apply #'max scores-num))
+       .98)))
+
 (defun retrieve-multiword-from-trips (words)
   (let ((wdef (retrieve-from-lex (car words)))
 	res)
@@ -775,8 +785,9 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
   )
 
 (defun abstract-type (ont-type)
-  (member ont-type '(ont::referential-sem ont::abstract-object ont::modifier ont::predicate ont::situation-root ont::phys-object ont::action ont::organization ont::geographic-region))
-  )
+  (member ont-type '(ont::referential-sem ont::abstract-object ont::modifier ont::predicate ont::situation-root ont::phys-object ont::action)
+	  ;;ont::organization ont::geographic-region))
+  ))
 
 
 (defun find-new-senses (wdef retrieved-sense-info domain-info tagged-ont-types replace-vbn-adj)
@@ -794,7 +805,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 		(and  (equal sense-introduced-this-cycle (list this-lf this-pos)) (is-duplicate-sense this-pos this-lf retrieved-sense-info)))
 
 	       ; add the new sense if it's acceptable (some CERNL hacks here)
-	       (when (not (and tagged-ont-types
+		(when (not (and tagged-ont-types
 			       (abstract-type this-lf)))
 		 (setq res (pushnew def res))
 		 
@@ -887,36 +898,37 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 	     (pushnew w *known-words* :test #'equal)
 	     )
 	   ))
-    (if (not (exclude-from-lookup w (if wdef (list (car (lex-entry-description (car wdef))))) nil)) 
-      (cond (tagged-senses ;; text-tagger information, such as pos or ont-type, accompanies word reqest; loop through each tagged sense and search for a compatible sense in TRIPS or WF; if none found, generate default senses based on the tagged information and adjust sense preferences accordingly (e.g. in CERNL, senses with UMLS info are preferred above others)
+    ;;(if ;;(if (exclude-from-lookup w (if wdef (list (car (lex-entry-description (car wdef))))) nil))
+    ;;	     tagged-senses
+    (cond (tagged-senses ;; text-tagger information, such as pos or ont-type, accompanies word reqest; loop through each tagged sense and search for a compatible sense in TRIPS or WF; if none found, generate default senses based on the tagged information and adjust sense preferences accordingly (e.g. in CERNL, senses with UMLS info are preferred above others)
 	   (dolist (this-sense-keylist tagged-senses)
 	     (let* ((domain-info (find-arg this-sense-keylist :domain-specific-info))
 		    (penn-tags (util::convert-to-package (find-arg this-sense-keylist :penn-parts-of-speech) :w))
 		    (these-ont-types (find-arg this-sense-keylist :ont-types))
-		 
+		    
 		    )
-		 
-		 ;; CERNL/TT hack: TT often assigns VBN tags for adjectives so make a substitution if incompatible POS and ont-type found
-		 (when (and (not (compatible-tagging penn-tags these-ont-types)) (find 'w::VBN penn-tags) (find 'ont::has-medical-condition these-ont-types))
-		   (setq penn-tags (subst 'w::JJ 'w::VBN penn-tags))
-		   (setq this-sense-keylist (subst penn-tags (find-arg this-sense-keylist :penn-parts-of-speech) this-sense-keylist))
-		   (setq replace-vbn-adj t)
-		   )
-	
-		 (when (not (exclude-from-lookup w nil nil))
-		  ;; obtain new senses from WordFinder, if any
-		   (multiple-value-bind (new-wdef new-sense-info)		    
-		       (find-new-senses (process-word-request w this-sense-keylist wdef) retrieved-sense-info domain-info these-ont-types replace-vbn-adj)
-		     (print-debug "new wdef is ~S~%" new-wdef)
-		     (print-debug "retrieved-senses are ~S~% new senses are ~S~%" retrieved-sense-info new-sense-info)
-		     (setq res (append new-wdef res))
-		     (setq part-of-speech-tags (remove-duplicates (append penn-tags part-of-speech-tags)))
-		     (setq tagged-ont-types (remove-duplicates (append these-ont-types tagged-ont-types)))
-		     (setq domain-tagged-senses (remove-duplicates (append domain-info domain-tagged-senses)))
-		     (setq retrieved-sense-info new-sense-info)
-		     ))
+	       
+	       ;; CERNL/TT hack: TT often assigns VBN tags for adjectives so make a substitution if incompatible POS and ont-type found
+	       (when (and (not (compatible-tagging penn-tags these-ont-types)) (find 'w::VBN penn-tags) (find 'ont::has-medical-condition these-ont-types))
+		 (setq penn-tags (subst 'w::JJ 'w::VBN penn-tags))
+		 (setq this-sense-keylist (subst penn-tags (find-arg this-sense-keylist :penn-parts-of-speech) this-sense-keylist))
+		 (setq replace-vbn-adj t)
+		 )
+	       
+	      ;; (when (not (exclude-from-lookup w nil nil))
+		 ;; obtain new senses from WordFinder, if any
+	       (multiple-value-bind (new-wdef new-sense-info)		    
+		   (find-new-senses (process-word-request w this-sense-keylist wdef) retrieved-sense-info domain-info these-ont-types replace-vbn-adj)
+		 (print-debug "new wdef is ~S~%" new-wdef)
+		 (print-debug "retrieved-senses are ~S~% new senses are ~S~%" retrieved-sense-info new-sense-info)
+		 (setq res (append new-wdef res))
+		 (setq part-of-speech-tags (remove-duplicates (append penn-tags part-of-speech-tags)))
+		 (setq tagged-ont-types (remove-duplicates (append these-ont-types tagged-ont-types)))
+		 (setq domain-tagged-senses (remove-duplicates (append domain-info domain-tagged-senses)))
+		 (setq retrieved-sense-info new-sense-info)
+		 )
 
-		 ;; CERNL/TT hack: adjust word sense preferences to prefer external tagging
+	       ;; CERNL/TT hack: adjust word sense preferences to prefer external tagging
 		 (setq res (prefer-more-specific-tagged-senses w res tagged-ont-types penn-tags domain-info)) ; prefer any TT-tagged ont-type
 		 ;; update the domain-specific-info in both the new entries from wordnet (res) and the trips def (wdef)
 		 (setq res (update-domain-info-in-entries res retrieved-sense-info))
@@ -934,7 +946,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
       ;;  even though we don't look up the word, we might refine the sense from tagged information
       ;;   I AM DISABLING THIS FOR NOW AS IT CAUSES PROBLEMS (e.g., changing specifier sense of "this") 
       ;;(setq wdef (refine-existing-entry-with-sense-info wdef tagged-senses))
-      )
+      
     ; combine new or default senses from external sources w/ existing trips senses
     (print-debug "~%After processing RES=~S ~%     WDEF=~S" res wdef)
     (setq res (append res wdef))
@@ -988,7 +1000,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
     ;; TRIPS domain-specific sense preference adjustment
     (if om::*domain-sense-preferences*
 	(setq res (prefer-domain-senses w res)))
-    (setq res (remove-if #'null res))
+    (setq res (eliminate-redundancies (remove-if #'null res)))
     (if res
 	(progn
 	  (print-debug "returning entries to parser for ~S ~S~%" w res)
@@ -996,6 +1008,60 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 	;; making unknown word entry failed, make generic entry
 	(listify-lex-entry (make-default-unknown-word-entry w nil '(w::n) nil)))
     ))
+
+
+(defun eliminate-redundancies (entries)
+  entries)
+#||
+  "This does a final check to find redundant or subsumed entries from external resources"
+  (when entries
+    (let* ((firstlex (get-feature-from-lex-entry (car entries) 'w::lex)))
+      (multiple-value-bind (entries-with-same-lex others)
+	  (split-list #'(lambda (x) (equal firstlex (get-feature-from-lex-entry x 'W::lex)))
+		      (cdr entries))
+	;;(format t "~% same lex = ~S others =~S" entries-with-same-lex others)
+	(append 
+	 (eliminate-redundancy (cons (car entries) entries-with-same-lex)
+			       (cdr (mapcar #'(lambda (x)
+						(get-feature-from-lex-entry x 'W::LF))
+					    entries)))
+	 (eliminate-redundancies others))
+  ))))||#
+
+(defun eliminate-redundancy (entries remainingtypes)
+  (when entries
+    (if (null remainingtypes)
+	entries
+	(let* ((e (car entries))
+	       (etype (get-feature-from-lex-entry e 'w::lf)))
+	  (if (member etype remainingtypes)
+	      ;; we have a duplicate in there, remove the less preferred and start over
+	      (eliminate-redundancies (mapcar #'(lambda (y) (keep-only-if-best e y))
+					      (cdr entries)))
+	      ;; otherwise there are no duplicates, we check if e should be eliminated
+	      (if (some #'(lambda (x) (om::subtype x etype))
+			remainingtypes)
+		  (eliminate-redundancy (cdr entries) (cdr remainingtypes))
+		  (cons e (eliminate-redundancies 
+			   (remove-if #'(lambda (x) (om::subtype etype (get-feature-from-lex-entry x 'W::LF)))
+				      (cdr entries))))))))))
+
+(defun get-feature-from-lex-entry (entry feat)
+  (when (lex-entry-p entry)
+    (get-generic-type (cadr (assoc feat (cdr (lex-entry-description entry)))))))
+
+(defun keep-only-if-best (e e1)
+  "if e and e1 are the same type, we return the best. If they are different types we return e1. The result
+     is a list with either e eliminated, or all other entries of the same type eliminated"
+  (if (not (eq (get-feature-from-lex-entry e 'w::lf) (get-feature-from-lex-entry e1 'w::lf)))
+      e1
+      ;; there the same type
+      (if (> (lex-entry-pref e) (lex-entry-pref e1))
+	  e
+	  e1)))
+
+(defun get-generic-type (x)
+  (if (consp x) (second x) x))
 
 (defun is-defined-word (w &key (use-wordfinder *use-wordfinder*))
   "Return T iff the word w has a real definition (not just referential-sem)."
@@ -1052,7 +1118,9 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 		  (remove-if-not #'(lambda (x) (find-arg x :domain-specific-info)) newtypes)
 		  newtypes))
 	 ;; if we have a tagged protein ignore the others
-	 (res  newertypes))
+	 (res  (remove-if #'(lambda (x) (equal (find-arg x :ont-types) '(ont::referential-sem)))
+			  newertypes)))     ;;  MAybe we should keep the POS tags???????
+
     #||(res (if (find-if #'(lambda (x) (member 'ont::PROTEIN (find-arg x :ont-types))) newertypes)
 		  (mapcar #'(lambda (x) (reduce-ont-type x 'ont::protein))
 			  (remove-if-not #'(lambda (x) (member 'ont::PROTEIN (find-arg x :ont-types))) newertypes))
@@ -1072,8 +1140,10 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
  @visibility public
  "
  (let* ((trips-pos-list (find-arg keylist :trips-parts-of-speech))
-	(wn-sense-keys (remove-if #'wf::stoplist-p
-				  (find-arg keylist :wn-sense-keys)))
+	(wn-sense-keys (when (and wf::*use-wordfinder* (not (exclude-from-lookup w nil nil)))
+			   (remove-if #'wf::stoplist-p
+				      (find-arg keylist :wn-sense-keys))
+			   ))
 	(rawscore (find-arg keylist :score))
 	(score (if (numberp rawscore) (convert-raw-score rawscore) .98))
 	(wn-pos-list (when wn-sense-keys (trips-pos-for-wn-sense-keys wn-sense-keys)))
@@ -1115,7 +1185,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
    ;; now get TRIPS senses from the calling function only
    (setq res (or combined-wdef adjusted-wdef final-wf-wdef))
   
-   (print-debug "~%PROCESS-WORD-REQUEST:  RES is ~S" res)
+   (print-debug "~%PROCESS-WORD-REQUEST:  RES is ~S merged-trips-wn-pos-list = ~S" res merged-trips-wn-pos-list)
    ;; filter the results according to tagging information: senses or pos
    (cond (;(and (not (find 'w::name (merge-pos-info trips-pos-list penn-tags))) ; no sense filtering on names
 	  (or (not (null ont-sense-tags)) (not (null wn-sense-keys)));)

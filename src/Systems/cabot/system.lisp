@@ -46,7 +46,7 @@
 ;;;; Parser options
 (setq parser::*parser-init-settings*
       '((parser::*parser-display-enabled* nil)
-	(parser::*in-system* :drum)
+	(parser::*in-system* :cabot)
 	;; average number of letters in a word (not critical)
 	(parser::*word-length* 8)
 	;; boost factor based on length of input covered
@@ -62,7 +62,7 @@
 	;; constituents that we expect in the skeleton
 	(parser::*skeleton-constit-cats* '(W::NP W::CP W::VP W::ADVBL W::PP W::S))
 	;; boost constituents that match the skeleton (from stat. parser)
-	(parser::*skeleton-boost-factor* 1.05)
+	(parser::*skeleton-boost-factor* .2)   ;; new boosting scheme - 20% of difference to 1.0
 	;; penalty for crossing skeleton constituent boundaries
 	((setf (parser::barrier-penalty parser::*chart*) .99))
 	;;
@@ -115,7 +115,8 @@
 ;; dialogue manager, eg: textIM, simpleIM, extractIM...
 (setq im::*current-dialog-manager* #'im::SequentialLFTransformIM)   ;;#'im::simpleIM)
 (setq im::*cps-control* t)
-(setq im::*substitute-types-in-pros* t)
+;(setq im::*substitute-types-in-pros* t)
+(setq im::*substitute-types-in-pros* nil)
 (setq im::*compute-force-from-tmas* t)
 ;(setq im::*max-allowed-utts-in-turn* 2) ;; we're being a little generous to try to pick up more referring expressions
 (setq im::*max-allowed-utts-in-turn* 3) ;; we're being a little generous to try to pick up more referring expressions
@@ -143,7 +144,8 @@
 ;; don't use wordnet if we have domain-specific info from TextTagger
 (setq lxm::*no-wf-senses-for-words-tagged-with-ont-types* t)
 ;; don't use wordnet if we have TRIPS entries  
-(setq  lxm::*use-trips-and-wf-senses* nil) 
+(setq  lxm::*use-trips-and-wf-senses* nil) ;; probably not necessary given next line, but to be on the safe side!
+(setq lxm::*unknown-words-only* t)   
 
 ;;;; LOGGING options
 (setq logging::*logging-enabled* nil)
@@ -180,6 +182,7 @@
 ;; system development.
 ;; if you need to use either of the following Dummy features, uncomment them
 ;; LOCALLY, but please do not commit without comments!
+
 
 ;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")

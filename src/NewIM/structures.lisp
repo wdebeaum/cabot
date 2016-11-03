@@ -136,7 +136,8 @@
 ;;  REFERENT INFO
 
 (defstruct referent
-  id         ;; the ID (indexing into the LF-store) 
+  id         ;; the ID (indexing into the LF-store)
+  name       ;; the :name-of slot in  the LF if it has one (for proper names)
   role       ;; the grammatical role of this expression if it exists
   lf-type    ;; The LF type
   num        ;; individual or set
@@ -149,7 +150,8 @@
   implicit  ;; a flag set to T for objects introduced into the discourse context but not mentioned (typically via the GUI)
   lf        ;; the LF just for ease of processing since its identical to whats in the LFstore
   start
-  end)
+  end
+  sem)
 
 (defstruct ref-hyp
   id        ;; the ID of the object that this is a hypothesis for

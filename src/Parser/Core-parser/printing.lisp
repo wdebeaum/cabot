@@ -3,7 +3,7 @@
 ;;;
 ;;; Author:  James Allen <james@cs.rochester.edu>
 ;;;
-;;; Time-stamp: <Wed Jul 20 09:30:35 EDT 2016 jallen>
+;;; Time-stamp: <Sat Oct 29 14:21:09 EDT 2016 jallen>
 
 (in-package "PARSER")
 
@@ -869,7 +869,7 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
   (pprint-logical-block (stream nil :prefix ":(" :suffix ")")
     (cond 
      ;; A hack! always assumes arrays are sems. 
-     ((arrayp values)
+     ((and (arrayp values) (not (stringp values)))
       (let* ((vallist (build-list-from-sem-array values));;(remove-packages (build-list-from-sem-array values)))
 	     )
 	;; Now we go to write features
@@ -890,6 +890,8 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	  (pprint-exit-if-list-exhausted)
 	  (write-char #\Space stream) 
 	  (pprint-newline :fill stream))))
+     ((stringp values)
+      )
      (t
       (format-term values features stream))))
   )
@@ -1884,7 +1886,7 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	 ((ont::position-reln) :location))
 	(ont::motion
 	 ((ont::pos-as-containment-reln) :location)
-	 ((ont::to-loc ont::position-rel ont::goal-reln ont::direction-reln) :result)
+	 ((ont::to-loc ont::position-reln ont::goal-reln ont::direction-reln) :result)
 	 ((ont::from-loc ont::from) :source)
 	 
 	 )
@@ -1920,7 +1922,8 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	 ((ont::degree-modifier) :degree)
 	 )
 	(ont::situation-root
-	 ((ont::reason ont::purpose ont::therefore) :reason)
+	 ((ont::reason ont::purpose) :reason)
+	 ((ont::therefore) :result)
 	 ((ont::extent-predicate) :extent)
 	 ((ont::frequency ont::frequency-val) :frequency)
 	 ((ont::degree-modifier) :degree)
@@ -1932,7 +1935,7 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	 ((ont::pos-condition) :condition)
 	 ;;((ont::goal-reln) :goal)
 	 ((ont::position-reln ) :location)
-	 ((ont::accompaniment) :partner)
+	 ((ont::accompaniment) :agent1)
 	 ((ont::by-means-of) :method)
 	 ((ont::beneficiary) :beneficiary)
 	 ((ont::from-loc ont::from) :source)

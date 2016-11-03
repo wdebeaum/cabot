@@ -490,9 +490,15 @@
     ;; now boost entries with domain specific info
     (normalize
      (if (get-value c 'w::kr-type)
-	 (min (* score *domain-boosting-factor*) 1)
+	 (boost-by-percent score *domain-boosting-factor*)
 	 score))
     ))
+
+(defun boost-by-percent (prob factor)
+  (if (> factor 1) (setq factor (- factor 1)))  ;; we do this to catch left over numbers from prior scoring method
+  (let ((diff (- 1 prob)))
+    (+ prob (* diff factor))))
+
 
 (defun normalize (x)
   "reduces a number to two decimal point precision"
@@ -529,12 +535,13 @@
 
 (defun get-wordnet-sense-keys (word cats)
   "cleans up sensekeys"
-  (multiple-value-bind (core noncore)
+  (when wf::*use-wordfinder*
+    (multiple-value-bind (core noncore)
 	(wf::wordnet-sense-keys-for-word word cats)
     (values (list :core (mapcar #'(lambda (triple) (reuse-cons (cleanup-sense (car triple)) (cdr triple) triple))
 		  (cadr core)))
 	    (list :non-core (mapcar  #'(lambda (triple) (reuse-cons (cleanup-sense (car triple)) (cdr triple) triple))
-				    (cadr noncore))))))
+				    (cadr noncore)))))))
 
 (defun cleanup-sense (sense)
   "removes odd things like the '(p)' modifier that gets added in wordnet"

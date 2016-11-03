@@ -249,6 +249,13 @@
              )
  )
 
+(define-type ONT::WITH-INSTRUMENT
+ :parent ONT::PREDICATE
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation (f::aspect f::dynamic)))
+             (:REQUIRED ONT::GROUND (F::Phys-obj (F::origin F::artifact) (F::intentional -)))
+             )
+ )
+
 ;; for 'without' adverbials
 (define-type ONT::without
  :parent ONT::PREDICATE
@@ -260,7 +267,7 @@
 ;; under/over/above/below 5 pounds/dollars/feet etc.
 (define-type ONT::SCALE-RELATION
  :parent ONT::PREDICATE
- :arguments ((:ESSENTIAL ONT::FIGURE ((? s F::Phys-obj F::abstr-obj F::situation)))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::abstr-obj (f::type ont::domain)))
              (:REQUIRED ONT::GROUND (F::abstr-obj (f::scale ?!sc)))
              )
  )

@@ -823,22 +823,3 @@ ONT::INTERACT
 				 :trigger t)				
 				)
 		  ))
-
-
-; default (for Ian's learning demo)
-(add-state 'default
-	   (state :action nil
-		  :transitions (list
-				(transition
-				 :description "default to passing through the info"
-				 :pattern '((ONT::SPEECHACT ?!sa ?!t :what ?!what)
-				 (ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))
-				 (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
-				 -default>
-				 (NOTIFY-BA :msg (INTERPRET-SPEECH-ACT :content (DEFAULT-PASSTHROUGH :content ?!what :context ?akrl-context
-											   :active-goal ?goal)))
-				 )
-				 :destination 'segmentend
-				 :trigger t)				
-				)
-		  ))

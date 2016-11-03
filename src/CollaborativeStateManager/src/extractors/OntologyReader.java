@@ -47,11 +47,19 @@ public class OntologyReader {
 				    			parentList.add(parent.toUpperCase().trim());
 				    	}
 				    	
-				    	goals.put(goal.toUpperCase(), parentList);
-				    	System.out.print(goal.toUpperCase() + ":" );
-				    	for (String parent : parentList)
-				    		System.out.print(parent + ",");
-				    	System.out.println();
+				    	if (parentList.size() == 0)
+				    	{
+				    		goals.put(goal.toUpperCase(), null);
+				    		System.out.println(goal.toUpperCase());
+				    	}
+				    	else
+				    	{
+					    	goals.put(goal.toUpperCase(), parentList);
+					    	System.out.print(goal.toUpperCase() + ":" );
+					    	for (String parent : parentList)
+					    		System.out.print(parent + ",");
+					    	System.out.println();
+				    	}
 			    	}
 			    	else
 			    	{

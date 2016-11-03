@@ -124,11 +124,11 @@
    ;; for further analysis in the future
    
    ((utt  (var ?v) (focus ?foc)  ;; i changed the var from the punc to the utt so that the lf is printed properly (why was it the other way?
-     (punc +) (punctype ?p)
+     (punc +) (punctype ?p) (uttword ?uw)
      (lf (% speechact (var ?sv) (class ?cl) (constraint ?constraint)))
      )
    -utt-punctuation>
-   (head (utt (focus ?foc) (ended -) (var ?v) (punc -)
+   (head (utt (focus ?foc) (ended -) (var ?v) (punc -) (uttword ?uw)
 	  (lf (% speechact (var ?sv) (class ?cl) (constraint ?con)))
 	  ))
     (punc (punctype ?p) (lex (? lex w::punc-exclamation-mark w::punc-period w::punc-question-mark w::punc-colon w::ellipses w::punc-comma)))
@@ -232,7 +232,7 @@
     (punc (lex punc-comma) (var ?v1)))
 
      
-   ;;  the one compound utt rule - allows uttword+ utterance to preceed other utts
+   ;;  compound utt rule - allows uttword+ utterance to preceed other utts (once)
    ;; test: hello hello
    ((utt (sa-seq +) (lf (% sa-seq (var *) (class ont::sa-seq) (constraint (& (acts (?v1 ?v2))))))
          (var *))
@@ -1018,7 +1018,7 @@
             (filled -)
             )
       -pred4>
-      (head (np (sem ?sem) (var ?v) (case (? case obj -))
+      (head (np (sem ?sem) (var ?v) (sort pred) (case (? case obj -))
           (lf (% description (status (? x ont::indefinite ont::bare ont::indefinite-plural)) (sem ($ f::phys-obj (f::type ont::role-reln)))
 	         (class ?c) (constraint ?constr)))))
       (add-to-conjunct (val (Figure ?arg)) (old ?constr) (new ?newcon))
@@ -1416,7 +1416,7 @@
    ;; vp rule with dobj gap
    ;; test: who did he see
    ((vp- (subj ?subj) (subjvar ?subjvar) (dobjvar ?dobjvar)
-     (main +) (gap (% ?s3 (var ?gapvar) (sem ?gapsem) (agr ?gapagr) 
+     (main +) (gap (% ?s3 (var ?gapvar) (sem ?gapsem) (agr ?gapagr) (gap -) 
 		      (case ?dcase) (ptype ?ptype)
 		      ))
      (var ?v) 
@@ -2083,7 +2083,7 @@
      (vp vform agr neg sem var subjvar dobjvar cont  lex headcat tma transform subj-map advbl-needed template)
     (s vform neg cont  lex headcat transform advbl-needed)
     (v lex sem lf neg var agr cont lex transform aux modal tma advbl-needed headcat)
-    (utt sem subjvar dobjvar cont lex headcat transform))
+    (utt subjvar dobjvar cont lex headcat transform))  ;; I removes the SEM as i don't think it makes sense to move up to an S/UTT
 
     ;; ynq questions with be because subjvar must be set properly
     
@@ -3195,7 +3195,7 @@
      )
     -s-conj1>
     (head (s (stype (? st decl)) (subj ?subj) (var ?v1) (sem ?s1)
-	     (lf (% prop (class ?c1) (tma ?tma)))
+	     (lf (% prop (class ?c1) (tma ?tma))) (gap -)
 	     (advbl-needed -)
 	     ))
     (conj (lf (? lex ont::and ont::or ont::but)) (var ?v3))
@@ -3204,6 +3204,26 @@
     (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
     (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class))
     )
+
+  ;; conjoined vps w same subject AND object!
+   ;; test: the dog chased and caught the cat.
+   ((s (stype ?st) (var ?v3) (sem ?sem)
+     (lf (% prop (var ?v3) 
+        (class ?class)
+        (constraint (& (operator ?lex) (sequence (?v1 ?v2)))) (tma ?tma)))
+     )
+    -s-conj1a> 
+    (head (s (stype (? st decl)) (subj ?subj) (var ?v1) (sem ?s1) (gap ?!dobj)
+         (lf (% prop (class ?c1) (tma ?tma)))
+         (advbl-needed -)
+         ))
+    (conj (lf (? lex ont::and ont::or ont::but)) (var ?v3))
+    (vp (subj ?subj) (gap -) (var ?v2) (tma ?tma) (advbl-needed -) (dobj ?!dobj)
+     (class ?c2) (sem ?s2))
+    (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
+    (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class))
+    )
+
    
    ;; sentential conjunction
    ;; both ss must be of the same type, decl or imperative

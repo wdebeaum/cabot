@@ -331,6 +331,11 @@
  :parent ONT::group-object
  )
 
+(define-type ONT::linear-grouping
+ :wordnet-sense-keys ("line%1:14:01")
+ :parent ONT::sequence
+ )
+
 (define-type ONT::combination
  :wordnet-sense-keys ("combination%1:14:00")
  :parent ONT::group-object
@@ -1036,10 +1041,10 @@
              )
  )
 
-(define-type ONT::FALLEN-VAL
+(define-type ONT::INOPERABLE
  :parent ONT::configuration-PROPERTY-VAL
- :sem (F::Abstr-obj (F::gradability -))
- )
+ :sem (F::Abstr-obj (F::gradability -) (f::type ont::device)
+ ))
 
 ;; higher-level type for evaluation
 (define-type ont::evaluation-attribute-val
@@ -1780,7 +1785,7 @@
 
 
 (define-type ONT::number-measure-domain
-; :parent ONT::MEASURE-DOMAIN
+ ;; :parent ONT::MEASURE-DOMAIN
  :parent ONT::MATHEMATICAL-TERM
  :arguments ((:REQUIRED ONT::FIGURE (F::Abstr-obj (F::Measure-function F::Term)))
              )
@@ -1829,12 +1834,11 @@
 
 ;; percent
 (define-type ONT::percent
- :wordnet-sense-keys ("percentage%1:24:00" "percent%1:24:00" "per_centum%1:24:00" "pct%1:24:00")
+ :wordnet-sense-keys ("percent%1:24:00" "per_centum%1:24:00" "pct%1:24:00")
 ; :parent ONT::quantitative-relation
- :parent ONT::MATHEMATICAL-TERM
+ :parent ONT::FORMAL-UNIT
  :sem (F::Abstr-obj (F::Scale Ont::percent-scale))
  )
-
 
 (define-type ONT::ratio
  :wordnet-sense-keys ("ratio%1:24:01" "proportion%1:24:00" "ratio%1:24:00")
@@ -1921,9 +1925,9 @@
              )
  )
 
-(define-type ONT::humidity
+(define-type ONT::humidity-scale
  :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj (F::Scale Ont::humidity-scale))
+ :sem (F::Abstr-obj) ;;(F::Scale Ont::humidity-scale))
  :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::humidity-scale)))
              )
  )
@@ -1968,7 +1972,7 @@
  )
 
 (define-type ONT::DENSITY
- :wordnet-sense-keys ("density%1:07:00" "concentration%1:07:02")
+ :wordnet-sense-keys ("density%1:07:00" "concentration%1:07:02" "concentration%1:07:03")
  :parent ONT::RATE
  :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
              )
@@ -2372,9 +2376,10 @@
     :parent ONT::mental-construction
     :arguments ((:OPTIONAL ONT::FIGURE) ;(f::situation (f::information f::mental-construct) (f::cause f::mental)))
 		))
-
+ 
 ;; reason, motivation
 (define-type ONT::motive
+  :wordnet-sense-keys ("motivation%1:03:00")
  :parent ONT::mental-object
  :arguments (
 ;	     (:optional ONT::Associated-information)
@@ -2439,7 +2444,7 @@
 
 ;; goals, objectives
 (define-type ONT::goal
- :wordnet-sense-keys ("goal%1:09:00" "end%1:09:02")
+ :wordnet-sense-keys ("goal%1:09:00" "end%1:09:02" "want%1:17:00" "demand%1:26:00")
  :parent ONT::ps-object
  )
 
@@ -4030,22 +4035,19 @@
   )
 
 (define-type ont::rate-scale
-  :parent ont::scale
+  :parent ont::measure-domain
   )
 
 (define-type ont::ratio-scale
-  :parent ont::scale
+  :parent ont::measure-domain
   )
 
 (define-type ont::percent-scale
-  :parent ont::scale
-  )
+    :wordnet-sense-keys ("percentage%1:24:00" )
+    :parent ont::measure-domain)
+ 
 
 (define-type ont::luminosity-scale
-  :parent ont::scale
-  )
-
-(define-type ont::humidity-scale
   :parent ont::scale
   )
 

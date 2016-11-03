@@ -400,7 +400,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	conditionalContent.add(newConditionalId);
     	conditionalContent.add(":instance-of");
     	// TODO Determine if causal or conditional
-    	conditionalContent.add("CONDITIONAL");
+    	conditionalContent.add("ONT::COND");
     	
 
     	KQMLObject conditionObject = innerContent.getKeywordArg(":CONDITION");
