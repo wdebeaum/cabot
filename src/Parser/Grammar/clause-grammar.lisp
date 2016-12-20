@@ -276,7 +276,7 @@
     -how-about-s>
     (word (lex (? x how what)) (var ?v1))
     (word (lex about)) 
-    (head ((? cat np vp) (gap -) (var ?v) (lf ?lf) (case (? case obj -)))))
+    (head (np (gap -) (var ?v) (lf ?lf) (case (? case obj -)))))
 
     ;; test: how about horizontally?
     ;; test: what about from the cat?
@@ -2414,7 +2414,7 @@
     (head (np (wh -) (sort (? x pred unit-measure)) (complex -) (var ?v) (sem ($ ?!type))))
     (punc (punctype ?p) (lex w::punc-question-mark))
     )
-
+   
    ; What next?  What color?
    ((utt (lf (% speechact (var *) (class ont::SA_WH-QUESTION) (constraint (& (content ?v) (focus ?v) (punctype ?p))) )) (var *)
 	 (punc +) (punctype ?p))
@@ -2423,6 +2423,14 @@
     (punc (punctype ?p) (lex w::punc-question-mark))
     )
    
+   ; How big?
+   ((utt (lf (% speechact (var *) (class ont::SA_WH-QUESTION) (constraint (& (content ?v) (focus ?v) (punctype ?p))) )) (var *)
+	 (punc +) (punctype ?p)) 
+    -how-adj-utt-simple-q> .98
+    (head (adjp (wh Q) (sort (? x pp-word)) (complex -) (var ?v) (sem ($ ?!type))))
+    (punc (punctype ?p) (lex w::punc-question-mark))
+    )
+
    ;; complex nps (e.g., disjunctions, conjunctions) are dispreferred over parses with disjunction more deeply attached
     ((utt (lf (% speechact (var *) (class ont::sa_identify) (constraint (& (content ?v))))) (var *))
      -np-utt> .97
@@ -2736,11 +2744,11 @@
 	       (sem ($ f::situation (f::aspect (? aspc f::dynamic f::stage-level))))
 	       (var ?v) (aux -) (tma ?tma)
 	       (constraint ?con)
-	       (subj (% np (var (% *pro* (status ont::pro) (class (set-of ont::person)) (var *) (sem ?subjsem) (constraint (& (proform us)))))
+	       (subj (% np (var (% *pro* (status ont::pro-set) (class (:* ont::person w::us)) (var *) (sem ?subjsem) (constraint (& (proform us)))))
 			(sem ($ f::phys-obj (f::form f::object) (f::intentional +)))
 			(sem ?subjsem)))
-	       (subjvar (% *pro* (var *) (status ont::pro)
-			   (class (set-of ont::person)) (sem ?subjsem) (constraint (& (proform us)))))
+	       (subjvar (% *pro* (var *) (status ont::pro-set)
+			   (class (:* ont::person w::us)) (sem ?subjsem) (constraint (& (proform us)))))
 	       (class ?c)
 	       (vform base) (postadvbl ?pa) (main ?ma)
 	    (transform ?transform)
@@ -3360,6 +3368,7 @@
 ;; VP conjunction
    ;; both VP must be of the same vform
    ;; he had eaten and slept, to puncture or penetrate or pierce, to fight but accept, 
+   ; This uses this rule: The mouse is caught by the dog and caught by the cat.
    ((vp- (seq +) (vform ?vf) (var *)  (subjvar ?subj)  (subj ?subject) (agr ?agr) (gap ?gap)(subj-map ?subjmap)
      (class ?class) (sem ?sem)
      (constraint (&  (OPERATOR ?lx) 

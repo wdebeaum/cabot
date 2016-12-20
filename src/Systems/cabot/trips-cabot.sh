@@ -3,13 +3,12 @@
 # File: trips-cabot.sh
 # Creator: George Ferguson
 # Created: Wed Jun 20 10:38:13 2012
-# Time-stamp: <Mon Mar 14 12:29:52 CDT 2016 lgalescu>
+# Time-stamp: <Fri Nov 18 22:51:12 CST 2016 lgalescu>
 #
 # trips-cabot: Run TRIPS/CABOT
 #
 # This script uses the following environment variables, if set:
 #  TRIPS_BASE			Root of TRIPS directory tree
-#  TRIPS_SCENARIO		Sets scenario (pacifica|monroe|calo|lou)
 #  TRIPS_LOGS			Where to save the logs
 #  TRIPS_VOICE			m|f|<name>
 # Run with -help to see the usage message.
@@ -17,8 +16,6 @@
 
 echo 'This is TRIPS/CABOT version 0'
 TRIPS_BASE_DEFAULT=/usr/local/trips
-TRIPS_SCENARIO_DEFAULT=cabot
-TRIPS_VOICE_DEFAULT=allison
 
 # Set TRIPS_BASE unless set
 if test ! -z "$TRIPS_BASE"; then
@@ -30,12 +27,17 @@ fi
 
 TRIPS_HOST_DEFAULT=localhost
 TRIPS_PORT_DEFAULT=6200
+
+TRIPS_SYSNAME=cabot
+TRIPS_SYSNAME_ALLCAPS=`echo $TRIPS_SYSNAME | tr "[:lower:]" "[:upper:]"`
+
+TRIPS_VOICE_DEFAULT=allison
+
 #############################################################################
 #
 # Command-line
 
-usage="trips-$TRIPS_SCENARIO_DEFAULT [-display tty] [-nouser] [-nolisp] [-port 6200]"
-scenario="${TRIPS_SCENARIO:-$TRIPS_SCENARIO_DEFAULT}"
+usage="trips-$TRIPS_SYSNAME [-display tty] [-nouser] [-nolisp] [-port 6200]"
 
 port=''
 display=''
@@ -54,12 +56,12 @@ nospeechout=t
 nouser=''
 speechonly=''
 nobeep=''
+noapparatus=''
 nogen=false
 
 while test ! -z "$1"; do
     case "$1" in
 	-port)		port="$2";	shift;;
-        -scenario)      scenario="$2" ; shift;;
         -voice)         voice="$2" ;    shift;;
         -mode)          mode="$2" ;     shift;;
         -who)           who="$2";       shift;;
@@ -75,8 +77,9 @@ while test ! -z "$1"; do
         -nouser)        nouser=t;;
         -speechonly)    speechonly=t;;
         -nobeep)        nobeep=t;;
-        -nogen)         nogen=t;;
         -quiet)         nospeech=t; nobeep=t;;
+	-noapparatus)   noapparatus=t;;
+	-showgen)	showgen=t;;
 	-help|-h|-\?)
 	    echo "usage: $usage"
 	    exit 0;;
@@ -159,7 +162,7 @@ cat - <<_EOF_ >/tmp/trips$$
                           "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
 			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
                           "$TRIPS_BASE/src/SRIWrapper/src")
-	   :argv ($port_opt)))
+	   :argv ($port_opt $noapparatus)))
 (request
  :receiver facilitator
  :content (start-module
@@ -172,7 +175,7 @@ cat - <<_EOF_ >/tmp/trips$$
                         "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
                         "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
                         "$TRIPS_BASE/src/Conceptualizer/src")
-        :argv ($port_opt TRIPS_SCENARIO_DEFAULT)))
+        :argv ($port_opt $TRIPS_SYSNAME)))
 (request
   :receiver facilitator
   :content (start-module
@@ -183,7 +186,8 @@ cat - <<_EOF_ >/tmp/trips$$
                         "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
                         "$TRIPS_BASE/etc/java/TRIPS.util.jar"
                         "$TRIPS_BASE/src/CollaborativeStateManager/src")
-        :argv ($port_opt TRIPS_SCENARIO_DEFAULT)))
+        :argv ($port_opt
+    	   -data "$TRIPS_BASE/etc/$TRIPS_SYSNAME")))
 
 _EOF_
 if test -z "$nouser" ; then
@@ -201,9 +205,9 @@ cat - <<_EOF_ >>/tmp/trips$$
                   -fontsize 16
                   -who $who
                   -channel $channel
-                  -title "CABOT: Chat"
+                  -title "$TRIPS_SYSNAME_ALLCAPS: Chat"
                   -beep $beep_kbd
-		  -showGenerate $nogen
+		  -showGenerate $showgen
 		  $port_opt)))
 _EOF_
 fi
@@ -214,13 +218,13 @@ fi
 
 # Lisp
 if test -z "$nolisp"; then
-  (sleep 5; $TRIPS_BASE/bin/trips-cabot-lisp) 2>&1 | tee lisp.log &
+  (sleep 5; $TRIPS_BASE/bin/trips-$TRIPS_SYSNAME-lisp) 2>&1 | tee lisp.log &
 fi
 
 # SpeechIn
 if test -z "$nouser" -a -z "$nospeech" -a -z "$nospeechin"; then
 # Ditto to comment about lisp regarding external programs in JVM
-(sleep 5; $TRIPS_BASE/bin/trips_exec -socket $TRIPS_SOCKET -register t -name speech-in $TRIPS_BASE/bin/speechin -who $who -channel $channel -scenario $scenario -mode $mode -wait t) >speechin.err 2>&1 &
+(sleep 5; $TRIPS_BASE/bin/trips_exec -socket $TRIPS_SOCKET -register t -name speech-in $TRIPS_BASE/bin/speechin -who $who -channel $channel -scenario $TRIPS_SYSNAME -mode $mode -wait t) >speechin.err 2>&1 &
 cat - <<_EOF_ >>/tmp/trips$$
 (request
  :receiver facilitator
@@ -295,7 +299,7 @@ fi
 
 # Launch facilitator and send initial messages via stdin
 cat /tmp/trips$$ |\
- $TRIPS_BASE/bin/Facilitator -port $TRIPS_PORT -title 'TRIPS/CABOT' -geometry 260x600-0+0 $display_opt 2>&1 | tee facilitator.err &
+ $TRIPS_BASE/bin/Facilitator -port $TRIPS_PORT -title $TRIPS_SYSNAME_ALLCAPS -geometry 260x600-0+0 $display_opt 2>&1 | tee facilitator.err &
 
 # Wait for Facilitator to die
 wait $!

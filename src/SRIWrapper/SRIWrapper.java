@@ -27,6 +27,7 @@ import messages.BlockMessageSender;
 import messages.CommDataReader;
 import models.*;
 import environment.*;
+import features.*;
 
 import org.json.simple.JSONObject;
 
@@ -51,6 +52,7 @@ public class SRIWrapper extends StandardTripsModule  {
     private Thread blockMessageReaderThread;
     private Plan plan;
     private ModelBuilder modelBuilder;
+    private boolean connectToApparatus = true;
 	
 	
     //
@@ -66,6 +68,14 @@ public class SRIWrapper extends StandardTripsModule  {
      */
     public SRIWrapper(String argv[], boolean isApplication) {
     	super(argv, isApplication);
+    	if (argv.length > 2)
+    	{
+    		if (argv[2].contains("t"))
+    		{
+    			System.out.println("Apparatus disabled");
+    			connectToApparatus = false;
+    		}
+    	}
     }
 
     /**
@@ -98,36 +108,35 @@ public class SRIWrapper extends StandardTripsModule  {
 	name = "SRIWrapper";
 	// Perform standard initializations
 	super.init();
+	TextToSpeech.SRIWRAPPER = this;
 
 	//TextToSpeech tts = new TextToSpeech("");
-	try {
-		BlockMessageSender.sendPostRequest(new Block("0.1,0.1,0.1"));
-	}
-	catch (IOException e)
-	{
-		e.printStackTrace();
-	}
-	
+//	try {
+//		BlockMessageSender.sendPostRequest(new Block("0.1,0.1,0.1"));
+//	}
+//	catch (IOException e)
+//	{
+//		e.printStackTrace();
+//	}
+//	
 	//LatticeDemo.test(new String[0]);
 	modelBuilder = new ModelBuilder();
 	plan = new Plan(modelBuilder);
 	plan.steps.add(new Step("getresponse",""));
-	plan.steps.add(new Step("say", "Hello, can you show me what a row is?"));
+	plan.steps.add(new Step("say", "Hello. Can you show me what a row is?"));
 	plan.steps.add(new Step("getresponse","")); // Here is a row.
-	//plan.steps.add(new Step("say", "How many blocks can be in a row?"));
-	//plan.steps.add(new Step("getresponse","")); // Any number. Add another one.
-	//plan.steps.add(new Step("placeblock", "linear"));
-	plan.steps.add(new Step("placeblock", new String[]{"relative","0,.17,0"}));
-	plan.steps.add(new Step("say", "Is this a row?"));
-	plan.steps.add(new Step("getresponse","")); // No, they have to be in a line.
+	//plan.steps.add(new Step("placeblock", new String[]{"relative","0,.17,0"}));
+	//plan.steps.add(new Step("say", "Is this a row?"));
+	//plan.steps.add(new Step("getresponse","")); // No, they have to be in a line.
 	plan.steps.add(new Step("say", "I see. How about this?"));
-	//plan.steps.add(new Step("placeblock", new String[]{"relative",".25,0,0"}));
+	//plan.steps.add(new Step("placeblock", new String[]{"relative","0,-.10,0"}));
 	plan.steps.add(new Step("placeblock", "linear"));
+	//plan.steps.add(new Step("say", "Is this a row?"));
 	plan.steps.add(new Step("getresponse","")); // Yes, that's a row. 
 	plan.steps.add(new Step("getresponse","")); // Let's build it upwards this time.
+	plan.steps.add(new Step("placeblock", new String[]{"linearY","0"}));
 	plan.steps.add(new Step("placeblock", new String[]{"linearY","1"}));
 	plan.steps.add(new Step("placeblock", new String[]{"linearY","2"}));
-	plan.steps.add(new Step("placeblock", new String[]{"linearY","3"}));
 	plan.steps.add(new Step("getresponse",""));
 	//plan.steps.add(new Step("placeblock", new String[]{"absolute","-0.22,-0.32,0.085"}));
 	//plan.steps.add(new Step("placeblock", new String[]{"absolute","-0.22,-0.32,0.17"}));
@@ -299,11 +308,21 @@ public class SRIWrapper extends StandardTripsModule  {
 	
 	blockMessagePuller = new BlockMessagePuller(this, plan);
 	blockMessagePullerThread = new Thread(blockMessagePuller);
-	blockMessagePullerThread.start();
-    
+
+	if (connectToApparatus)
+	{
+		System.out.println("Connecting to block messages from apparatus...");
+		blockMessagePullerThread.start();
+	}
+	
     commDataReader = new CommDataReader();
     commDataReaderThread = new Thread(commDataReader);
-    commDataReaderThread.start();
+    
+    if (connectToApparatus)
+    {
+    	System.out.println("Connecting to comm messages from apparatus...");
+    	commDataReaderThread.start();
+    }
     
     blockMessageReaderThread = null;
 	// Tell the Facilitator we are ready
@@ -377,6 +396,8 @@ public class SRIWrapper extends StandardTripsModule  {
 		    	// Store the utterance to be referenced later and matched with the demonstration
 		    	
 		    	int uttNumValue = Integer.parseInt(uttNum.stringValue());
+		    	
+		    	// UNCOMMENT THIS FOR STEP DEMO
 		    	//plan.processUtterance(text.stringValue());
 		    }
 		}
@@ -386,8 +407,6 @@ public class SRIWrapper extends StandardTripsModule  {
 		}
 		else if (content0.equalsIgnoreCase("stop-conversation")) {
 	    	speechEnabled = false;
-
-		
 		}
 		else if (content0.equalsIgnoreCase("TURN-FINISHED"))
 		{
@@ -400,8 +419,8 @@ public class SRIWrapper extends StandardTripsModule  {
 			
 			KQMLObject text = content.getKeywordArg(":WHAT");
 			System.out.println("Received SPOKEN message with text: " + text.toString() );
-			if (text != null)
-				TextToSpeech.sayWithoutRepeating(text.stringValue());
+			//if (text != null)
+			//	TextToSpeech.sayWithoutRepeating(text.stringValue());
 			
 		}
 		else {
@@ -434,17 +453,19 @@ public class SRIWrapper extends StandardTripsModule  {
 		}
 		else if (content0.equalsIgnoreCase("evaluate"))
 		{
+
 			KQMLList innerContent = (KQMLList)content.getKeywordArg(":CONTENT");
 			KQMLList context = (KQMLList)(content.getKeywordArg(":context"));
 			//plan.processKQML(innerContent, context);
 			
-			String speechAct = content.get(0).stringValue();
-			String goal = content.getKeywordArg(":WHAT").stringValue();
+			String speechAct = innerContent.get(0).stringValue();
+			String goal = innerContent.getKeywordArg(":WHAT").stringValue();
 			KQMLList goalLF = KQMLUtilities.findTermInKQMLList(goal, context);
 			String goalType = goalLF.getKeywordArg(":INSTANCE-OF").stringValue();
 			
 			if (speechAct.equalsIgnoreCase("ADOPT") )
 			{
+				System.out.println("ADOPT");
 				if ( goalType.equalsIgnoreCase("ONT::CREATE"))
 				{
 					String objectToMakeID = goalLF.getKeywordArg(":AFFECTED-RESULT").stringValue();
@@ -452,12 +473,42 @@ public class SRIWrapper extends StandardTripsModule  {
 					String objectToMake = objectToMakeLF.getKeywordArg(":INSTANCE-OF").stringValue();
 					String cleanObjectToMake = objectToMake.split("::")[1];
 					
-					if (!modelBuilder.currentModel.name.equals(cleanObjectToMake))
+					if (modelBuilder.currentModel == null || !modelBuilder.currentModel.name.equals(cleanObjectToMake))
 					{
 						TextToSpeech.say("What is a " + cleanObjectToMake + "?");
 						//steps.add(new Step("querymodeldefinition", cleanObjectToMake));
 						modelBuilder.processNewModel(cleanObjectToMake);
 					}
+				}
+				else if (goalType.equalsIgnoreCase("ONT::PUT"))
+				{
+					System.out.println("Putting object");
+					FeatureProjection fp = new FeatureProjection(null);
+					fp.extractProjectionFromKQML(context);
+					String affected = goalLF.getKeywordArg(":AFFECTED").stringValue();
+					String result = goalLF.getKeywordArg(":RESULT").stringValue();
+					System.out.println("AFFECTED:");
+					TemporalSequenceFeature tsfAffected = (TemporalSequenceFeature)fp.variableFGBindings.get(affected);
+					tsfAffected.straighten();
+					System.out.println(tsfAffected);
+					List<BlockFeatureGroup> bfgList = tsfAffected.getBlockFeatureGroups();
+					System.out.println("BFG List");
+					for (BlockFeatureGroup bfg : bfgList)
+					{
+						System.out.println("Sending: " + bfg.getPointFeature().getValue());
+						
+						try {
+							BlockMessageSender.sendPostRequest(bfg.getPointFeature().getValue());
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+					
+					}
+					//System.out.println("RESULT:");
+					//System.out.println(fp.variableFGBindings.get(result));
+					
 				}
 				else if (goalType.equalsIgnoreCase("ONT::QUERY-MODEL"))
 				{
@@ -468,13 +519,36 @@ public class SRIWrapper extends StandardTripsModule  {
 					String modelName = modelTerm.getKeywordArg(":INSTANCE-OF").stringValue();
 					String cleanModelName = modelName.split("::")[1]; 
 					//steps.add(new Step("checkmodel", cleanObjectToMake));
-					boolean result = modelBuilder.getModelInstantiation(cleanModelName)
+					boolean satisfied = modelBuilder.getModelInstantiation(cleanModelName)
 								.testModelOnStructureInstance(Scene.currentScene.integerBlockMapping.values());
+					
+					StringBuilder response = new StringBuilder();
+					
+					if (satisfied)
+						response.append("Yes because ");
+					else
+						response.append("No because ");
+						
+					for (FeatureConstraint fc : modelBuilder.getModelInstantiation(cleanModelName).constraints)
+					{
+						response.append("the ");
+						response.append(fc.reason());
+					}
+					response.append(".");
+					TextToSpeech.say(response.toString());
+
+				}
+				else if ( goalType.equalsIgnoreCase("ONT::TEACH-TRAIN"))
+				{
+					TextToSpeech.say("Ok.");
 				}
 			}
 			else if(speechAct.equalsIgnoreCase("ASSERTION"))
 			{
 				KQMLList assertions = (KQMLList)goalLF.getKeywordArg(":EVENTS");
+				modelBuilder.getModelInstantiation(modelBuilder.currentModel.name)
+									.getConstraintsFromKQML(context);
+				TextToSpeech.say("Ok.");
 				
 			}
 		}

@@ -5,7 +5,7 @@
 (define-words :pos W::v :templ AGENT-affected-XP-TEMPL
  :words (
   (W::lay
-   (wordfeats (W::morph (:forms (-vb) :past W::lay :pastpart W::laid :ing W::laying)))
+   (wordfeats (W::morph (:forms (-vb) :past W::laid :pastpart W::laid :ing W::laying)))
    (SENSES
     ((EXAMPLE "You had better lie down")
      (LF-PARENT ONT::BODY-MOVEMENT-PLACE)
@@ -14,9 +14,6 @@
      (TEMPL AGENT-TEMPL)
      (preference .98)
      )
-   #| ((EXAMPLE "lay down your weapons")
-     (LF-PARENT ONT::PUT)
-     ) |#
     )
    )
 ))
@@ -25,11 +22,11 @@
  :tags (:base500)
  :words (
   (W::lay
-   (wordfeats (W::morph (:forms (-vb) :past W::lay :pastpart W::laid :ing W::laying)))
+   (wordfeats (W::morph (:forms (-vb) :past W::laid :pastpart W::laid :ing W::laying)))
    (SENSES
     ((EXAMPLE "lay an egg on the table")
      (EXAMPLE "lay down your weapons")
-     (LF-PARENT ONT::PUT)
+     (LF-PARENT ONT::PLACE-IN-POSITION)
      )
     )
    )

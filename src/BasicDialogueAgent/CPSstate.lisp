@@ -12,10 +12,10 @@
 		 ;;  '(PRIVATE-SYSTEM-GOAL :content (IDENTIFY :agent ont::USER  :what X :as (GOAL))
 		   (list 'PRIVATE-SYSTEM-GOAL :content content :context context)))
 		    
-      (update-csm goal)
-      (setf (user-time-of-last-interaction user) (get-time-of-day))
+    ;(update-csm goal)
+    (setf (user-time-of-last-user-interaction user) (get-time-of-day))
       (cache-response-for-processing (list (list* 'CSM-RESPONSE 'XXX goal)))
-      (invoke-state 'initiate-CPS-goal user nil nil))
+      (invoke-state 'initiate-CPS-goal nil user nil nil))
     )
 
 ;;;  Here's the code that manages the interface to the CSM
@@ -23,8 +23,8 @@
 (defun update-csm (update)
   (send-msg `(REQUEST :content (UPDATE-CSM :content ,update))))
 
-(defun query-csm (&key content)
-  (send-and-wait `(REQUEST :content (QUERY-CSM :content ,content))))
+(defun query-csm (&key result content)
+  (cache-response-for-processing (list (send-and-wait `(REQUEST :content (QUERY-CSM :content ,content))))))
 
 (defun find-CSM-interps (&key sa what result context new-akrl-context test active-goal)
   (let* ((realgoal (if (consp active-goal) (find-arg-in-act active-goal :what)

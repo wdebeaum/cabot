@@ -88,4 +88,32 @@ public class FeatureConstraint {
 									+ operator + " " 
 									+ comparisonFeature.getName();
 	}
+	
+	public String reason()
+	{
+		StringBuilder sb = new StringBuilder();
+		String negationString = "";
+		if (!isSatisfied())
+			negationString = "not";
+
+		sb.append(getPrettyFeatureName(feature.getName()));
+		sb.append(" is ");
+		sb.append(negationString);
+		sb.append(" ");
+		sb.append(operator.toString().toLowerCase());
+		sb.append(" than the ");
+		sb.append(getPrettyFeatureName(comparisonFeature.getName()));
+		
+		return sb.toString();
+	}
+	
+	private String getPrettyFeatureName(String feature)
+	{
+		String result = new String(feature);
+		if (result.contains("::"))
+			result = feature.split("::")[1];
+		if (result.contains("SCALE"))
+			result = result.split("-")[0];
+		return result.toLowerCase();
+	}
 }

@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
+import org.jblas.DoubleMatrix;
+
 import environment.Block;
 
 public class BlockMessageSender {
@@ -16,6 +18,12 @@ public class BlockMessageSender {
 				"/machine-manip/action.json";
 		
 		sendPostRequest(b,request);
+	}
+	
+	public static void sendPostRequest(DoubleMatrix position) throws IOException
+	{
+		Block b = new Block(position);
+		sendPostRequest(b);
 	}
 	
 	public static void sendPostRequest(Block b, String request) throws IOException

@@ -12,7 +12,7 @@ public class ModelInstantiation {
 
 	private StructureInstance currentStructureInstance;
 	private HashMap<String,FeatureGroup> components;
-	private List<FeatureConstraint> constraints;
+	public List<FeatureConstraint> constraints;
 	
 	public ModelInstantiation() {
 		currentStructureInstance = new StructureInstance("placeholder", new ArrayList<Block>());
@@ -56,65 +56,77 @@ public class ModelInstantiation {
 	
 	private boolean extractFeature(KQMLList term, KQMLList context)
 	{
-		KQMLObject concept = term.get(2);
-		KQMLList conceptList = null;
+
 		String scale = "unnamed";
 		Feature extractedFeature = null;
 		Feature groundFeature = null;
 		String ground = null;
 		String operatorString = null;
 		KQMLList groundTerm = null;
-		if (concept instanceof KQMLList)
-		{
-			conceptList = (KQMLList)concept;
-			// Get the scale for naming the feature
-			if (term.getKeywordArg(":SCALE") != null)
-			{
-				scale = term.getKeywordArg(":SCALE").stringValue();
-				extractedFeature = currentStructureInstance.getFeature(scale);
-			}
-			
-			// Get the comparison object or property
-			if (term.getKeywordArg(":GROUND") != null)
-			{
-				ground = term.getKeywordArg(":GROUND").stringValue();
-				groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
 
-			}
-			// Get the ONT::MORE-VAL or equivalent
-			operatorString = conceptList.get(1).stringValue();
-			FeatureConstraint.Operator operator = FeatureConstraint.operatorFromTRIPS(operatorString);
-			
-			if (groundTerm != null)
-			{
-				if (groundTerm.getKeywordArg(":SCALE") != null)
-				{
-					String groundScale = groundTerm.getKeywordArg(":SCALE").stringValue();
-					groundFeature = currentStructureInstance.getFeature(groundScale);
-				}
-				else
-				{
-					KQMLObject groundConcept = groundTerm.get(2);
-					if (groundConcept instanceof KQMLList)
-					{
-						String groundFeatureName = ((KQMLList)groundConcept).get(2).stringValue();
-						groundFeature = currentStructureInstance.getFeature(groundFeatureName);
-					}
-				}
-			}
-			if (extractedFeature == null || groundFeature == null || operator == null)
-				return false;
-			FeatureConstraint newConstraint = new FeatureConstraint(extractedFeature,
-														operator, 
-														FeatureConstraint.ComparisonType.VALUE, 
-														groundFeature);
-			System.out.println("Extracted feature: " + newConstraint);
-			constraints.add(newConstraint);
-			return true;
-			
+		// Get the scale for naming the feature
+		if (term.getKeywordArg(":SCALE") != null)
+		{
+			scale = term.getKeywordArg(":SCALE").stringValue();
+			extractedFeature = currentStructureInstance.getFeature(scale);
+			System.out.println("Scale: " + scale);
 		}
 		
-		return false;
+		// Get the comparison object or property
+		if (term.getKeywordArg(":GROUND") != null)
+		{
+			ground = term.getKeywordArg(":GROUND").stringValue();
+			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
+			System.out.println("Ground: " + ground);
+		}
+		
+		// Get the ONT::MORE-VAL or equivalent
+		if (term.getKeywordArg(":INSTANCE-OF") != null)
+			operatorString = term.getKeywordArg(":INSTANCE-OF").stringValue();
+		else
+			return false;
+		
+		FeatureConstraint.Operator operator = FeatureConstraint.operatorFromTRIPS(operatorString);
+		
+		if (groundTerm != null)
+		{
+			if (groundTerm.getKeywordArg(":INSTANCE-OF") != null)
+			{
+				String groundScale = groundTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+				System.out.println("Ground Scale: " + groundScale);
+				groundFeature = currentStructureInstance.getFeature(groundScale);
+				
+			}
+			else if (groundTerm.getKeywordArg(":SCALE") != null)
+			{
+				String groundScale = groundTerm.getKeywordArg(":SCALE").stringValue();
+				System.out.println("Ground Scale: " + groundScale);
+				groundFeature = currentStructureInstance.getFeature(groundScale);
+				
+			}
+			else
+			{
+				KQMLObject groundConcept = groundTerm.get(2);
+				if (groundConcept instanceof KQMLList)
+				{
+					String groundFeatureName = ((KQMLList)groundConcept).get(2).stringValue();
+					groundFeature = currentStructureInstance.getFeature(groundFeatureName);
+				}
+			}
+			
+			
+		}
+		if (extractedFeature == null || groundFeature == null || operator == null)
+			return false;
+		System.out.println("Ground Feature: " + groundFeature.getName());
+		FeatureConstraint newConstraint = new FeatureConstraint(extractedFeature,
+													operator, 
+													FeatureConstraint.ComparisonType.VALUE, 
+													groundFeature);
+		System.out.println("Extracted feature: " + newConstraint);
+		constraints.add(newConstraint);
+		return true;
+		
 	}
 	
 	//TODO
@@ -129,10 +141,12 @@ public class ModelInstantiation {
 		return results;
 	}
 	
+	
+	
 	public boolean testModelOnStructureInstance(Collection<Block> newBlocks)
 	{
 		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
-		
+		currentStructureInstance.generateFeatures();
 		for (FeatureConstraint constraint : constraints)
 		{
 			System.out.println("Constraint:");

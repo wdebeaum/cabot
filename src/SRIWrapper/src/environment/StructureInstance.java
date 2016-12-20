@@ -125,6 +125,7 @@ public class StructureInstance implements FeatureGroup {
 	private void generateDimensionFeatures()
 	{
 		DistanceFeature heightFeature = new DistanceFeature("ONT::HEIGHT-SCALE");
+		DistanceFeature widthScaleFeature = new DistanceFeature("ONT::WIDTH-SCALE");
 		DistanceFeature widthFeature = new DistanceFeature("ONT::WIDTH");
 		DistanceFeature radiusFeature = new DistanceFeature("W::RADIUS");
 		DistanceFeature diameterFeature = new DistanceFeature("W::DIAMETER");
@@ -144,12 +145,14 @@ public class StructureInstance implements FeatureGroup {
 				maxDistanceFromCenter = distance;
 		}
 		widthFeature.setValue(maxDistanceFromCenter * 2);
+		widthScaleFeature.setValue(maxDistanceFromCenter * 2);
 		radiusFeature.setValue(maxDistanceFromCenter);
 		diameterFeature.setValue(maxDistanceFromCenter * 2);
 		heightFeature.setValue(maxHeight + Block.BLOCK_WIDTH / 2);
 		
 		setFeature(heightFeature);
 		setFeature(widthFeature);
+		setFeature(widthScaleFeature);
 		setFeature(radiusFeature);
 		setFeature(diameterFeature);
 	}

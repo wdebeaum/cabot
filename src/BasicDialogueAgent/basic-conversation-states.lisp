@@ -18,6 +18,8 @@
 	     (segment
 	       :trigger '((ONT::SPEECHACT ?!sa (? a ONT::ANSWER ONT::EVALUATE ONT::SA_EVALUATE ONT::FRAGMENT ONT::ACCEPT))
 			  (ONT::F ?!x (:* ONT::GOOD (? w W::OKAY w::good)))
+			  (ont::eval (find-attr :result nil ; to avoid competing with -user-response1>
+						:feature PROPOSAL-ON-TABLE))
 			  -ok1>
 			  (next))
 	       :start-state 'segmentend
@@ -72,20 +74,22 @@
 	     )
 
 (add-state 'checkchannel 
- (state :action '(SAY :content "hello" "i'm here")
+ (state :action '(generate :content (ONT::GREET)) ;'(SAY :content "hello" "i'm here")
   :transitions (list
 		(transition
 		 :description "Greeting"
 		 :pattern '((ONT::SPEECHACT ?!sa ONT::GREET :who ?!sp) 
 			    -checkchannel1> 
-			    (SAY-ONE-OF :content ("hello" "hi" "hey" "I'm here.")))
+			    ;(SAY-ONE-OF :content ("hello" "hi" "hey" "I'm here."))
+			    (generate :content (ONT::GREET)))
 		 :trigger t
 		 :destination 'segmentend)
 		(transition
 		 :description "Hello?"
 		 :pattern '((ONT::SPEECHACT ?!sa ONT::PROMPT :who ?!sp) 
 			    -checkchannel2> 
-			    (SAY-ONE-OF :content ("I'm here." "I got your message!")))
+			    ;(SAY-ONE-OF :content ("I'm here." "I got your message!"))
+			    (generate :content (ONT::GREET)))
 		 :trigger t
 		 :destination 'segmentend)
 		(transition
@@ -93,7 +97,8 @@
 		 :pattern '(((? spec ONT::F ONT::BARE) ?!x ONT::HAVE-PROPERTY)
 			    (ONT::F ?!y (:* ONT::SCALE-RELATION W::UP))
 			    -checkchannel3> 
-			    (SAY-ONE-OF :content ("good morning" "hi!")))
+			    ;(SAY-ONE-OF :content ("good morning" "hi!"))
+			    (generate :content (ONT::GREET)))
 		 :trigger t
 		 :destination 'segmentend)
 		)

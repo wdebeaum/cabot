@@ -33,4 +33,8 @@ public class PointFeature extends Feature<DoubleMatrix> {
 		return resultPointFeature;
 	}
 
+	public String toString()
+	{
+		return "Point Feature: " + value.toString();
+	}
 }

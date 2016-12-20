@@ -99,7 +99,7 @@ public class BlockMessagePuller implements Runnable {
 				
 				if (lastScene == null || lastScene.isSimilarTo(s))
 				{
-					System.out.println("Sending KQML Message");
+					//System.out.println("Sending KQML Message");
 					sendKQMLMessage(s);
 				}
 				

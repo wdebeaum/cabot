@@ -13,12 +13,14 @@
     ((LF-PARENT ONT::DIRECTION)
      (TEMPL PRED-S-POST-TEMPL)
      )
+
     ((LF-PARENT ONT::pos-as-over)
      (TEMPL BINARY-CONSTRAINT-NP-implicit-TEMPL)
      )
     ((LF-PARENT ONT::pos-as-over)
      (TEMPL BINARY-CONSTRAINT-S-implicit-TEMPL)
      )
+    
     ((LF-PARENT ONT::QMODIFIER)
      (example "sell it for over five dollars")
      (TEMPL NUMBER-OPERATOR-TEMPL)
@@ -49,6 +51,11 @@
      (EXAMPLE "I looked over the files")
      )
 
+    ((LF-PARENT ONT::OVER)
+     (TEMPL BINARY-CONSTRAINT-NP-TEMPL)
+     (EXAMPLE "I ran over the hill")
+     )
+
     )
    )
 ))
@@ -64,6 +71,20 @@
 	   )
 )
 ))
+
+(define-words :pos W::adj 
+ :words (
+  (W::over
+   (SENSES
+    (
+     (LF-PARENT ONT::FINISHED)
+     (example "The show is over.")
+     (TEMPL predicative-only-adj-templ)
+     )
+    )
+   )
+))
+
 
 (define-words :pos W::PREP :boost-word t :templ NO-FEATURES-TEMPL
  :tags (:base500)

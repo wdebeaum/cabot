@@ -73,6 +73,11 @@ public class Plan {
 		
 	}
 	
+	public void processUtterance(String utterance)
+	{
+		steps.get(currentStep).setUtterance(utterance);
+	}
+	
 	
 	public List<Constraint> generatePlan(Scene s)
 	{

@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import TRIPS.SRIWrapper.SRIWrapper;
+import messages.BlockMessageSender;
+import messages.CommDataSender;
 import messages.NetworkConfiguration;
 
 
@@ -13,9 +17,17 @@ public class TextToSpeech {
 	
 	public static boolean speechEnabled = true;
 	public static String lastSpoken = "";
+	public static SRIWrapper SRIWRAPPER = null;
     
     public static void say(String input)
     {
+    	
+    	try {
+			CommDataSender.sendSpeechPostRequest(input);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
     	System.out.println(input);
     	if (!speechEnabled)
     	{

@@ -124,6 +124,11 @@ public class Block {
 		return position.distance2(b.position) < DISTANCE_EPSILON;
 	}
 	
+	public boolean hasSimilarPosition(Block b, boolean proxy)
+	{
+		return position.distance2(b.position.mul(new DoubleMatrix(new double[]{-1,1,1}))) < DISTANCE_EPSILON;
+	}
+	
 	public KQMLList getKQMLRepresentation()
 	{
 		KQMLList blockContent = new KQMLList();

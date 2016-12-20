@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Mon Sep 12 15:56:10 EDT 2016 jallen>
+;;;; Time-stamp: <Mon Dec 19 08:34:33 EST 2016 jallen>
 ;;;;
 
 (unless (find-package :trips)
@@ -28,8 +28,284 @@
 
 ;;; Sample dialogues
 ;;;
-(defvar *sample-dialogues*
+(setf *sample-dialogues*
   '(
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;; The following scripts are (or should be!) working ;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
+    (test-generic .
+     ( ;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
+				      ; :context ((ONT::RELN ONT::PERFORM :what WH-TERM))))
+      (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 3 step staircase."
+      ;;  Okay. Put block B6 on the table"
+      "ok."
+      ;; Please put B7 on B6.
+      "ok."
+      ;;  We are done.
+      ))
+
+    (test-set-system-goal .  
+      ( (TELL :content (SET-SYSTEM-GOAL :content G1
+				      :context ((ONT::RELN G1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::STAIRS :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::KIND s1 :instance-of ONT::STEP :amount 3))))
+	;; Let's build a three step staircase.
+	"ok."
+	;; Put block 6 on the table.
+	"ok."
+	;; Please put B7 on B6.
+	"ok."
+	;;  We are done.
+	))
+
+    (test-who-move .
+     ( (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 3 step staircase."
+      ;; OK
+      ;; (PROPOSE
+      ;;  :CONTENT (ASK-WH :WHAT A0 :QUERY A1 :AS (QUERY-IN-CONTEXT :GOAL ONT::V33355))
+      ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::CAUSE-MOVE :AGENT A0 :AFFECTED A2)
+      ;;            (ONT::THE A0 :INSTANCE-OF ONT::PERSON :SUCHTHAT A1)
+      ;;            (ONT::THE A2 :INSTANCE-OF ONT::SET :ELEMENT-TYPE ONT::BLOCK)))
+      ;; S: who should move the blocks
+      "I will."
+      ;;  Okay. Put block B6 on the table"
+      "ok."
+      ;; Please put B7 on B6.
+      "ok."
+      ;;  We are done.
+      ))
+
+    (test-not-enough-blocks-and-you-do-it .
+     ( (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 5 step staircase."
+      ;; we don't have enough blocks
+      "Let's build a 3 step staircase."
+      ;;  Okay. Put block B6 on the table"
+      "ok."
+      ;; Please put B7 on B6.
+      "you do it."
+      ;;  ok.
+      ;; We are done.  
+      ))
+
+    ;; LG 2016/12/02 FST flow tests
+    #|| LG 2016/12/06 individual actions are not allowed anymore!
+    (flow-action .
+     ;; 
+     (
+      "Put block 1 on the table"
+      ;; propose-cps-act -> handle-csm-response -> propose-cps-act-response
+      ;; S: ok
+      ;; -> what-next-initiative -> what-next-initiative-csm -> perform-ba-request 
+      ;; S: Done!
+      ;; -> what-next-initiative-on-new-goal
+      ;; S: All tasks completed.
+      ;; S: What do we do now?
+      ;; -> segmentend
+      ))
+    ||#
+
+    (flow-action-topgoal-yes .
+     ;; user proposes action; system guesses top goal; user accepts
+     (
+      "Put block 1 on the table"
+      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE -> CLARIFY-GOAL
+      ;; S: are you trying to build something?  (Note: Currently we don't ask *what* the user is building.)
+      "yes"
+      ;; -> CONFIRM-GOAL-WITH-BA
+      ;; S: good!
+      ;; -> HANDLE-CSM-RESPONSE
+      ;; -> PROPOSE-CPS-ACT-RESPONSE
+      ;; S: ok (for PUT subgoal)
+      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
+      ;; -> PERFORM-BA-REQUEST 
+      ;; S: Done! (i.e., done with "Put block 1 on the table")
+      ;; -> WHAT-NEXT-INITIATIVE-ON-NEW-GOAL -> WHAT-NEXT-INITIATIVE
+      ;; -> WHAT-NEXT-INITIATIVE-CSM
+      ;; -> PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      "We are done."
+      ;; S: good!
+
+      ; TOFIX: need a message to tell the BA that we are done
+
+      ;; S: what do you want to do?
+      ;; -> DONE -> NIL
+      ))
+
+    (flow-action-topgoal-no .
+     ;; user proposes action; system guesses top goal; user rejects
+     (
+      "Put block 1 on the table"
+      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE -> CLARIFY-GOAL
+      ;; S: are you trying to build something?
+      "no"
+      ;; S: What do you want to do?
+      ;; -> PROPOSE-CPS-ACT
+      ))
+
+    (flow-staircase-user-directed .
+     ;; user proposes goal and directs system to complete the task
+     ("Let's build a 2-step staircase"
+      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE
+      ;; -> PROPOSE-CPS-ACT-RESPONSE
+      ;; S: ok
+      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
+      ;; DUMMY-BA says: WAITING-FOR-USER
+      ;; -> PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      "Put block 1 on the table"
+      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE
+      ;; -> PROPOSE-CPS-ACT-RESPONSE
+      ;; S: ok
+      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
+      ;; DUMMY-BA: EXECUTION-STATUS::DONE (PUT)
+      ;; -> PERFORM-BA-REQUEST
+      ;; S: Done (PUT)
+      ;; -> WHAT-NEXT-INITIATIVE-ON-NEW-GOAL
+      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
+      ;; DUMMY-BA says: WAITING-FOR-USER
+      ;; -> PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      "Put block 2 on top of block 1"
+      ;; same as above
+      ;; S: ok
+      ;; DUMMY-BA: EXECUTION-STATUS::DONE (PUT)
+      ;; S: Done (PUT)
+      "Put block 3 next to block 1"
+      ;; same as above
+      ;; S: ok
+      ;; DUMMY-BA: EXECUTION-STATUS::DONE (PUT)
+      ;; S: Done (PUT)
+      "We're done"
+      ;; S: good!
+      ;; S: what do you want to do?
+      ;; -> DONE -> NIL
+     ))
+
+    
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;; The following test scripts have known problems ;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    (alarm-test .
+     ("Let's build a 3 step staircase."
+      ;; "Put block B6 on the table"
+      "ok."
+      ;; now wait for system to say "I'm still working on it"
+
+      ;; TOFIX: the alarm is set but doesn't go off.
+      ))
+
+    (test-instead .
+      ( (TELL :content (SET-SYSTEM-GOAL :content G1
+				      :context ((ONT::RELN G1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::STAIRS :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::KIND s1 :instance-of ONT::STEP :amount 3))))
+	;; Let's build a three step staircase.
+	"Let's build a tower instead."
+	
+	;; TOFIX: CSM currently sends back MISSING-GOAL-TO-MODIFY
+
+	;; ok.
+	))
+
+    (test-I-cannot-do-it .
+     ( (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 3 step staircase."
+      ;;  Okay. Put block B6 on the table"
+      "ok."
+      ;; Please put B7 on B6.
+      "I can't do it."
+
+      ;; TOFIX: need to notify BA of rejection.
+      
+      ;; What do you want to do?
+      "Put block 8 on block 6."
+      ;; ok.
+      ;; We are done.  What do you want to do?
+      "Let's build a tower."
+      ;; ok.
+      ;; Done (Top goal is initiated properly, but we are immediately done because we have exhausted the dummy's ability to say other things.)
+      ))
+    
+    (test-who-move-user .
+     ( (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 3 step staircase. who will move the blocks?"
+      ;; OK
+      ;; (PROPOSE
+      ;;  :CONTENT (ASK-WH :WHAT A0 :QUERY A1 :AS (QUERY-IN-CONTEXT :GOAL ONT::V33355))
+      ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::HAUL :AGENT A0 :AFFECTED A2)
+      ;;            (ONT::THE A0 :INSTANCE-OF ONT::PERSON :SUCHTHAT A1)
+      ;;            (ONT::THE A2 :INSTANCE-OF ONT::SET :ELEMENT-TYPE ONT::BLOCK)))
+
+      ;; TOFIX: need to change to conform to spec
+      
+      ))
+
+    (test-user-move-ynq-as-propose .
+     ( (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 3 step staircase. Can I move the blocks?"
+      ;; OK
+      ;; (PROPOSE
+      ;;  :CONTENT (ASK-WH :WHAT A0 :QUERY A1 :AS (QUERY-IN-CONTEXT :GOAL ONT::V33355))
+      ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::HAUL :AGENT A0 :AFFECTED A2)
+      ;;            (ONT::THE A0 :INSTANCE-OF ONT::PERSON :SUCHTHAT A1)
+      ;;            (ONT::THE A2 :INSTANCE-OF ONT::SET :ELEMENT-TYPE ONT::BLOCK)))
+
+      ;; TOFIX: CSM tags this as a PROPOSE SUBGOAL.  Either we change this or the BA should send back a MODIFICATION
+      ))
+
+    (test-user-move-true-ynq .
+     ( (TELL :content (SET-SYSTEM-GOAL :content NIL
+				       :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      "Let's build a 3 step staircase. Are there enough blocks?"
+      ;; OK
+      ;; (PROPOSE
+      ;;  :CONTENT (ASK-WH :WHAT A0 :QUERY A1 :AS (QUERY-IN-CONTEXT :GOAL ONT::V33355))
+      ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::HAUL :AGENT A0 :AFFECTED A2)
+      ;;            (ONT::THE A0 :INSTANCE-OF ONT::PERSON :SUCHTHAT A1)
+      ;;            (ONT::THE A2 :INSTANCE-OF ONT::SET :ELEMENT-TYPE ONT::BLOCK)))
+
+      ;; TOFIX: need to change to conform to spec
+      ))
+
+    
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;; The following test scripts don't work (we have not started on these yet) ;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    (flow-action-underspecified .
+     ;; BA asks user to specify object ** We haven't worked on this yet. **
+     ("Let's build a 2-step staircase"
+      ;; S: ok
+      "Put a block on the table"
+      ;; S: ok. Which block?
+      ;; 
+      ))
+
+
+    
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;; The test scripts beyond this probably wouldn't work ;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    
     (new-sift-demo .
      ( (TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
 				       :context ((ONT::RELN ONT::PERFORM :what WH-TERM))))
@@ -590,8 +866,7 @@
       ;; BA -> CPSA : DONE(build-staircase)
       ;; S: OK. We are done
       )
-     )
-      
+     )    
     )
 )
 
@@ -631,8 +906,12 @@
   *sample-dialogues*)
 
 ;; Default sample dialogue for this domain
+
+(defvar *test-dialog-id* 'test-generic)
+
 (setf *test-dialog*
-  (cdr (assoc 'new-sift-demo *sample-dialogues*)))
+  (cdr (assoc *test-dialog-id* *sample-dialogues*)))
+
 
 ;(setf *test-dialog*
 ;  (cdr (assoc 0.1 *sample-dialogues* :test #'eql)))
@@ -647,6 +926,9 @@ call TEST. Reports available KEYs on error."
       (format t "~&ptest: possible values: ~S~%" (mapcar #'car *sample-dialogues*)))
      (t
       (setf *test-dialog* dialogue)
+      (setf *test-dialog-id* key)
+      (start-conversation)
+      (COMM::send 'test `(TELL :content (component-status :who TEST :what (TESTING ,key))))
       (test)))))
 
 
@@ -656,23 +938,4 @@ call TEST. Reports available KEYs on error."
 (defun disable-graphviz-display ()
   (COMM::send 'test '(request :receiver graphviz :content (disable-display))))
 
-;; This function probably belongs in core/test.lisp
-(defun test-all ()
-  "Invoke TEST on all utterances of *TEST-DIALOG* in order.
-This function does not pause between utterance, wait for results to be
-finished, or any other smart thing. It simply pumps the messages in using
-TEST."
-  (loop for x in *test-dialog*
-     do (test x)
-       ;; add a wait for procesing
-       ;(loop for i from 1 to 2
-	;  do ;(format t ".")
-	 ;   (sleep 1))
-       ))
 
-;; Ditto
-(defun test-all-of (key)
-  "Set *TEST-DIALOG* to the dialog identified by KEY on *SAMPLE-DIALOGUES*,
-then invoke TEST-ALL to test all its utterances."
-  (setf *test-dialog* (cdr (assoc key *sample-dialogues*)))
-  (test-all))

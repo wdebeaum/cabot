@@ -15,6 +15,7 @@
   (:dfc-component	:parser            #!TRIPS"src;Parser;")
   (:dfc-component       :im                #!TRIPS"src;NewIM;")
   (:dfc-component       :dagent            #!TRIPS"src;BasicDialogueAgent;")
+  (:dfc-component       :alarmclock            #!TRIPS"src;AlarmClock;")
   ;;(:dfc-component       :llearner          #!TRIPS"src;LanguageLearner;")
   ;; the :dummy component is used to fake certain message interactions during
   ;; system development. comment out the load files at the end of this file if
@@ -97,7 +98,7 @@
 	
 	((parser::customize-cost-table 
 	  '((ont::SA_QUERY 1.2) 
-	     (ont::SA_IDENTIFY 2) 
+	     (ont::SA_IDENTIFY 1.3) 
 	     (ont::SA_pred-fragment 2) 
 	     (ont::SA_request 1) 
 	     (ont::SA_YN-QUESTION 1) 
@@ -157,8 +158,11 @@
 
 ;;  DM settings
 (setq dagent::*silent-failures* nil)  ;; don't ignore utterance failure
-(setq dagent::*using-alarms* nil)   ;; no alarms
+(setq dagent::*using-alarms* nil)   ;; using alarms
 (setq dagent::*disabled-wizard* t)  ;; no wizard
+(setq dagent::*max-wait-until-prompt-in-seconds* 15)  ;; if we don't hear from the user in 15 seconds, we check the dialogue status
+(setq dagent::*max-wait-until-prompt-in-minutes* (/ dagent::*max-wait-until-prompt-in-seconds* 60))
+(setq dagent::*max-wait-until-prompt-in-hours* (/ dagent::*max-wait-until-prompt-in-minutes* 60))
 (dagent::trace-on 1)
 
 ; just the default user
@@ -184,5 +188,5 @@
 ;; LOCALLY, but please do not commit without comments!
 
 
-;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
+;;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")

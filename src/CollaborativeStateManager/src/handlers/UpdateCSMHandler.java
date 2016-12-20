@@ -5,7 +5,9 @@ import java.util.*;
 import extractors.TermExtractor;
 import plans.GoalPlanner;
 import states.Action;
+import states.Elaboration;
 import states.Goal;
+import states.Query;
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLPerformative;
@@ -19,9 +21,10 @@ public class UpdateCSMHandler extends MessageHandler {
 	GoalPlanner goalPlanner;
 	String activeGoal = null;
 	
-	public UpdateCSMHandler(KQMLPerformative msg, KQMLList content,
+	public UpdateCSMHandler(KQMLPerformative msg, KQMLList content, 
+			ReferenceHandler referenceHandler,
 			GoalPlanner goalPlanner) {
-		super(msg, content);
+		super(msg, content, referenceHandler);
 		this.goalPlanner = goalPlanner;
 		// TODO Auto-generated constructor stub
 	}
@@ -55,11 +58,15 @@ public class UpdateCSMHandler extends MessageHandler {
 			return handleAcceptedSolution();
 		case "accepted":
 			return handleAccepted();
+		case "action-completed":
+			return handleActionCompleted();
 		case "no-initiative-taken":
 			return handleNoInitiativeTaken();
 		case "initiative-taken-on-goal":
 			return handleInitiativeTakenOnGoal();
 		case "failed-on":
+			return handleFailedOn();
+		case "unacceptable":
 			return handleFailedOn();
 		case "solved":
 			return handleSolved();
@@ -73,6 +80,8 @@ public class UpdateCSMHandler extends MessageHandler {
 			return handleDefaultInitiative();
 		case "set-override-initiative":
 			return handleOverrideInitiative();
+		case "status-report":
+			return handleStatusReport();
 		case "answer":
 			return handleAnswer();
 			
@@ -84,6 +93,61 @@ public class UpdateCSMHandler extends MessageHandler {
 		
 	}
 	
+	private KQMLList handleStatusReport() {
+		KQMLObject goalSymbolObject = innerContent.getKeywordArg(":goal");
+		boolean completedStatus = false;
+		String goalName = null;
+		if (goalSymbolObject != null)
+			goalName = goalSymbolObject.stringValue();
+
+		KQMLObject statusObject = innerContent.getKeywordArg(":status");
+		
+		if (statusObject != null && statusObject.stringValue().equalsIgnoreCase("ONT::DONE"))
+			completedStatus = true;
+		
+		// This was a specific goal that with initiative taken
+		if (goalName != null && goalPlanner.hasGoal(goalName))
+		{
+			if (completedStatus)
+			{
+				goalPlanner.setCompleted(goalPlanner.getGoal(goalName));
+				System.out.println("Set goal " + goalName + " as completed via status-report");
+				return null;
+			}
+		}
+		else if (goalName != null && goalPlanner.getQueryMapping().containsKey(goalName))
+		{
+			if (completedStatus)
+			{
+				goalPlanner.setCompleted(goalPlanner.getQueryMapping().get(goalName));
+				System.out.println("Set goal " + goalName + " as completed via status-report");
+				return null;
+			}
+		}
+		
+		System.out.println("No such goal to be completed");
+		return null;
+	
+	}	
+	
+	private KQMLList handleActionCompleted() {
+		KQMLObject goalNameObject = innerContent.getKeywordArg(":action");
+		String goalName = null;
+		if (goalNameObject != null)
+			goalName = goalNameObject.stringValue();
+		// This was a specific goal that with initiative taken
+		if (goalName != null && goalPlanner.hasGoal(goalName))
+		{
+			goalPlanner.setCompleted(goalPlanner.getGoal(goalName));
+			System.out.println("Set goal " + goalName + " as completed via action-completed");
+			return null;
+		}
+		
+		System.out.println("No such goal to be completed");
+		return null;
+	
+	}
+
 	private KQMLList handleOverrideInitiative()
 	{
 		System.out.println("Handling override initiative setting");
@@ -133,6 +197,34 @@ public class UpdateCSMHandler extends MessageHandler {
 
 	private KQMLList handleProposed()
 	{
+		KQMLList proposeContent = (KQMLList)(innerContent.getKeywordArg(":CONTENT"));
+		
+		
+		if (proposeContent == null)
+		{
+			System.out.println("No inner content parameter");
+			return null;
+		}
+		
+		KQMLObject proposeObject = proposeContent.getKeywordArg(":WHAT");
+		
+		if (proposeContent.getKeywordArg(":WHAT") == null)
+			proposeObject = proposeContent.getKeywordArg(":QUERY");
+		
+		if (proposeObject == null)
+		{
+			System.out.println("No :WHAT or :QUERY parameter");
+			return null;
+		}
+		
+		String goalName = proposeObject.stringValue();
+		System.out.println("Received proposed goal: " + goalName);
+		
+		if (goalPlanner.createGoalFromAct("PROPOSE",proposeContent, (KQMLList)context))
+			System.out.println("Goal successfully created from act");
+		else
+			System.out.println("Failed to create goal from act");
+		
 		return null;
 	}
 
@@ -146,7 +238,7 @@ public class UpdateCSMHandler extends MessageHandler {
 		{
 			System.out.println(goalObject.stringValue());
 			System.out.println("Adding goal from content");
-			goalPlanner.addPrivateGoal(new Goal((KQMLList)goalObject));
+			goalPlanner.addPrivateGoal(new Goal((KQMLList)goalObject,(KQMLList)context));
 		}
 		else
 		{
@@ -158,7 +250,7 @@ public class UpdateCSMHandler extends MessageHandler {
 				return null;
 			}
 			
-			Goal newPrivateGoal = new Goal(resultGoal);
+			Goal newPrivateGoal = new Goal(resultGoal,(KQMLList)context);
 			System.out.println("Adding private goal " + newPrivateGoal.getVariableName());
 			goalPlanner.addPrivateGoal(newPrivateGoal);
 			
@@ -280,7 +372,7 @@ public class UpdateCSMHandler extends MessageHandler {
 	private KQMLList handleAccepted()
 	{
 		KQMLList acceptContent = (KQMLList)(innerContent.getKeywordArg(":CONTENT"));
-		
+		System.out.println("Received accept message");
 		if (acceptContent == null)
 		{
 			System.out.println("No inner content parameter");
@@ -293,6 +385,21 @@ public class UpdateCSMHandler extends MessageHandler {
 			return null;
 		}
 		String goalName = acceptContent.getKeywordArg(":WHAT").stringValue();
+		KQMLObject asObject = acceptContent.getKeywordArg(":AS");
+		String asType = "GOAL";
+		String ofSymbol = "";
+		if (asObject != null)
+		{
+			KQMLList asList = (KQMLList)asObject;
+			if (asList.size() > 1)
+				asType = asList.get(0).stringValue();
+			if (asList.getKeywordArg(":OF") != null)
+				ofSymbol = asList.getKeywordArg(":OF").stringValue();
+			
+		}
+		
+		if (asType.equalsIgnoreCase("MODIFICATION"))
+			goalName = ofSymbol;
 		System.out.println("Accepting goal: " + goalName);
 		//TODO: Give better error message
 		
@@ -304,23 +411,43 @@ public class UpdateCSMHandler extends MessageHandler {
 				g.setAccepted();
 				System.out.println("Action " + goalName + " accepted.");
 			}
+			else if (g instanceof Elaboration)
+			{
+				g.setAccepted();
+				System.out.println("Elaboration " + goalName + " accepted.");
+			}
 			else
+			{
 				goalPlanner.setActiveGoal(goalName);
-			System.out.println("Active goal now: " + goalName);
+				System.out.println("Active goal now: " + goalName);
+			}
+		}
+		else if (acceptContent.get(0).stringValue().toUpperCase().contains("ASK"))
+		{
+			String query = null;
+			if (innerContent.getKeywordArg(":QUERY") != null)
+				query = innerContent.getKeywordArg(":QUERY").stringValue();
+			if (query == null)
+				query = innerContent.getKeywordArg(":OF").stringValue();
+			
+			KQMLObject whatObject = innerContent.getKeywordArg(":WHAT");
+			
+			String what = "";
+			if (whatObject != null)
+				what = whatObject.stringValue();
+			String mapping = query + what;
+			
+			Query foundQuery = goalPlanner.getQueryMapping().get(mapping);
+			if (foundQuery != null)
+				foundQuery.setAccepted();
+			
 		}
 		else // Do we want to add this if we don't know of the goal?
 		{
-			KQMLList goalLF = TermExtractor.extractTerm(goalName, (KQMLList)context);
-			if (goalLF == null)
-			{
-				System.out.println("Not a valid goal to add to the system");
-				return null;
-			}
-			Goal newGoal = new Goal(goalLF);
-			goalPlanner.addGoal(newGoal);
-			newGoal.setAccepted();
-			goalPlanner.setActiveGoal(newGoal);
-			System.out.println("Active goal now: " + goalName);
+			if (goalPlanner.createGoalFromAct("ACCEPT",acceptContent, (KQMLList)context))
+				System.out.println("Goal successfully created from act");
+			else
+				System.out.println("Failed to create goal from act");
 		}
 		
 		return null;
@@ -332,7 +459,6 @@ public class UpdateCSMHandler extends MessageHandler {
 		String goalName = null;
 		if (goalNameObject != null)
 			goalName = goalNameObject.stringValue();
-		
 		
 		// This was a specific goal with initiative not taken
 		if (goalName != null && goalPlanner.hasGoal(goalName))

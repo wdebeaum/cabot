@@ -244,14 +244,16 @@
 ;; I cleared the roads with Charlie
 (define-type ONT::ACCOMPANIMENT
  :parent ONT::PREDICATE
- :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation (f::aspect f::dynamic)))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation  (f::type ont::event-of-action)
+						    (f::aspect f::dynamic)))
              (:REQUIRED ONT::GROUND (F::Phys-obj (F::origin F::living) (F::intentional +)))
              )
  )
 
 (define-type ONT::WITH-INSTRUMENT
  :parent ONT::PREDICATE
- :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation (f::aspect f::dynamic)))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation (f::type ont::event-of-action)
+						   (f::aspect f::dynamic)))
              (:REQUIRED ONT::GROUND (F::Phys-obj (F::origin F::artifact) (F::intentional -)))
              )
  )
@@ -267,8 +269,8 @@
 ;; under/over/above/below 5 pounds/dollars/feet etc.
 (define-type ONT::SCALE-RELATION
  :parent ONT::PREDICATE
- :arguments ((:ESSENTIAL ONT::FIGURE (F::abstr-obj (f::type ont::domain)))
-             (:REQUIRED ONT::GROUND (F::abstr-obj (f::scale ?!sc)))
+ :arguments ((:ESSENTIAL ONT::FIGURE) ;(F::abstr-obj (f::type ont::domain)))  ; I am.../The height is...
+             (:REQUIRED ONT::GROUND (F::abstr-obj (f::scale (? !t ont::duration-scale)))) ;(f::scale ?!sc) )) ; to exclude time related senses e.g., TIME-CULMINATION-REL and TIME-DEADLINE-REL for "within"
              )
  )
 
@@ -316,10 +318,9 @@
              )
  )
 
-;; (f::intentional -) allows "travel by car" but not "travel by hemingway"
 (define-type ONT::manner
  :parent ONT::SITUATION-MODIFIER
- :arguments ((:ESSENTIAL ONT::FIGURE (F::situation))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::situation (f::type ont::event-of-action)))
              (:REQUIRED ONT::GROUND ((? at F::abstr-obj F::situation f::phys-obj) (f::intentional -))) ;; don't want times to work here
              )
  )

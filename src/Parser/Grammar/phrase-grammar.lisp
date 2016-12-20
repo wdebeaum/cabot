@@ -1647,7 +1647,7 @@
 	    )      
       )
      (np (name +) (generated -) (sem ?sem) (class ?lf) (VAR ?v2) (time-converted -))
-     (add-to-conjunct (val (APPOS-EQ ?v2)) (old ?r) (new ?con)))
+     (add-to-conjunct (val (IDENTIFIED-AS ?v2)) (old ?r) (new ?con)))
 	
    ;; same with comma  the city, avon
     ((N1 (RESTR ?con) (CLASS ?c) (SORT ?sort) (QUAL ?qual) (COMPLEX +) 
@@ -2245,7 +2245,7 @@
 		    ))
 	  (class ont::quantity)
 	  (SPEC ont::INDEFINITE) (AGR 3s) (unit-spec +) (VAR ?v) (SORT unit-measure))
-         -unit-np-number-indef>
+         -unit-np-number-indef-special-case>
 	 (ART (VAR ?nv) (LEX w::a) )
  	 (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
 		   (KIND -) (sem ?sem) (sem ($ f::abstr-obj  (f::scale ?sc)))
@@ -2329,7 +2329,7 @@
      (PP  (VAR ?v) (MASS ?mass) (ptype ?ptp)
 	  (KIND -) (GAP -) (agr |3S|)
 	  (LF (% DESCRIPTION (CLASS ?c) (sem ?sem) 
-		 (transform ?transform) (status (? xx ont::definite ont::definite-plural)))
+		 (transform ?transform) (status (? xx ont::definite ont::pro)))
 		  )))
     
     (append-conjuncts (conj1 (& (REFOBJECT ?v) (size ?card))) (conj2 ?restr) (new ?newr))
@@ -2342,18 +2342,18 @@
                 ))
      (case ?case) (agr 3p)
      (SORT PRED)
-     (MASS ?mass)
+     (MASS count)
      (VAR *) (WH ?w));; must move WH feature up by hand here as it is explicitly specified in a daughter.
      -np-spec-of-def-plur-pp>
     (SPEC (LF ?spec) (ARG ?v) (VAR ?specvar) (name-spec -) (POSS -);;myrosia 12/27/01 added mass restriction to spec
      (WH ?w)
-     (RESTR ?restr) (MASS ?mass)
+     (RESTR ?restr)
      (SUBCAT (% PP (Ptype ?ptp) (agr |3S|) (SEM ?sem))))
     (head 
-     (PP  (VAR ?v) (MASS ?mass) (ptype ?ptp)
+     (PP  (VAR ?v) (mass count) (ptype ?ptp)
 	  (KIND -) (GAP -) (agr 3p)
 	  (LF (% DESCRIPTION (CLASS ?c) (sem ?sem) 
-		 (transform ?transform) (status (? xx ont::definite ont::definite-plural)))
+		 (transform ?transform) (status (? xx ont::definite-plural ont::pro-set)))
 		  )))
     
     (append-conjuncts (conj1 (& (REFOBJECT ?v) (size ?card))) (conj2 ?restr) (new ?newr))
@@ -2386,7 +2386,7 @@
        (append-conjuncts (conj1 (& (?!argmap ?ppv))) (conj2 ?restr) (new ?newr))
        )
       
-   ;;  NP with SPECS that subcategorize for "of" PP's that are mass and indefinite
+   ;;  NP with SPECS that subcategorize for "of" PP's that are mass
     ;; e.g., three gallons of water
    ((NP (LF (% description (STATUS ?spec) (VAR *) (CLASS ?c) (CONSTRAINT ?newr)
 	       (sem ?sem)  (transform ?transform) 
@@ -2395,16 +2395,44 @@
      (SORT PRED)
      (MASS mass)
      (VAR *) (WH ?w));; must move WH feature up by hand here as it is explicitly specified in a daughter.
-    -np-spec-of-mass-idef-pp>
-    (SPEC (LF ?spec) (ARG ?v) (VAR ?specvar) (name-spec -) (mass mass) (POSS -);;myrosia 12/27/01 added mass restriction to spec
+    -np-spec-of-mass-indef-pp>
+    (SPEC (LF ?spec) (ARG ?v) (VAR ?specvar) (name-spec -) (mass mass) 
+     (POSS -)
      (WH ?w)
      (RESTR ?restr)
      (SUBCAT (% PP (Ptype ?ptp) (SEM ?sem))))
     (head 
-     (PP  (VAR ?v) (MASS mass) (ptype ?ptp)
+     (PP  (VAR ?v) (MASS mass) 
+	  (ptype ?ptp)
 	  (KIND -) (GAP -)
 	  (LF (% DESCRIPTION (CLASS ?c) (sem ?sem) (constraint ?constr)
 		 (transform ?transform) (status (? st ont::bare ont::indefinite-plural))
+		 ))))
+                 
+    (append-conjuncts (conj1 ?constr) (conj2 ?restr) (new ?newr))
+    )
+
+   ;;  NP with SPECS that subcategorize for "of" PP's that are plural
+    ;; e.g., three gallons of beans
+   ((NP (LF (% description (STATUS ?spec) (VAR *) (CLASS ?c) (CONSTRAINT ?newr)
+	       (sem ?sem)  (transform ?transform) 
+	       ))
+     (case ?case)
+     (SORT PRED)
+     (MASS count)
+     (VAR *) (WH ?w));; must move WH feature up by hand here as it is explicitly specified in a daughter.
+    -np-spec-quantity-of-def-pp>
+    (SPEC (LF ?spec) (ARG ?v) (VAR ?specvar) (name-spec -)
+     (POSS -)
+     (WH ?w)
+     (RESTR ?restr)
+     (SUBCAT (% PP (Ptype ?ptp) (SEM ?sem))))
+    (head 
+     (PP  (VAR ?v) (MASS count) 
+	  (ptype ?ptp)
+	  (KIND -) (GAP -)
+	  (LF (% DESCRIPTION (CLASS ?c) (sem ?sem) (constraint ?constr)
+		 (transform ?transform) (status (? x ont::indefinite-plural))
 		 ))))
                  
     (append-conjuncts (conj1 ?constr) (conj2 ?restr) (new ?newr))
@@ -2452,7 +2480,7 @@
       (transform ?transform))
      -adj-number-unit-modifier>
      (NUMBER  (val ?sz) (VAR ?nv) (restr -))
-     (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m) 
+     (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
 	       (KIND -) ;;(agr 3s)   we allow either 61 year old or 61 years old
 	       (sem ?sem)  (sem ($ f::abstr-obj (f::scale ?sc)))
 	       (RESTR ?restr) (transform ?transform)
@@ -2507,7 +2535,7 @@
        
     ((SPEC (AGR ?agr)
       (VAR *) 
-      (ARG ?arg) (lex ?lex) (LF SM) (SUBCAT ?subcat) (Mass MASS)
+      (ARG ?arg) (lex ?lex) (LF ont::SM) (SUBCAT ?subcat) (Mass MASS)
       (unit-spec +)
       (restr (& (quantity ?unit-v)))) ;; mass nouns get QUANTITY in the restriction
      -spec-indef-unit-mass>
@@ -2668,14 +2696,14 @@
     ; TEST: the quickly loaded truck ; the quickly computer generated truck
      ;; Myrosia 11/26/01 we only allow those phrases before the verbs. After the verbs, they should be treated as reduced relative clauses
      ((ADJP (ARG ?arg) (VAR ?v) 
-	    (SUBCATMAP ont::affected) (ARGUMENT ?subj)
+	    (SUBCATMAP (? x ont::affected ont::affected-result)) (ARGUMENT ?subj)
 	    (atype central) 
 	    (LF (% PROP (class ?lf) (VAR ?v) (constraint ?newc)))
       )
      -vp-pastprt-adjp>
      (head
       (vp- (class ?lf) (constraint ?cons) (var ?v)
-	   (SUBJ-MAP ont::affected) (SUBJ ?subj) ;; more general to ask for SUBJ to be AFFECTED role, includes
+	   (SUBJ-MAP (? x ont::affected ont::affected-result)) (SUBJ ?subj) ;; more general to ask for SUBJ to be AFFECTED role, includes
  	                                         ;; the passive as well as unaccusative cases
 	   (gap -) ;;  no gap in the VP
 	   (vform (? pp passive pastpart))
@@ -3536,10 +3564,11 @@
 	     (sem ?sem) (transform ?trans)))
       (gap -) (pp-word +)
       (role ?reln)
+      (sem ?sem)
       )
      -how-adj>     
      (adv (SORT PP-WORD) (wh Q) (IMPRO-CLASS ?pro-class) (lex how))
-     (head (adjp (var ?adjv) (atype ?atype) (arg ?argvar) (LF (% PROP (class ?reln) (constraint ?con)))))
+     (head (adjp (var ?adjv) (atype ?atype) (arg ?argvar) (sem ?sem) (LF (% PROP (class ?reln) (constraint ?con)))))
      (append-conjuncts (conj1 ?con) 
       (conj2 (& (degree (% *PRO* (status *wh-term*) (VAR *) (CLASS ont::degree)
 		   (SEM ?subcatsem) (CONSTRAINT (& (proform ?lex) (suchthat ?adjv)))))))
@@ -3558,7 +3587,7 @@
       )
      -how-advbl>     
      (adv (SORT PP-WORD) (wh Q) (IMPRO-CLASS ?pro-class) (lex how))
-     (head (advbl (var ?adjv) (atype ?atype) (arg ?argvar)  (argument ?argu)
+     (head (advbl (var ?adjv) (atype ?atype) (arg ?argvar)  (argument ?argu) (sort pred) ; to rule out "how about..."
 		  (LF (% PROP (class ?reln) (constraint ?con)))))
      (append-conjuncts (conj1 ?con) 
       (conj2 (& (degree (% *PRO* (status *wh-term*) (VAR *) (CLASS ont::degree)
@@ -4605,7 +4634,10 @@
     ;; and should be changed only if there are compelling counterexamples for predicative-only or attributive-only adjectives
     ;; which I could not find
     ;; Now handles conjunctions and disjunctions
-    ((ADJP (ARG ?arg) (argument ?a) (sem ?sem) (atype central)
+    ;; predicative-only: The cat is alone and afraid
+    ;; attributive-only: The main and only reason
+    ;; postpositive: the cars available and unavailable
+    ((ADJP (ARG ?arg) (argument ?a) (sem ?sem) (atype ?atype1) ;(atype central)
 	   (VAR *) ;(COMPLEX +) -- removed to allow complex adj prenominal modification, e.g. "a natural and periodic state of rest"
 	   (SORT PRED)
       (LF (% PROP (CLASS ?class) (VAR *) (sem ?sem) (CONSTRAINT (& (:sequence (?v1 ?v2)) (:operator ?conj))) ;;?members)))
@@ -4613,11 +4645,15 @@
 	     )))
           
      -adj-conj1>
-     (ADJP (arg ?arg) (argument ?a) (VAR ?v1) (class ?c1) (sem ?s1) (lf ?lf1) (atype central) (post-subcat -)
+     (ADJP (arg ?arg) (argument ?a) (VAR ?v1) 
+      ;(lf (% PROP (class ?c1))) (sem ?s1) (atype central) (post-subcat -)
+      (lf (% PROP (class ?c1))) (sem ?s1) (atype ?atype1) (post-subcat -)
       (set-modifier -)
       )
      (CONJ (LF ?conj) (but-not -) (but -))
-     (ADJP (arg ?arg)  (argument ?a) (VAR ?v2) (class ?c2) (sem ?s2) (lf ?lf2) (atype central) (post-subcat -)
+     (ADJP (arg ?arg)  (argument ?a) (VAR ?v2) 
+      ;(LF (% PROP (class ?c2))) (sem ?s2) (atype central) (post-subcat -)
+      (LF (% PROP (class ?c2))) (sem ?s2) (atype ?atype2) (post-subcat -)
       (set-modifier -)
       )
      (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
@@ -4753,8 +4789,8 @@
 				    (constraint ?restr) (sem ?sem)))))
 	   (subj ?subj)
 	   (subj-map ?subjmap)
-	   (dobj ?dobj)
-	   (dobj-map ?dobjmap) 
+	   ;;(dobj ?dobj)
+	   ;;(dobj-map ?dobjmap) 
 	   (rate-activity-nom -)
 	   )
 	  -insert-rate-pred>

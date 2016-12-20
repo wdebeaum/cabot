@@ -34,7 +34,9 @@ SRCS = 	SRIWrapper.java \
 	src/features/BlockFeatureGroup.java \
 	src/features/CountFeature.java \
 	src/features/TemporalSequenceFeature.java \
-	src/features/DirectionFeature.java 
+	src/features/DirectionFeature.java \
+	src/models/FeatureProjection.java \
+	src/messages/CommDataSender.java \
 
 	
 

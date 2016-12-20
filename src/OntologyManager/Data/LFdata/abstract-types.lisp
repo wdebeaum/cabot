@@ -506,7 +506,7 @@
 (define-type ont::psychological-property-val
     :parent ont::animal-property-val
     :arguments ( ;; stimulus is what provokes the emotion - I am afraid of dogs / storms
-		(:optional ont::stimulus ((? stm f::phys-obj f::situation f::abstr-obj)))
+		;;(:optional ont::stimulus ((? stm f::phys-obj f::situation f::abstr-obj)))
 		;; the object that is involved in a situation, but which is not a stimulus directly
 		;; for example, I am afraid for her, for the project
 		;;(:optional ont::formal (f::situation f::phys-obj f::abstr-obj)))
@@ -582,6 +582,7 @@
 (define-type ONT::age-VAL
   :parent ONT::temporal
   :sem (F::abstr-obj (F::scale ont::age-scale))
+;  :sem (F::abstr-obj (F::scale ont::duration-scale))
  )
 
 ;; for adjectives concerning a linear dimension: tall, fat, short, thick
@@ -974,13 +975,13 @@
 ;; familiar, known
 (define-type ont::familiarity-val
   :parent ont::property-val
-  :arguments ((:optional ont::stimulus))
+  ;;:arguments ((:optional ont::stimulus))
   )
 
 ;; unfamiliar, unknown
 (define-type ont::unfamiliarity-val
   :parent ont::property-val
-  :arguments ((:optional ont::stimulus))
+  ;;:arguments ((:optional ont::stimulus))
   )
 
 ;; typical, normal, usual
@@ -1679,7 +1680,7 @@
 (define-type ONT::LENGTH-UNIT
  :wordnet-sense-keys ("linear_measure%1:23:00" "linear_unit%1:23:00" "week%1:28:00" "hebdomad%1:28:00")
  :parent ONT::tangible-unit
- :sem (F::Abstr-obj (F::Scale Ont::length))
+ :sem (F::Abstr-obj (F::Scale ONT::LINEAR-D)) ; Ont::length))  ; e.g., km: not just length but could also be width, height, etc
  )
 
 ;; acre, sqare feet
@@ -2467,7 +2468,8 @@
 
 ;; lottery, contest
 (define-type ont::competition
-  :parent ont::process
+  :wordnet-sense-keys ("competition%1:11:00")
+  :parent ont::event-defined-by-activity
   )
 
 ;; game
@@ -4063,7 +4065,8 @@
 
 (define-type ont::age-scale
 ;  :parent ont::scale
-  :parent ont::linear-scale
+;  :parent ont::linear-scale
+  :parent ont::duration-scale
   )
 
 (define-type ont::other-scale

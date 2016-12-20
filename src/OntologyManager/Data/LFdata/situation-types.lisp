@@ -42,7 +42,7 @@
  )
 
 (define-type ONT::CAUSE-Interact
- :wordnet-sense-keys ("interact%2:41:00" "collide%2:35:01")
+ :wordnet-sense-keys ("interact%2:41:00")
  :comment "an AGENT causes some interaction with another agent"
  :parent ONT::CAUSE-EFFECT
  :sem (F::Situation (F::Trajectory -))
@@ -214,7 +214,7 @@
  )
 
 (define-type ONT::Body-manipulation
- :wordnet-sense-keys ("hold%2:35:00" "take_hold%2:35:00" "bear%2:35:01" "immobilise%2:35:00")
+ :wordnet-sense-keys ("hold%2:35:00" "take_hold%2:35:00" "bear%2:35:01" "immobilise%2:35:00" "clutch%2:35:00")
  :parent ONT::EVENT-OF-causation
  :comment "and AGENT grasps something to manipulate it"
  :sem (F::Situation (F::Cause F::Agentive))
@@ -473,7 +473,7 @@
 ;;; I conjoined Experiencer-subj with Experiencer-obj
 ;;; swift 01/12/01 -- changed aspect feature f_static to F_Stage-Level to allow progressive
 (define-type ONT::Experiencer-emotion
- :wordnet-sense-keys ("like%2:37:05" "experience%2:37:00" "feel%2:37:00" "feeling%1:03:00")
+ :wordnet-sense-keys ("like%2:37:05" "experience%2:37:00" "feel%2:37:00")
  :parent ONT::event-of-experience
  :sem (F::Situation (:required (F::Cause F::Mental))(:default (F::Aspect F::Stage-Level)))
  :arguments (
@@ -506,7 +506,7 @@
 
 
 (define-type ONT::Cause-to-Move
- :wordnet-sense-keys ("reflect%2:39:00" "drive%2:35:01" "drive%2:41:02")
+ :wordnet-sense-keys ("drive%2:35:01" "drive%2:41:02")
  :parent ont::motion
  :sem (F::Situation (F::Cause F::Force) (f::trajectory +))
  :arguments ((:ESSENTIAL ONT::agent)
@@ -520,7 +520,6 @@
     )
 
 (define-type ONT::apply-force
- :wordnet-sense-keys ("reflect%2:39:00" "drive%2:35:01")
  :parent ont::touch
  :sem (F::Situation (F::Cause F::Force) )
  :arguments ((:ESSENTIAL ONT::agent)
@@ -530,16 +529,13 @@
 (define-type ONT::Co-motion
  :parent ont::motion
  :arguments ((:essential ont::neutral)   ;; the object with which the motion is relative to
+	     (:essential ONT::AFFECTED ((? ttype f::phys-obj f::abstr-obj)))  ; exclude situation, e.g., "the dog chase the cat barking": "cat barking" should not be a nominalization that is chased 
              )
  )
 
-(define-type ONT::Emptying
- :parent ont::motion
- )
-
-(define-type ONT::Filling
+(define-type ONT::cause-cover
  :wordnet-sense-keys ("impregnate%2:30:00" "saturate%2:30:04" "spread%2:35:13")
- :parent ont::motion
+ :parent ont::event-of-causation
  :arguments ((:ESSENTIAL ONT::affected-result)
              )
  )
@@ -1019,6 +1015,7 @@
 		)
  )
 
+#| ; merged into COMPLETE
 (define-type ONT::succeed
  :wordnet-sense-keys ("hold_one's_own%2:42:00" "succeed%2:41:00" "excel%2:42:00")
  :parent ONT::acting
@@ -1029,7 +1026,7 @@
 	     ;;(:REQUIRED ONT::agent ((? ag f::abstr-obj F::phys-obj) (F::intentional +)) (:implements cause))
               )
  )
-
+|#
 
 ;; tend
 (define-type ONT::be-inclined

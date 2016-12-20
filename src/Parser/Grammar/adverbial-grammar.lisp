@@ -487,8 +487,9 @@
 		(ellipsis -)
 		))
 
-     (advbl (ATYPE POST) (ARGUMENT (% S (sem ?sem))) (GAP -)
+     (advbl (ATYPE POST) (ARGUMENT (% S (sem ?sem) (subjvar ?subjvar))) (GAP -)
       ;;(subjvar ?subjvar)   ;Not sure why this was here - maybe for purpose clauses. Leaving it in causes many parses to fail as the SUBJVAR in the new VP is wrecked
+     ;; the SUBJVAR is required in the argument to be able to pass in the subject for things like "the dog walked barking".
       (ARG ?v) (VAR ?mod)
       (role ?advrole) 
       )
@@ -521,14 +522,15 @@
      (add-to-conjunct (val (RESULT ?mod)) (old ?con) (new ?new))
      )
 
-        ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
+    ;;  resultative construction using adjectives with intransitives: e.g., the water froze solid
+    ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
          ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
       (advbl-needed -) (complex +) (result-present +) (subjvar ?subjvar)(GAP ?gap)
       )
      -vp-result-with-intransitive> .98   ;;  want to prefer explicitly subcategorized attachments
      (head (vp- (VAR ?v) 
 		(seq -)  ;;  post mods to conjoined VPs is very rare
-		(DOBJ -)
+		(DOBJVAR -)  ; cannot use (dobj -) because dobj is (% - (W::VAR -)) 
 		(SUBJ (% NP (Var ?npvar) (LEX ?LEX) (sem ?sem)))
 		(constraint ?con) (tma ?tma) (result-present -)
 		;;(subjvar ?subjvar)
@@ -537,7 +539,8 @@
 		(ellipsis -)
 		))
      (adjp (ARGUMENT (% NP (sem ?sem))) 
-      (SEM ($ f::abstr-obj (F::type (? ttt ONT::path))))
+;      (SEM ($ f::abstr-obj (F::type (? ttt ONT::path))))
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln ont::domain-property))))
       (GAP -)
       ;; (subjvar ?subjvar)
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
@@ -548,11 +551,41 @@
      )
 
      
-
-      ;;  resultative construction using adverbs: e.g., sweep the dust into the corner
+    ;;  resultative construction using adverbs: e.g., I walked to the store
     ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
          ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
-      (advbl-needed -) (complex +) (result-present +) (subjvar ?subjvar)(GAP ?gap)
+;      (advbl-needed -) (complex +) (result-present +) (GAP ?gap)
+      (advbl-needed -) (complex +) (GAP ?gap)
+      )
+     -vp-result-advbl-intransitive>  
+     (head (vp- (VAR ?v) 
+		(seq -)  ;;  post mods to conjoined VPs is very rare
+		(DOBJVAR -)  ; cannot use (dobj -) because dobj is (% - (W::VAR -)) 
+		(SUBJ (% NP (Var ?npvar) (sem ?sem) (lex ?lex)))  
+		(constraint ?con) (tma ?tma) (result-present -)
+		;;(aux -) 
+		(gap ?gap)
+		(ellipsis -)
+		))
+
+     (advbl (ARGUMENT (% NP ;; (? xxx NP S)  ;; we want to eliminate V adverbials, he move quickly  vs he moved into the dorm
+			 (sem ?sem))) (GAP -)
+      ;; (subjvar ?subjvar)
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::path ont::trajectory))))
+;      (SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln ont::goal-reln ont::direction-reln))))
+      (SET-MODIFIER -)  ;; mainly eliminate numbers 
+      (ARG ?npvar) (VAR ?mod)
+      ;;(role ?advrole) 
+      )
+     (add-to-conjunct (val (MOD ?mod)) (old ?con) (new ?new))
+     )
+
+    
+    ;;  resultative construction using adverbs: e.g., sweep the dust into the corner
+    ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
+         ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
+;      (advbl-needed -) (complex +) (result-present +) (GAP ?gap)
+      (advbl-needed -) (complex +) (GAP ?gap)
       )
      -vp-result-advbl>  
      (head (vp- (VAR ?v) 
@@ -568,12 +601,13 @@
      (advbl (ARGUMENT (% NP ;; (? xxx NP S)  ;; we want to eliminate V adverbials, he move quickly  vs he moved into the dorm
 			 (sem ?sem))) (GAP -)
       ;; (subjvar ?subjvar)
-      (SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::path))))
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::path ont::trajectory))))
+;      (SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln ont::goal-reln ont::direction-reln))))
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
       (ARG ?npvar) (VAR ?mod)
       ;;(role ?advrole) 
       )
-     (add-to-conjunct (val (RESULT ?mod)) (old ?con) (new ?new))
+     (add-to-conjunct (val (MOD ?mod)) (old ?con) (new ?new))
      )
 
 ;; to kill by immersing in water
@@ -738,6 +772,7 @@
 	    ))
      (advbl (ATYPE POST)
       (ARGUMENT (% NP (sem ?argsem) (constraint ?c)  ))
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln))))
       (arg ?v1) (VAR ?mod) (WH -) (GAP -)
       )
      (add-to-conjunct (val (MODS ?mod)) (old ?restr) (new ?new))
@@ -1173,6 +1208,20 @@
 		      ))
      )
 
+    ;; TEST: more than five (trucks)
+    ((number (agr ?agr) (VAR ?v) (MASS ?mn) (lf ?lf) (sem ?sem) (premod +) ;;(val ?val)
+	     (nobarespec +) ; this can't be a specifier -- that goes through the cardinality rules
+	     (restr (& (mods (% *PRO* (status ont::F) (class ?lfa) (var ?v1) 
+				(constraint (& (FIGURE ?v) 
+					       (GROUND (% *PRO* (status ont::indefinite) (var *) (class ont::number) (constraint (& (value ?val)))))))))))
+	     )
+     -advbl-bare-number-pre-than>
+     (adv (VAR ?v1) (argument (% number)) (Mass ?m) (lf ?lfa))
+     (word (lex w::than))
+     (head (number (VAR ?v) (lf ?lf) (lex ?l) (agr ?agr) (MASS ?mn) (sem ?sem) (val ?val) (premod -)
+		      ))
+     )
+    
     ;; TEST: eight or so
     ((number (agr ?agr) (VAR ?v) (MASS ?mn) (lf ?lf) (sem ?sem) (premod +) ;;(val ?val)
 	     (nobarespec +) ; this can't be a specifier -- that goes through the cardinality rules
@@ -1362,7 +1411,7 @@
       ;; TEST: Barking, the dog chased the cat.
    ;; TEST: The dog chased the cat barking.
    ((advbl (arg ?arg) (sem ($ f::abstr-obj (f::information -) (f::intentional -)))
-     (argument (% S (sem ($ f::situation (f::aspect f::dynamic))))) 
+     (argument (% S (sem ($ f::situation (f::aspect f::dynamic))) (subjvar ?!subjvar) (subj ?!subj))) 
      (sort pred) (gap -) (atype (? atp pre post))
      (role ONT::MANNER) (var **)
      (LF (% PROP (CLASS ONT::IMPLICIT-OVERLAP) (VAR **) 
@@ -1372,8 +1421,10 @@
     -vp-ing-advbl> .98
     (head (vp (vform ing) (var ?v) (gap -) (aux -) (advbl-necessary -)
 	   (constraint ?con)  (transform ?transform) (class ?class)
-	   (subj (% np (sem ?subjsem)))
-	   (subjvar (% *PRO* (VAR *) (gap -) (sem ?subjsem)))
+	   (subj (% np (sem ?subjsem) (gap -)))
+	   ;(subjvar (% *PRO* (VAR *) (gap -) (sem ?subjsem)))
+	   (subjvar ?!subjvar)
+	   (subj ?!subj)
 	   ))
     )
 #||   I don't think we can distinguish RESULT well from temporal overlap

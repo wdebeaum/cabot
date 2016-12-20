@@ -120,7 +120,13 @@
 	(LOBJ (:parameter xp (:default (% W::NP  (w::sort (? !xx W::unit-measure))))) ONT::AFFECTED1)
 	))
 
-      (AFFECTED-affected-as-comp-TEMPL
+       (AFFECTED1-affected-TEMPL
+       (ARGUMENTS
+	(LSUBJ (% W::NP (w::sort (? !xx W::unit-measure))) ONT::affected1)
+	(LOBJ (:parameter xp (:default (% W::NP  (w::sort (? !xx W::unit-measure))))) ONT::AFFECTED)
+	))
+
+       (AFFECTED-affected-as-comp-TEMPL
        (ARGUMENTS
 	(LSUBJ (% W::NP (w::sort (? !xx W::unit-measure))) ONT::affected)
 	(LCOMP (:parameter xp (:default (% W::pp (W::ptype W::with)))) ONT::AFFECTED1)
@@ -884,12 +890,23 @@
 										(W::gap ?gap))) ONT::FORMAL)
 	))
 
+       (experiencer-PRED-xp-TEMPL
+       (ARGUMENTS
+	(LSUBJ (% W::NP (W::var ?subjvar) (W::sem ?lsubjsem) (W::lex ?lsubjlex)) ONT::experiencer)
+    ;;;;;(argument ?lsubj)
+    ;;;;; the arg of the pred will be the subject of the verb
+	(LOBJ (:parameter xp (:default (% W::PRED (W::arg ?subjvar))) (:required (W::filled -)
+					;(W::argument ?lsubj)
+					 (W::argument (% W::np (W::sem ?lsubjsem) (W::lex ?lsubjlex) (W::var ?lsubjvar)))
+										(W::gap ?gap))) ONT::FORMAL)
+	))
+
       (AFFECTED-PRED-TEMPL
        (ARGUMENTS
 	(LSUBJ (% W::NP (W::var ?subjvar) (W::lex ?lsubjlex)) ONT::AFFECTED)
        ;;;;; the arg of the pred will be the subject of the verb
-	(LOBJ (:parameter xp (:default (% W::PRED (W::arg ?subjvar))) (:required(W::filled -) (W::argument ?lsubj) 
-										(W::gap ?gap))) ONT::RESULT)
+	(LOBJ (:parameter xp (:default (% W::PRED (W::arg ?subjvar))) (:required (W::filled -) (W::argument ?lsubj) 
+										 (W::gap ?gap))) ONT::FORMAL)
 	))
 
 
@@ -898,9 +915,9 @@
 	(LSUBJ (% W::NP (W::var ?subjvar) (W::lex ?lsubjlex)) ONT::agent)
     ;;;;; the arg of the pred will be the subject of the verb
 	(LOBJ (:parameter xp (:default (% W::PRED (W::arg ?subjvar))) 
-			  (:required (W::filled -) 
+			  (:required (W::filled -) ;;(w::argument ?lsubj)
 				     (W::argument (% W::np (W::sem ?lsubjsem) (W::lex ?lsubjlex)
-						     (W::var ?lsubjvar))) 
+						     (W::var ?subjvar))) 
 				     (W::gap ?gap))) ONT::RESULT)
 	))
       
@@ -1346,7 +1363,7 @@
       (AGENT-GOAL-affected-TEMPL
        (ARGUMENTS
 	(LSUBJ (% W::NP) ONT::AGENT)
-	(LOBJ (% W::NP) ONT::result)
+	(LOBJ (% W::NP) ONT::affected-result)
 	(LCOMP (:parameter xp (:default (% W::pp (W::ptype W::with)))) ONT::affected OPTIONAL)
 	))
       
@@ -2340,7 +2357,7 @@
   (quan-than-comp  ;; e.g., more than five, more than that
    (SYNTAX (W::QCOMP (% W::PP (W::PTYPE W::THAN) (W::GAP -)))
 			;;(W::SEM ($ F::ABSTR-OBJ (F::INFORMATION F::DATA)))))
-  	   (W::QOF (% W::PP (W::PTYPE W::OF) (W::AGR ?agr1) (W::MASS ?m)))
+  	   (W::QOF (% W::PP (W::PTYPE W::OF) (W::AGR ?agr1) (W::MASS ?m))) 
    ))
   
   (quan-cardinality-templ
@@ -3658,6 +3675,7 @@
   (compar-than-templ 
    (SYNTAX (w::compar-op +) (w::ground-oblig -))
    (arguments
+    (ARGUMENT (% W::NUMBER) ONT::FIGURE) 
     (subcat (% w::PP (w::ptype w::than)) ont::ground)))
 
   

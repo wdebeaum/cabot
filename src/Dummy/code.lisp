@@ -7,7 +7,7 @@
 	(sender (find-arg-in-act msg :sender)))
     ;;(format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
     (if reply-with
-	(send-msg (append (list 'tell :receiver sender :content result) (list :in-reply-to reply-with)))
+	(send-msg (append (list 'reply :receiver sender :content result) (list :in-reply-to reply-with)))
 	(send-msg (list 'tell :content result)))))
 
 
@@ -18,9 +18,10 @@
 	 (context (find-arg args :context))
 	 (result 
 	  (case (car content)
-	    ((adopt assertion)
+	    ((adopt assertion answer)
 	     (let* ((head (find-lf-in-context context (find-arg-in-act content :what)))
-		    (headtype (find-arg head :instance-of)))
+		    (headtype (find-arg head :instance-of))
+		    (content-as (find-arg-in-act content :as)))
 	       (format t "~% Evalutaing ~S with headtype ~S" content headtype)
 	       (case headtype
 		 (ont::cause-effect
@@ -40,25 +41,35 @@
 		    (if (and (numberp size) (> size 4))
 ;		    (if (numberp size)
 ;			(if (> size 4)
-			    (list 'report :content (list 'failure :type 'CANNOT-PERFORM :what (second head)
-						     :reason '(not enough blocks SIFT to provide the details) :context context))
+			    (list 'report :content (list 'unacceptable :type 'CANNOT-PERFORM :what content ;(second head)
+						     :reason '(not enough blocks SIFT to provide the details)) :context context)
 ;			  (list 'report :content (list 'accept-with-clarify :what content :reason 'R1
 ;						     :context (append '((ONT::RELN R1 :INSTANCE-OF ONT::IDENTIFY :WHAT XX)
 ;									(ONT::THE XX :instance-of ONT::PERSON :suchthat XXX)
 ;								   (ONT::RELN XXX :instance-of ONT::IS-PERFORMER :figure XX))
 ;								      context))))
-		      (list 'report :content (list 'acceptable :what content :context context))
+		      (list 'report :content (list 'acceptable :what content) :context context)
 		  
 		      )))
 		
 		  (otherwise
-		   
-		   (list 'report :content (list 'acceptable :what content :context context))))
-	       )))))
+		   (case (car content-as)
+		     (elaboration
+		      (list 'report :content (list 'acceptable
+						   :what (list 'ADOPT :what (find-arg-in-act content :what)
+							       :as (substitute 'modification 'elaboration content-as)))
+			    :context context)
+		      )
+		     (otherwise
+		      (list 'report :content (list 'acceptable :what content) :context context)
+		      )
+		     )
+		   )
+	       ))))))
 		  
     ;;(format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
     (if reply-with
-	(send-msg (append (list 'tell :receiver sender :content result) (list :in-reply-to reply-with)))
+	(send-msg (append (list 'reply :receiver sender :content result) (list :in-reply-to reply-with)))
 	(send-msg (list 'tell :content result)))))
   
 (defun reply-to-message (msg result)
@@ -142,3 +153,5 @@
 (defun find-lf-in-context (context id)
   (find id context :key #'cadr))
 
+(defun restart-dummy nil
+  (setq *replyCounter* 0))

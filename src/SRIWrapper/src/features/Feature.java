@@ -1,10 +1,12 @@
 package features;
 
+import java.util.*;
+
 import TRIPS.KQML.*;
 
 
 
-public abstract class Feature<T> {
+public abstract class Feature<T> implements FeatureGroup{
 
 	protected String name;
 	
@@ -49,6 +51,13 @@ public abstract class Feature<T> {
 	public String getName()
 	{
 		return name;
+	}
+	
+	public Collection<Feature> getFeatures()
+	{
+		List<Feature> result = new ArrayList<Feature>();
+		result.add(this);
+		return result;
 	}
 	
 }

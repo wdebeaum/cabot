@@ -26,7 +26,7 @@ public class Step {
 	int lastUtteranceNumber;
 	boolean sentCommand;
 	Block sentBlock;
-	StructureInstance lastStructureInstance;
+	private static StructureInstance lastStructureInstance;
 	
 	public Step(String action, String[] arguments)
 	{
@@ -125,29 +125,41 @@ public class Step {
 				sortedTsf.setSequence(new ArrayList<FeatureGroup>(tsf.sortedPositions(xDirection)));
 				FeatureGroup nextFeatureGroup = sortedTsf.getNextInDirection();
 				BlockFeatureGroup bfg = (BlockFeatureGroup) nextFeatureGroup;
+				//sentBlock = new Block(bfg.block.position);
 				sentBlock = bfg.block;
+				lastStructureInstance = currentInstance;
+				
 			}
 			else if (arguments[0].equalsIgnoreCase("linearY"))
 			{
 				
 				TemporalSequenceFeature tsf = (TemporalSequenceFeature) lastStructureInstance.getFeature("sequence");
+				System.out.println("TSF has size: " + tsf.getValue().size());
 				DirectionFeature xDirection = new DirectionFeature("xdirection");
 				xDirection.setValue(new DoubleMatrix(new double[]{1,0,0}));
 				TemporalSequenceFeature sortedTsf = new TemporalSequenceFeature("sortedsequence");
 				sortedTsf.setSequence(new ArrayList<FeatureGroup>(tsf.sortedPositions(xDirection)));
 				
 				DirectionFeature zDirection = new DirectionFeature("zdirection");
-				xDirection.setValue(new DoubleMatrix(new double[]{0,0,1}));
+				zDirection.setValue(new DoubleMatrix(new double[]{0,0,1}));
 				TemporalSequenceFeature verticalTsf = sortedTsf.projectOnto(xDirection, zDirection);
 				FeatureGroup nextFeatureGroup = (FeatureGroup) verticalTsf.getValue().get(Integer.parseInt(arguments[1]));
 				BlockFeatureGroup bfg = (BlockFeatureGroup) nextFeatureGroup;
+				
 				sentBlock = bfg.block;
 			}
 			// Check if a block is in that place, then complete the placement step if it is
+			System.out.println("Checking blocks to " + sentBlock.position);
 			for (Block b : currentScene.integerBlockMapping.values())
 			{
-				if (b.hasSimilarPosition(sentBlock))
+				
+				System.out.println(b.position.mul(new DoubleMatrix(new double[]{-1,1,1})));
+				if (b.hasSimilarPosition(sentBlock,true))
+				{
+					
+					System.out.println("Block already in place.");
 					return true;
+				}
 			}
 			
 			if (!sentCommand)

@@ -51,6 +51,15 @@ public class BlockFeatureGroup implements FeatureGroup {
 		features.put(feature.getName(),feature);
 	}
 	
+	public void setPointFeature(PointFeature pf)
+	{
+		features.put("position", pf);
+		block.position = pf.getValue();
+	}
 	
+	public String toString()
+	{
+		return "Block FG at: " + block.position;
+	}
 
 }

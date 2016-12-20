@@ -15,6 +15,7 @@ public class ModelBuilder {
 	int numBlocks = -1;
 	
 	public ModelBuilder() {
+		currentModel = null;
 		modelInstantiations = new HashMap<String,ModelInstantiation>();
 	}
 	

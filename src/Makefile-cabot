@@ -1,6 +1,6 @@
 # Makefile-cabot
 #
-# Time-stamp: <Sat Jan  2 21:01:52 CST 2016 lgalescu>
+# Time-stamp: <Tue Nov 22 14:00:53 CST 2016 lgalescu>
 #
 # Author: Lucian Galescu <lgalescu@ihmc.us>, 14 Oct 2015
 #
@@ -26,6 +26,7 @@ LISP_MODULES = \
 	NewIM \
 	BasicDialogueAgent \
 	LanguageLearner \
+	AlarmClock \
 	Dummy \
 
 LISP_PROGRAMS = \
