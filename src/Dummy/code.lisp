@@ -2,6 +2,10 @@
 
 (in-package :dummy)
 
+(defvar *last-query-id* nil)  ;; we need this to generate ANSWER messages
+(defvar *last-query-what* nil)  ;; we need this to generate ANSWER messages
+(defvar *last-query-in-context* nil)  ;; we need this to generate ANSWER messages
+(defvar *last-active-goal*)
 (defun process-reply (msg args result)
   (let ((reply-with (find-arg-in-act msg :reply-with))
 	(sender (find-arg-in-act msg :sender)))
@@ -18,11 +22,12 @@
 	 (context (find-arg args :context))
 	 (result 
 	  (case (car content)
-	    ((adopt assertion answer)
-	     (let* ((head (find-lf-in-context context (find-arg-in-act content :what)))
+	    ((adopt assertion)
+	     (let* ((head (find-lf-in-context-tmp context (find-arg-in-act content :what)))
 		    (headtype (find-arg head :instance-of))
 		    (content-as (find-arg-in-act content :as)))
-	       (format t "~% Evalutaing ~S with headtype ~S" content headtype)
+	       (format t "~% Evaluating ~S with headtype ~S" content headtype)
+	       ;(format t "~% content-as ~S" content-as)
 	       (case headtype
 		 (ont::cause-effect
 		  (let* ((prop (find-lf-in-context context (find-arg head :formal)))
@@ -32,40 +37,59 @@
 						     :reason '(not enough green blocks SIFT to provide the details) :context context))
 			(list 'report :content (list 'acceptable :what content :context context)))))
 		 ;;(list 'report :content (list 'failure :type 'FAILED-TO-INTERPRET :what content :reason '(SOME-REASON) :context context)
-		 (ont::create   ;; this is "let's make a N block tower"
+		 ((ont::create ont::execute)  ;; this is "let's make a N block tower" ;; ont::execute is for "you do it"
 		  (let* ((obj (find-lf-in-context context (find-arg head :affected-result)))
 			 (mod (find-lf-in-context context (find-arg obj :mod)))
 			 (ground (find-lf-in-context context (find-arg mod :ground)))
 			 (size (find-arg ground :amount)))
 		    (format t "~% size= ~S ground=~S mod = ~S" size ground mod)
 		    (if (and (numberp size) (> size 4))
-;		    (if (numberp size)
-;			(if (> size 4)
-			    (list 'report :content (list 'unacceptable :type 'CANNOT-PERFORM :what content ;(second head)
-						     :reason '(not enough blocks SIFT to provide the details)) :context context)
-;			  (list 'report :content (list 'accept-with-clarify :what content :reason 'R1
-;						     :context (append '((ONT::RELN R1 :INSTANCE-OF ONT::IDENTIFY :WHAT XX)
-;									(ONT::THE XX :instance-of ONT::PERSON :suchthat XXX)
-;								   (ONT::RELN XXX :instance-of ONT::IS-PERFORMER :figure XX))
-;								      context))))
-		      (list 'report :content (list 'acceptable :what content) :context context)
+			(list 'report :content (list 'unacceptable :type 'CANNOT-PERFORM :what content ;(second head)
+						     :reason '(not enough blocks SIFT to provide the details)) :context context)			 
+		      (case (car content-as)
+			(elaboration
+			 (list 'report :content (list 'acceptable
+						      :what content
+						      :effect (list 'ADOPT :id 'M3 :what 'P1 
+								    :as (substitute 'modification 'elaboration content-as))
+						      )
+			       :context (append context '((ONT::RELN P1 :instance-of the-modified-event))))
+			 )
+			(modification
+			 (list 'report :content (list 'acceptable
+						      :what content
+						      :effect  `(ADOPT :id M1 :what P1 :as ,content-as))
+			       :context (append context '((ONT::RELN P1 :instance-of the-modified-event)))
+			       )
+			 )		     
+			(otherwise
+			 (list 'report :content (list 'acceptable :what content) :context context)
+			 )
+			)
 		  
 		      )))
+		 	
+		 
 		
-		  (otherwise
-		   (case (car content-as)
-		     (elaboration
-		      (list 'report :content (list 'acceptable
-						   :what (list 'ADOPT :what (find-arg-in-act content :what)
-							       :as (substitute 'modification 'elaboration content-as)))
-			    :context context)
-		      )
-		     (otherwise
-		      (list 'report :content (list 'acceptable :what content) :context context)
-		      )
-		     )
+		 (otherwise
+		  (list 'report :content (list 'acceptable :what content) :context context)
 		   )
-	       ))))))
+	       )))
+	    ((ask-wh ask-if)
+	     (setq *last-query-id* (util::find-arg-in-act content :query))
+	     (setq *last-query-what* (util::find-arg-in-act content :what))
+	     (setq *last-query-in-context* (util::find-arg-in-act (util::find-arg-in-act content :as) :goal))
+	     (list 'report :content (list 'acceptable :what content) :context context)
+	     )
+	    (answer ;; currently we always like answers
+	     (list 'report :content (list 'acceptable :what content
+					  :effect `(ADOPT :ID m2 :what P1 :as (MODIFICATION :of ,*last-active-goal*)))
+		   
+		   :context (append context '((ONT::RELN P1 :instance-of the-modified-event))))
+	     )
+	    )
+	   ))
+	 
 		  
     ;;(format t "~%========================================~% DUMMY: Received: ~S ~% Sending ~S~%==========================~%" msg result)
     (if reply-with

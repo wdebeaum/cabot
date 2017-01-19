@@ -937,7 +937,7 @@
  :parent ONT::LOCATED-MOVE-STATE
  :sem (F::SITUATION (F::Aspect F::Unbounded) (F::Cause F::Force) (F::Time-span F::Extended))
  :arguments ((:REQUIRED ONT::affected (F::Phys-obj (F::Mobility F::Movable)))
-	     (:optional ont::effect ((? ef f::abstr-obj f::situation f::phys-obj)))
+	     
              )
  )
 
@@ -961,8 +961,7 @@
   :parent ONT::change
   :arguments ((:REQUIRED ONT::affected ((? oc F::Phys-obj F::Abstr-obj f::situation)) (:implements affected))
 	      ;;(:OPTIONAL ONT::agent ((? ag f::abstr-obj F::phys-obj)(F::intentional +)) (:implements cause))
-	      (:required ont::effect (F::Situation (F::Aspect (? asp F::Dynamic F::Stage-level))))
-	     ;; (:required ont::affected)
+	      
 	      (:required ont::agent((? cs f::phys-obj f::abstr-obj f::situation)))
 	      )
   )
@@ -1841,7 +1840,7 @@
  :wordnet-sense-keys ("savour%2:37:00" "savor%2:37:00" "relish%2:37:00" "bask%2:37:13" "enjoy%2:37:00" "appreciate%2:37:00" "like%2:37:04" "love%2:37:00")
  :parent ONT::experiencer-emotion
  :arguments ((:REQUIRED ONT::Formal ((? t f::phys-obj f::abstr-obj f::situation f::time)))
-             (:ESSENTIAL ONT::neutral ((? s  f::phys-obj f::abstr-obj) (F::intentional +)))
+             (:ESSENTIAL ONT::neutral) ;((? s  f::phys-obj f::abstr-obj) (F::intentional +)))
 	     (:optional ONT::neutral1)
              )
  )
@@ -2235,7 +2234,7 @@
 ;;  something that encodes a message
 (define-type ONT::encodes-message
     :comment "some artifact conveys some message"
-    :wordnet-sense-keys ("read%2:42:00" "go%2:42:02")
+    :wordnet-sense-keys ("read%2:42:00" "go%2:42:02" "represent%2:36:01")
     :arguments ((:REQUIRED ONT::neutral ((? n  F::Phys-obj f::abstr-obj) (f::information f::information-content)))
 		(:OPTIONAL ONT::neutral1 ((? n1 F::Phys-obj f::abstr-obj))))
     :parent ONT::EVENT-OF-STATE
@@ -3348,7 +3347,7 @@
 
 ;; for configure, arrange X (into Y) e.g. he arranged them into groups of three
 (define-type ONT::arranging
- :wordnet-sense-keys ("set_up%2:35:00" "arrange%2:35:00" "reorient%2:30:00" "put%2:35:05" "arrangement%1:09:00" "organization%1:09:00" "organisation%1:09:00" "system%1:09:02" "put_aside%2:35:00" "address%2:32:02")
+ :wordnet-sense-keys ("set_up%2:35:00" "arrange%2:35:00" "reorient%2:30:00" "put%2:35:05" "arrangement%1:09:00" "organization%1:09:00" "organisation%1:09:00" "system%1:09:02" "put_aside%2:35:00" "address%2:32:02" "hairdressing%1:04:00")
  :parent ONT::control-manage
  :sem (F::SITUATION (F::Cause F::agentive) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::Agent  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
@@ -3930,7 +3929,7 @@
 
 ;; clean (up), tidy (up)
 (define-type ONT::clean
- :wordnet-sense-keys ("clean%2:35:00" "make_clean%2:35:00" "wash%1:04:01")
+ :wordnet-sense-keys ("clean%2:35:00" "make_clean%2:35:00" "wash%1:04:01" "dental_care%1:04:00")
  :parent ONT::change-state-action
  :sem (F::Situation (F::Cause F::Agentive) (F::Trajectory -))
  )
@@ -4671,7 +4670,7 @@
  )
 
 ;; angina
-(define-type ont::angina-symp
+(define-type ont::angina-disease
  :wordnet-sense-keys ("angina%1:26:00")
  :parent ont::medical-symptom
  )
@@ -4765,7 +4764,7 @@
 
 ;; flu
 (define-type ONT::flu
- :parent ONT::disease
+ :parent ONT::breathing-disorder
  :wordnet-sense-keys ("flu%1:26:00" "influenza%1:26:00" "grippe%1:26:00")
  )
 
@@ -4796,7 +4795,7 @@
 
 ; for pneuomnia
 (define-type ONT::pneumonia
- :parent ONT::disease
+ :parent ONT::breathing-disorder
  :wordnet-sense-keys ("pneumonia%1:26:00")
  )
 

@@ -158,9 +158,9 @@
 
 ;;  DM settings
 (setq dagent::*silent-failures* nil)  ;; don't ignore utterance failure
-(setq dagent::*using-alarms* nil)   ;; using alarms
+(setq dagent::*using-alarms* nil)   ;; using alarms, default OFF- use (ENABLE-ALARMS) message to turn on
 (setq dagent::*disabled-wizard* t)  ;; no wizard
-(setq dagent::*max-wait-until-prompt-in-seconds* 15)  ;; if we don't hear from the user in 15 seconds, we check the dialogue status
+(setq dagent::*max-wait-until-prompt-in-seconds* 30)  ;; if we don't hear from the user for 30 seconds, we check the dialogue status
 (setq dagent::*max-wait-until-prompt-in-minutes* (/ dagent::*max-wait-until-prompt-in-seconds* 60))
 (setq dagent::*max-wait-until-prompt-in-hours* (/ dagent::*max-wait-until-prompt-in-minutes* 60))
 (dagent::trace-on 1)
@@ -188,5 +188,5 @@
 ;; LOCALLY, but please do not commit without comments!
 
 
-;;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
+(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")

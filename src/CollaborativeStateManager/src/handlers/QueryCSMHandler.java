@@ -115,17 +115,23 @@ public class QueryCSMHandler extends MessageHandler {
 			newContext.addAll((KQMLList)content.getKeywordArg(":CONTEXT"));
 		
 		String goalVariable = "NIL";
+		String goalId = "NIL";
 		if (activeGoal != null)
 		{
 			goalVariable = activeGoal.getVariableName();
+			goalId = activeGoal.getId();
 			//newContext.add(activeGoal.getKQMLTerm());
 			newContext.addAll(activeGoal.getOriginalContext());
 			newContext.addAll(referenceHandler.generateContextForTerm(activeGoal.getKQMLTerm()));
+			
 		}
 		KQMLList response = new KQMLList();
 		response.add("ACTIVE-GOAL");
+		response.add(":ID");
+		response.add(new KQMLToken(goalId));
 		response.add(":WHAT");
 		response.add(new KQMLToken(goalVariable));
+		
 		
 		return reportContent(response, newContext);
 	}

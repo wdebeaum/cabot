@@ -3,7 +3,7 @@
 # File: trips-cabot.sh
 # Creator: George Ferguson
 # Created: Wed Jun 20 10:38:13 2012
-# Time-stamp: <Fri Nov 18 22:51:12 CST 2016 lgalescu>
+# Time-stamp: <Thu Jan 19 11:07:08 CST 2017 lgalescu>
 #
 # trips-cabot: Run TRIPS/CABOT
 #
@@ -57,7 +57,7 @@ nouser=''
 speechonly=''
 nobeep=''
 noapparatus=''
-nogen=false
+showgen=false
 
 while test ! -z "$1"; do
     case "$1" in
@@ -282,7 +282,7 @@ fi
  $TRIPS_BASE/bin/TextTagger \
      $port_opt \
      -process-input-utterances yes \
-     -terms-file $TRIPS_BASE/etc/BlockNames.tsv \
+     -terms-file $TRIPS_BASE/etc/$TRIPS_SYSNAME/BlockNames.tsv \
      -init-taggers terms-from-file \
      -default-type '(or affixes words punctuation terms-from-file)' \
  2>&1 | tee $logdir/TextTagger.err) &

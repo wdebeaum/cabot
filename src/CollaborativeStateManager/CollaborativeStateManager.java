@@ -419,6 +419,8 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		}
 	}
 	
+	
+	
 	private void shutdown()
 	{
 		System.out.println("Shutting down CollaborativeStateManager");

@@ -56,11 +56,20 @@ public class TakeInitiativeHandler extends MessageHandler {
 			}
 		}
 
+		Goal goal = null;
 		// Not in context, check the planner
 		if (goalLF == null && goalPlanner.hasGoal(goalWhat))
 		{
 			System.out.println("Searching goalplanner for variable: " + goalWhat);
-			goalLF = goalPlanner.getGoal(goalWhat).getKQMLTerm();
+			goal = goalPlanner.getGoal(goalWhat);
+			goalLF = goal.getKQMLTerm();
+		}
+		
+		if (goalLF == null && goalPlanner.hasGoalById(goalWhat))
+		{
+			System.out.println("Searching goalplanner for variable by ID: " + goalWhat);
+			goal = goalPlanner.getGoalById(goalWhat);
+			goalLF = goal.getKQMLTerm();
 		}
 		
 		// Not in context or planner, return error
@@ -70,7 +79,7 @@ public class TakeInitiativeHandler extends MessageHandler {
 			return missingGoalToModify(goalWhat, context);
 		}
 		
-		Goal goal = null;
+		
 		if (goalPlanner.hasGoal(goalWhat))
 			goal = goalPlanner.getGoal(goalWhat);
 		
@@ -185,12 +194,18 @@ public class TakeInitiativeHandler extends MessageHandler {
     	if (result.equalsIgnoreCase("YES"))
     	{
     		goalPlanner.setGlobalSystemInitiative(true);
-    		goalPlanner.getGoal(goal).setSystemTookInitiative(true);
+    		if (goalPlanner.hasGoal(goal))
+    			goalPlanner.getGoal(goal).setSystemTookInitiative(true);
+    		else if (goalPlanner.hasGoalById(goal))
+    			goalPlanner.getGoalById(goal).setSystemTookInitiative(true);
     	}
     	else
     	{
     		goalPlanner.setGlobalSystemInitiative(false);
-    		goalPlanner.getGoal(goal).setSystemTookInitiative(false);
+    		if (goalPlanner.hasGoal(goal))
+    			goalPlanner.getGoal(goal).setSystemTookInitiative(false);
+    		else if (goalPlanner.hasGoalById(goal))
+    			goalPlanner.getGoalById(goal).setSystemTookInitiative(false);
     	}
     	initContent.add(":goal");
     	initContent.add(goal);

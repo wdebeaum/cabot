@@ -23,6 +23,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 	String speechAct;
 	String what;
 	String query;
+	String id;
 	KQMLObject context;
 
 	KQMLObject whatLF = null;
@@ -51,6 +52,13 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		speechAct = innerContent.get(0).stringValue();
 		what = innerContent.getKeywordArg(":content").stringValue();
+		KQMLObject tempId = innerContent.getKeywordArg(":id");
+		
+		if (tempId != null)
+			id = tempId.stringValue();
+		else
+			id = IDHandler.getNewID();
+		
 		context = innerContent.getKeywordArg(":context");
 		KQMLObject queryObject = innerContent.getKeywordArg(":QUERY");
 		if (queryObject != null)
@@ -210,7 +218,8 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		{
 			System.out.println("Possible solution: " + possibleSolutionGoal.getKQMLTerm());
 			newContext.add(possibleSolutionGoal.getKQMLTerm());
-			KQMLList adoptContent = adoptContent(possibleSolutionGoal.getVariableName(),
+			
+			KQMLList adoptContent = adoptContent(possibleSolutionGoal.getId(),possibleSolutionGoal.getVariableName(),
 					"GOAL",null);
 			System.out.println("Content: " + adoptContent);
 			adoptContentList.add(adoptContent);
@@ -237,7 +246,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		{
 			System.out.println("Possible solution: " + possibleSolutionGoal.getKQMLTerm());
 			newContext.add(possibleSolutionGoal.getKQMLTerm());
-			KQMLList adoptContent = adoptContent(possibleSolutionGoal.getVariableName(),
+			KQMLList adoptContent = adoptContent(IDHandler.getNewID(),possibleSolutionGoal.getId(),
 					"GOAL",null);
 			System.out.println("Content: " + adoptContent);
 			adoptContentList.add(adoptContent);
@@ -339,7 +348,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 			assertionContent.add(":as");
 			contributesList.add("CONTRIBUTES-TO");
 			contributesList.add(":goal");
-			contributesList.add(contributesToGoal.getVariableName());
+			contributesList.add(contributesToGoal.getId());
 			assertionContent.add(contributesList);
 		}
 		
@@ -368,7 +377,8 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		String evaluateId = IDHandler.getNewID();
 		String causeEffectId = IDHandler.getNewID();
-		KQMLList evaAdoptContent = adoptContent(evaluateId,"SUBGOAL",activeGoal);
+		String goalId = IDHandler.getNewID();
+		KQMLList evaAdoptContent = adoptContent(goalId,evaluateId,"SUBGOAL",currentAcceptedGoal.getId());
 		KQMLList evaReln = new KQMLList();
 		evaReln.add("ont::RELN");
 		evaReln.add(evaluateId);
@@ -442,7 +452,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 //						proposeAdoptContent = goalPlanner.modify(replacementGoal,goalToModify.getVariableName());
 //					}
 					
-					proposeAdoptContent = adoptContent(what,"ELABORATION",goalPlanner.getGoalUnderDiscussion().getVariableName());
+					proposeAdoptContent = adoptContent(null,what,"ELABORATION",goalPlanner.getGoalUnderDiscussion().getId());
 				}
 			}
 			
@@ -451,19 +461,51 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		{
 			KQMLObject asObject = innerContent.getKeywordArg(":AS");
 			KQMLList asList = null;
+			KQMLList term = TermExtractor.extractTerm(what, (KQMLList)context);
+			
+			// It has an :AS parameter
 			if (asObject != null && asObject instanceof KQMLList)
 			{
 				asList = (KQMLList)asObject;
 				String asType = asList.get(0).stringValue().toUpperCase();
-				
+				boolean strictModify = false;
 				switch (asType)
 				{
+				
+				case "MODIFICATION":
 				case "MODIFY":
-					if (activeGoal == null && currentAcceptedGoal == null)
+					strictModify = true;
+				case "ELABORATION":
+					if (activeGoal == null && currentAcceptedGoal == null && 
+					goalPlanner.getGoalUnderDiscussion() == null)
 					{
 						return missingActiveGoal();
 					}
-					proposeAdoptContent = goalPlanner.modify(new Goal(what,(KQMLList)context));
+					
+					String ofSymbol = null;
+					if (term.getKeywordArg(":MOD") != null)
+					{
+						String modSymbol = term.getKeywordArg(":MOD").stringValue();
+						KQMLList modTerm = TermExtractor.extractTerm(modSymbol, (KQMLList)context);
+						if (modTerm.getKeywordArg(":INSTANCE-OF") != null && 
+							modTerm.getKeywordArg(":INSTANCE-OF").stringValue().
+									equalsIgnoreCase("ONT::CHOICE-OPTION"))
+						{
+							strictModify = true;
+						}
+					}
+
+					if (asList.size() > 1)
+						asType = asList.get(0).stringValue();
+					if (asList.getKeywordArg(":OF") != null)
+						ofSymbol = asList.getKeywordArg(":OF").stringValue();
+
+					if (ofSymbol == null || !goalPlanner.hasGoal(ofSymbol))
+						proposeAdoptContent = goalPlanner.modify(new Goal(what,(KQMLList)context),strictModify, false);
+					else if (goalPlanner.hasGoal(ofSymbol))
+						proposeAdoptContent = goalPlanner.modify(new Goal(what,(KQMLList)context),ofSymbol, strictModify);
+					
+						
 					if (proposeAdoptContent == null)
 					{
 						return missingGoalToModify(what,context);
@@ -476,13 +518,13 @@ public class InterpretSpeechActHandler extends MessageHandler{
 						if (!goalPlanner.hasGoal(toObject.stringValue()))
 							return missingGoal(toObject.stringValue());
 						goalPlanner.setCompleted(goalPlanner.getGoal(toObject.stringValue()));
-						proposeAdoptContent = answerContent(what, toObject.stringValue());
+						proposeAdoptContent = answerContent(id,what, toObject.stringValue());
 					}
 					else if (activeGoal != null)
 					{
 						
 						goalPlanner.setCompleted(goalPlanner.getActiveGoal());
-						proposeAdoptContent = answerContent(what, activeGoal);
+						proposeAdoptContent = answerContent(id,what, currentAcceptedGoal.getId());
 						
 					}
 					else
@@ -493,18 +535,20 @@ public class InterpretSpeechActHandler extends MessageHandler{
 					
 				}
 			}
+			// It has no :AS parameter, it's a top level goal
 			else if (activeGoal == null || currentAcceptedGoal == null)
 			{
-				KQMLList term = TermExtractor.extractTerm(what, (KQMLList)context);
+				term = TermExtractor.extractTerm(what, (KQMLList)context);
 				String goalType = term.getKeywordArg(":INSTANCE-OF").stringValue();
 				if (!ontologyReader.isRootGoal(goalType))
 					return missingActiveGoal(goalType);
-				proposeAdoptContent = adoptContent(what,"GOAL",null);
-				goalPlanner.addGoal(new Goal(what,(KQMLList)context));
+				Goal newGoal = new Goal(what,(KQMLList)context);
+				proposeAdoptContent = adoptContent(newGoal.getId(),what,"GOAL",null);
+				goalPlanner.addGoal(newGoal);
 			}
 			else if (currentAcceptedGoal.isFailed())
 			{
-				proposeAdoptContent = goalPlanner.modify(new Goal(what,(KQMLList)context));
+				proposeAdoptContent = goalPlanner.modify(new Goal(what,(KQMLList)context), true, false);
 				if (proposeAdoptContent == null)
 				{
 					return missingGoalToModify(what,context);
@@ -512,8 +556,9 @@ public class InterpretSpeechActHandler extends MessageHandler{
 			}
 			else // Currently adds as subgoal by default
 			{
-				proposeAdoptContent = adoptContent(what,"SUBGOAL",activeGoal);
-				goalPlanner.addGoal(new Goal(what,(KQMLList)context), activeGoal);
+				Goal newGoal = new Goal(what,(KQMLList)context);
+				proposeAdoptContent = adoptContent(newGoal.getId(),what,"SUBGOAL",currentAcceptedGoal.getId());
+				goalPlanner.addGoal(newGoal, activeGoal);
 			}
 		}
 
@@ -565,7 +610,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
     		Goal newGoal = new Goal(askRelnContent,(KQMLList)context);
     		newGoal.addContext((KQMLList)context);
     		goalPlanner.addGoal(newGoal);
-    		askAdoptContent = adoptContent(newId, "GOAL", null);
+    		askAdoptContent = adoptContent(newGoal.getId(),newId, "GOAL", null);
     		
     	}
     	else
@@ -573,30 +618,43 @@ public class InterpretSpeechActHandler extends MessageHandler{
     		Goal newGoal = new Goal(askRelnContent,(KQMLList)context);
     		newGoal.addContext((KQMLList)context);
     		goalPlanner.addGoal(newGoal, activeGoal);
-    		askAdoptContent = adoptContent(newId, "SUBGOAL", activeGoal);
+    		askAdoptContent = adoptContent(newGoal.getId(),newId, "SUBGOAL", currentAcceptedGoal.getId());
     	}
     	
+    	KQMLList whatTerm = TermExtractor.extractTerm(what, (KQMLList)context);
+    	String suchThat = null;
+    	if (whatTerm != null && whatTerm.getKeywordArg(":SUCHTHAT") != null)
+    		suchThat = whatTerm.getKeywordArg(":SUCHTHAT").stringValue();
+    		
     	KQMLList askWhatIsContent = new KQMLList();
-    	askWhatIsContent.add("ASK-WHAT-IS");
-    	askWhatIsContent.add(":QUERY");
+    	askWhatIsContent.add("ASK-WH");
+    	askWhatIsContent.add(":ID");
+    	askWhatIsContent.add(id);
+    	askWhatIsContent.add(":WHAT");
     	askWhatIsContent.add(what);
+    	if (suchThat != null)
+    	{
+    		askWhatIsContent.add(":QUERY");
+    		askWhatIsContent.add(suchThat);
+    	}
+
     	askWhatIsContent.add(":as");
     	
     	
     	KQMLList queryInContext = new KQMLList();
     	queryInContext.add("QUERY-IN-CONTEXT");
     	queryInContext.add(":goal");
-    	queryInContext.add(newId);
+    	queryInContext.add(currentAcceptedGoal.getId());
     	
     	askWhatIsContent.add(queryInContext);
     	
     	KQMLList contextToSend = new KQMLList();
-    	contextToSend.add(askRelnContent);
+    	//contextToSend.add(askRelnContent);
     	contextToSend.addAll((KQMLList)context);
     	if (currentAcceptedGoal != null)
     		contextToSend.addAll(currentAcceptedGoal.getAdditionalContext());
 		//result.add(reportContent(askWhatIsContent, contextToSend));
-		return reportContent(askAdoptContent, contextToSend);
+		return reportContent(askWhatIsContent, contextToSend);
 	}
 	
 	// TODO Change event to conditional
@@ -610,9 +668,9 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		KQMLList askAdoptContent;
 
 		if (activeGoal != null)
-			askAdoptContent = adoptContent(newId, "SUBGOAL", activeGoal);
+			askAdoptContent = adoptContent(IDHandler.getNewID(),newId, "SUBGOAL", currentAcceptedGoal.getId());
 		else
-			askAdoptContent = adoptContent(newId, "GOAL", null);
+			askAdoptContent = adoptContent(IDHandler.getNewID(),newId, "GOAL", null);
 		
 		
     	KQMLList conditionalContent = new KQMLList();
@@ -680,7 +738,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		KQMLList askAdoptContent;
 
 		if (activeGoal != null)
-			askAdoptContent = adoptContent(newId, "SUBGOAL", activeGoal);
+			askAdoptContent = adoptContent(id, newId, "SUBGOAL", currentAcceptedGoal.getId());
 		else
 		{
 			//askAdoptContent = adoptContent(newId, "GOAL", null);
@@ -690,6 +748,8 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
     	KQMLList askRelnContent = new KQMLList();
     	askRelnContent.add("ASK-IF");
+    	askRelnContent.add(":ID");
+    	askRelnContent.add(id);
     	askRelnContent.add(":QUERY");
     	askRelnContent.add(what);
     	askRelnContent.add(":AS");
@@ -698,7 +758,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	KQMLList queryInContext = new KQMLList();
     	queryInContext.add("QUERY-IN-CONTEXT");
     	queryInContext.add(":goal");
-    	queryInContext.add(newId);
+    	queryInContext.add(currentAcceptedGoal.getId());
     	
     	askRelnContent.add(queryInContext);
     	
@@ -714,23 +774,26 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	{
     		Goal newGoal = new Goal(queryGoalContent,(KQMLList)context);
     		newGoal.addContext((KQMLList)context);
+    		//newGoal.setId(id);
     		goalPlanner.addGoal(newGoal);
     	}
     	else
     	{
     		Goal newGoal = new Goal(queryGoalContent,(KQMLList)context);
     		newGoal.addContext((KQMLList)context);
+    		//newGoal.setId(id);
     		goalPlanner.addGoal(newGoal, activeGoal);
     	}
+
     	
     	KQMLList contextToSend = new KQMLList();
-    	contextToSend.add(queryGoalContent);
+    	//contextToSend.add(queryGoalContent);
     	contextToSend.addAll((KQMLList)context);
     	if (currentAcceptedGoal != null)
     		contextToSend.addAll(currentAcceptedGoal.getAdditionalContext());
 		//result.add(reportContent(askRelnContent, contextToSend));
 		
-		return reportContent(askAdoptContent, contextToSend);
+		return reportContent(askRelnContent, contextToSend);
 	}
 	
     private KQMLList relnContent(String id, String instanceOf, String what, KQMLList context)
@@ -745,11 +808,16 @@ public class InterpretSpeechActHandler extends MessageHandler{
     }
     
     
-    private KQMLList adoptContent(String what, String goalType, String subgoalOf)
+    private KQMLList adoptContent(String id, String what, String goalType, String subgoalOf)
     {
     	KQMLList adopt = new KQMLList();
     	
     	adopt.add("ADOPT");
+    	if (id != null)
+    	{
+	    	adopt.add(":ID");
+	    	adopt.add(id);
+    	}
     	adopt.add(":what");
     	adopt.add(what);
     	adopt.add(":as");
@@ -766,11 +834,13 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	return adopt;
     }
     
-    private KQMLList answerContent(String what, String query)
+    private KQMLList answerContent(String id,String what, String query)
     {
     	KQMLList answer = new KQMLList();
     	
     	answer.add("ADOPT");
+    	answer.add(":ID");
+    	answer.add(id);
     	answer.add(":what");
     	answer.add(what);
     	answer.add(":as");

@@ -95,7 +95,7 @@
       :role (cdr (assoc id grammroles))
       :num (classify-num lf)
       :lf LF
-      :lf-type (simplify-generic-type (third lf))
+      :lf-type (refine-type-from-sem-list (simplify-generic-type (third lf)) sem)
       :accessibility (classify-accessibility LF)
       :coref (find-arg-in-act lf :coref)
       :refers-to (find-arg-in-act lf :refers-to)
@@ -219,14 +219,15 @@
   "Returns a list REF-HYPs with referential information added"
   (let* ((lf (referent-lf ref))
 	 (sem (referent-sem ref))
-	 (lf-type (refine-type-from-sem-list (simplify-generic-type (caddr lf)) sem))
+	 (lf-type (caddr lf))
+	 ;;(lf-type (refine-type-from-sem-list (simplify-generic-type (caddr lf)) sem))
 	 (hyps
 	  (case (car lf)
 	   ((ONT::PRO ONT::PRO-SET)
-	    (resolve-personal-pronoun lf lf-type index speaker addressee sem)
+	    (resolve-personal-pronoun lf lf-type index speaker addressee sem (referent-role ref))
 	    )
 	   (ONT::IMPRO
-	    (resolve-impro lf sem index)
+	    (resolve-impro lf sem index (referent-role ref))
 	    )
 	   ((ONT::THE ONT::THE-SET)
 	    (resolve-definite-reference lf lf-type sem index speaker addressee))
@@ -323,7 +324,7 @@
 	 (defs (remove-if-not #'(lambda (x) (eq (car x) 'ONT::THE)) candidates)))
     (append pros impros defs)))
     
-(defun resolve-personal-pronoun (lf lf-type index speaker addressee sem)
+(defun resolve-personal-pronoun (lf lf-type index speaker addressee sem role)
   (trace-msg 2 "~% Attempting to find referent for ~S, lf-type ~S with sem ~S" lf lf-type sem)
   (let* ((id (second lf))
 	 (cr (or (find-arg-in-act lf :proform) 
@@ -344,8 +345,8 @@
 	    ((ont::it ont::its
 		      W::it W::its)
 	     (when (non-expletive lf)
-	       (or (resolve-pro-fn lf lf-type sem '(concrete) '(individual) index (fn-no-human lf-type) 3)
-		 (resolve-pro-fn lf lf-type sem '(event wh-term state) '(individual) index #'(lambda (x) T) 3))))
+	       (or (resolve-pro-fn lf lf-type sem '(concrete) '(individual) index (fn-no-human lf-type) 3 role)
+		 (resolve-pro-fn lf lf-type sem '(event wh-term state) '(individual) index #'(lambda (x) T) 3 role))))
 
 	    ((;ont::itself
 	      W::itself w::himself w::herself w::themselves)
@@ -361,7 +362,8 @@
 	     (resolve-pro-fn lf lf-type sem '(concrete kind) '(set) index 
 			     #'(lambda (x)
 				 (subtype-check (referent-lf-type x) lf-type ))
-				 3))
+				 3
+				 role))
 
 	    (;(ont::he ont::him ont::his ont::she ont::her)
 	     (W::he W::him W::his W::she W::her)
@@ -370,13 +372,20 @@
 				     x)
 				     ;;(subtype-check (referent-lf-type x) (if (member cr '(ont::he ont::him ont::his))
 							;;	       'ONT::MALE-PERSON 'ont::female-person)))
-			     3)
+			     3
+			     role)
 		 ;;   backoff strategy for gendered pronouns - just look for people
-		 (resolve-pro-fn (list* (car lf) (cadr lf) 'ont::person (cdddr lf)) 'ont::person sem  ; note: sem still contains old type, e.g., (F::TYPE ONT::FEMALE-PERSON)
-				 '(concrete) '(individual) index 
-				 #'(lambda (x) x)
-				     ;;(subtype-check (referent-lf-type x) 'ont::person))
-				 3)))
+		 (if (member lf-type '(ONT::MALE-PERSON ONT::FEMALE-PERSON))
+		     (let ((opposite-type (if (eq lf-type 'ONT::MALE-PERSON)
+					      'ONT::FEMALE-PERSON 'ONT::MALE-PERSON)))
+		     (resolve-pro-fn (list* (car lf) (cadr lf) 'ont::person (cdddr lf)) 'ont::person sem
+				     '(concrete) '(individual) index 
+				     #'(lambda (x) 
+					 (not (subtype-check (referent-lf-type x) opposite-type)))
+				     
+				     3
+				     role)))
+		 ))
 		 
 	    
 	    ((ont::here ont::there
@@ -453,10 +462,10 @@
 	  '(W::IT W::THEM W::HE W::HIM W::SHE W::HER ont::it ont::them ont::he ont::him ont::she ont::her)))
 
     
-(defun resolve-pro-fn (lf lf-type sem access num index fn count)
+(defun resolve-pro-fn (lf lf-type sem access num index fn count role)
   "Personal pronouns should refer to a concrete object matching the criteria in the recent history.
     We check in the current utter1ance for possible referents that come before the pro form"
-  (let ((ans (or (find-possible-referents-in-current-sentence (get-lf-type lf) sem (second lf) access num index)  ; need for "She talked with *her* friend
+  (let ((ans (or (find-possible-referents-in-current-sentence lf-type sem (second lf) access num index role fn)  ; need for "She talked with *her* friend
 		 (search-for-possible-refs lf-type (second lf) sem access num (- index 1) count fn)))) 
 
 	(mapcar #'(lambda (a) (bind-to-referent lf lf-type a)) ans)))
@@ -488,6 +497,9 @@
   "reflexives must be in the same sentence!"
   (let* ((id (second lf))
 	 (terms (utt-record-referring-expressions (get-im-record index)))
+	 (id-ref (car (remove-if-not #'(lambda (x) (eq (referent-id x) id)) terms)))
+	 (id-event (if (referent-p id-ref)
+		       (cadr (referent-role id-ref))))
 	 ;; first find possible candidates in the same sentence
 	 (possibles (remove-if-not #'(lambda (x) (and (referent-p x) 
 						      (not (eq (referent-id x) id))
@@ -499,8 +511,8 @@
 			;	  terms)
 		      ;(remove-if-not #'(lambda (x) (eq (referent-role x) :affected))
 			;	     terms)
-		      (remove-if-not #'(lambda (x) (member (car (referent-role x)) *core-roles*)) 
-				     terms)
+		      (remove-if-not #'(lambda (x) (eq (cadr (referent-role x)) id-event))
+				     possibles)
 		      )))
     (mapcar #'(lambda (a) (bind-to-referent lf nil a)) results)))
 		   
@@ -516,7 +528,7 @@
 (defun sort-by-access (results access)
   results)
 
-(defun resolve-impro (lf sem index)
+(defun resolve-impro (lf sem index role)
   (let* ((id (second lf))
 	 (lf-type (get-lf-type lf))
 	 (cr (find-arg-in-act lf :proform))
@@ -539,7 +551,8 @@
 		   (resolve-pro-fn lf lf-type sem '(concrete) '(individual) index 
 				   #'(lambda (x)
 				       (or (null sem) (match-with-subtyping sem (referent-sem x))))
-				   3)))
+				   3
+				   role)))
 		)))
     hyps
 
@@ -796,10 +809,10 @@
 	  res
 	  )))))
 
-;; doesn't seem to be used at present????????
-(defun find-possible-referents-in-current-sentence (lf-type sem id access-requirement nums index)
+(defun find-possible-referents-in-current-sentence (lf-type sem id access-requirement nums index role fn)
   "returns the objects that meet the access requirement AND that precede the id in the sentence"
-  (let ((r (get-im-record index)))
+  (let ((r (get-im-record index))
+	(event-id (cadr role)))
    
     (when r
       (let* ((focus (utt-record-focus r))
@@ -808,12 +821,16 @@
 	     (accessable-refs (remove-if-not #'(lambda (x) (and (referent-p x) 
 								(not (eq (referent-id x) id)) ;; can't refer to itself
 								(member (referent-accessibility x) access-requirement)
+								(or (null event-id)
+								    (not (eq event-id (cadr (referent-role x))))) ;; can't be in the same event since its not reflexive
+								(not (eq (referent-id x) event-id)) ;; it is not the event itself
 								(member (referent-num x) nums)
 								(subtype-check (referent-lf-type x) lf-type)))
 					     (truncate-expressions-at-id id (utt-record-referring-expressions r)))
-	       ))
-      accessable-refs))
-    ))
+	       )
+	     (filtered-accessable-refs (remove-if-not fn accessable-refs)))
+	filtered-accessable-refs
+    ))))
 
 (defun truncate-expressions-at-id (id exprs)
   "this gathers up all the possible referents up to the ID"

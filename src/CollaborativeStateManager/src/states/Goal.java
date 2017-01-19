@@ -15,9 +15,11 @@ public class Goal {
 	Goal parent;
 	List<Goal> childGoals;
 	KQMLList term;
+	String id;
 	boolean accepted;
 	boolean failed;
 	boolean completed;
+	boolean rejected;
 	boolean systemTookInitiative;
 	List<KQMLList> failureMessages;
 	boolean initiativeSpecified;
@@ -47,6 +49,11 @@ public class Goal {
 		additionalContext = new KQMLList();
 		originalContext = new KQMLList();
 		originalContext.addAll(context);
+		rejected = false;
+		if (term.getKeywordArg(":ID") == null)
+			id = IDHandler.getNewID();
+		else
+			id = term.getKeywordArg(":ID").stringValue();
 	}
 	
 	public Goal(Goal toCopy)
@@ -68,6 +75,8 @@ public class Goal {
 		additionalContext = new KQMLList(toCopy.additionalContext);
 		originalContext = new KQMLList();
 		originalContext.addAll(toCopy.originalContext);
+		rejected = false;
+		id = IDHandler.getNewID();
 	}
 	
 	public Goal(String variableName, KQMLList context, Goal parent)
@@ -107,6 +116,15 @@ public class Goal {
 		accepted = true;
 	}
 	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id)
+	{
+		this.id = id;
+	}
+
 	public void setInitiativeAgent(String agentSymbol, KQMLList context)
 	{
 		initiativeSpecified = true;

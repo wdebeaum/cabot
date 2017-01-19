@@ -68,6 +68,12 @@ public class Query extends Goal {
 		KQMLList toReturn = new KQMLList();
 		toReturn.add("ANSWER");
 		
+		if (id != null)
+		{
+			toReturn.add(":TO");
+			toReturn.add(id);
+		}
+		
 		if (queryWhat != null)
 		{
 			toReturn.add(":WHAT");

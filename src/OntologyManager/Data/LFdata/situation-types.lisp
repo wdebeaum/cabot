@@ -54,6 +54,7 @@
 
 (define-type ONT::agent-interaction
  :parent ONT::event-of-action
+  :wordnet-sense-keys ("interaction%1:04:00")
  :comment "events that involve the interaction of two or more agents"
  :arguments ((:ESSENTIAL ONT::Agent ((? atp F::phys-obj F::abstr-obj) (F::intentional +)))
 	     (:essential ONT::agent1 ((? cau3 F::Abstr-obj f::phys-obj) (F::intentional +)))
@@ -61,7 +62,7 @@
  )
 
 (define-type ONT::Communication
- :wordnet-sense-keys ("put_across%2:32:00" "pass_along%2:32:00" "pass%2:32:01" "pass_on%2:32:00" "communicate%2:32:01" "intercommunicate%2:32:00" "communicate%2:32:00" "communication%1:03:00")
+ :wordnet-sense-keys ("put_across%2:32:00" "pass_along%2:32:00" "pass%2:32:01" "pass_on%2:32:00" "communicate%2:32:01" "intercommunicate%2:32:00" "communicate%2:32:00" "communication%1:03:00" )
  :parent ONT::agent-interaction
  :comment "activity that involves transfer of information between agents"
  :sem (F::Situation (F::Cause F::agentive) (F::Trajectory -));  (F::Aspect F::bounded) (F::Time-span F::extended))
@@ -328,7 +329,7 @@
  :parent ONT::cogitation
  :arguments ((:REQUIRED ONT::Formal ((? th4 f::phys-obj f::abstr-obj f::situation))) ;;Ground
              (:ESSENTIAL ONT::Agent  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
-	     (:optional ont::effect (f::situation))
+	     
              )
  )
 
@@ -426,8 +427,7 @@
  :parent ONT::directive
  :comment "the generic directive act"
  :sem (F::Situation (F::Cause F::Agentive))
- :arguments ((:ESSENTIAL ONT::effect ((? t f::situation)))
-             )
+ 
  )
 
 
@@ -453,7 +453,7 @@
  ;;; (?type (information F_Information-content)))
  :arguments ((:ESSENTIAL ONT::formal)
 ;             (:OPTIONAL ONT::associated-information)
-	     (:optional ont::effect ((? ef F::Situation f::abstr-obj)))
+
              )
  )
 
@@ -515,7 +515,7 @@
  )
 
 (define-type ONT::touch
-    :wordnet-sense-keys ("touch%2:35:00")
+    :wordnet-sense-keys ("touch%2:35:00" "touch%1:04:00")
     :parent ONT::event-of-causation
     )
 
@@ -650,7 +650,6 @@
  :arguments (
 ;	     (:ESSENTIAL ONT::Cost ((? cst f::phys-obj f::abstr-obj))) ; too restrictive (f::abstr-obj (f::scale f::money-scale)))
 	     (:ESSENTIAL ONT::EXTENT ((? cst f::phys-obj f::abstr-obj))) ; too restrictive (f::abstr-obj (f::scale f::money-scale)))
-	     ;;(:optional ont::effect (f::situation))
 	     (:REQUIRED ONT::FORMAL ((? th8 F::Phys-obj F::Abstr-obj F::situation)))
              )
  )
@@ -908,7 +907,7 @@
              (:ESSENTIAL ONT::Formal)
              ;;; Evidence
              (:OPTIONAL ONT::Source)
-	     (:OPTIONAL ONT::Effect (f::situation)) ;; jr 20120806 adding for gloss-owl "X intend Y to Z"
+	    
              )
  )
 
@@ -974,7 +973,6 @@
  :parent ONT::cause-effect
  :arguments ((:OPTIONAL ONT::neutral ((? agt f::abstr-obj f::situation))))
 ;;((:OPTIONAL ONT::Instrument (F::Phys-obj (F::intentional -)))
-;	     (:REQUIRED ONT::effect (F::Situation))
 ;	     (:REQUIRED ONT::Formal ((? obj F::PHYS-OBJ F::ABSTR-OBJ)))
 ;	     (:OPTIONAL ONT::Cause)
 ;	     (:REQUIRED ONT::agent ((? ag f::abstr-obj F::phys-obj) (F::intentional +)) (:implements cause))

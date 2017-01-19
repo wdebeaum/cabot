@@ -301,7 +301,9 @@
   (cdr (assoc name *state-table*)))
 
 (defun restart-dagent nil
-  (mapcar #'reset-user (mapcar #'cdr *users*)))
+  (mapcar #'reset-user (mapcar #'cdr *users*))
+  (send-status 'OK)
+  )
 
 (defun reset-user (user)
   (setf (user-current-dstate user) nil)
@@ -361,8 +363,11 @@
     (if (not (state-p state))
 	(setq state (find-state state)))
     (if state 
-	(if push? (push state (user-current-dstate user))
-	    (setf (user-current-dstate user) (list state)))
+	(if push? 
+	    (push state (user-current-dstate user))
+	    ; if not push, we replace the top state
+	    (setf (user-current-dstate user) 
+		  (cons state (cdr (user-current-dstate user)))))
 	(setf (user-current-dstate user) nil))
     (if (and (state-p state) triggered)
 	(setf (state-triggered state) triggered))
@@ -477,15 +482,19 @@
     (if (and (user-p user) 
 	     (eq (car msg) 'alarm) 
 	     (eq (car (find-arg-in-act msg :msg)) 'idle-check)
-	     );; special handling of idle-checks
+	     )
+
+	;; special handling of idle-checks
 	(progn
 	  (trace-msg 3 "checking idle time: last interaction with user: ~S. last interaction with BA: ~S time of day ~S"  (user-time-of-last-user-interaction user) (user-time-of-last-BA-interaction user) (get-time-of-day))
-	  (when (and (>= (time-difference-in-seconds (user-time-of-last-user-interaction user) (get-time-of-day))
-		      *max-wait-until-prompt-in-seconds*)
-		   )
+	  (when (>= (time-difference-in-seconds (user-time-of-last-user-interaction user) (get-time-of-day))
+			 (- *max-wait-until-prompt-in-seconds* 1))
 	    ;; eventually we might want to save the current state and reestablish it after the alarm
+	   
 	    (cache-response-for-processing (list (list* 'ALARM 'XX (find-arg-in-act msg :msg))))
-	    (invoke-state 'alarm-handler 'push user nil nil nil)))
+	    (invoke-state 'alarm-handler 'push user nil nil nil))
+	  )
+	
 	;; normal case for alarms
 	(if (user-p user)
 	    (case (car msg)
@@ -496,13 +505,13 @@
 			(null (user-wizard-response-pending user))` 
 			(> (time-difference-in-minutes (user-time-of-last-wizard-interaction user) (get-time-of-day))
 			   *max-wait-for-wizard-reply*))
-			;;(null (user-current-dstate user)))
-		   ;; everything is OK to handle the alarm
-		   (progn
-		     (cache-response-for-processing (list (list* 'ALARM 'XX (find-arg-in-act msg :msg))))
-		     (invoke-state 'alarm-handler 'push user nil nil))
-		   ;; we are not ready for the alarm right now because there's an ongoing wizard interaction, save it for later
-		   (save-pending-alarm user msg)))
+		    ;;(null (user-current-dstate user)))
+		    ;; everything is OK to handle the alarm
+		    (progn
+		      (cache-response-for-processing (list (list* 'ALARM 'XX (find-arg-in-act msg :msg))))
+		      (invoke-state 'alarm-handler 'push user nil nil))
+		    ;; we are not ready for the alarm right now because there's an ongoing wizard interaction, save it for later
+		    (save-pending-alarm user msg)))
 	      
 	      (end-of-day   ;; here we send an email report if we haven't done so already
 	       (trace-msg 3 "END OF DAY check: KB is  ~S." (user-local-kb user))
@@ -618,6 +627,36 @@
 			     ;;(uninterpretable-utterance-handler lfs hyps context channel words (current-dstate user) nil user uttnum)))
 		     (check-for-triggers lfs hyps context newchannel words user *segments* uttnum)))))
 	(send-reply "Hi. You are not yet registered for our study" newchannel))))
+
+(defun handle-input-message (msg)
+  "this handles spontaneous report from the BA or other components"
+  (let* ((msg-content (find-arg-in-act msg :content))  ;; this should be a REPORT
+	 (content (find-arg-in-act msg-content :content))
+	 (user (lookup-user 'desktop))
+	 (dstate (current-dstate user))
+	 (newchannel (if (user-p user) (user-channel-id user) "desktop"))
+	 (uttnum 'x)
+	 (context)
+	 (lfs (list content))
+	 (hyps))
+	     
+      (if dstate
+      (when (not (process-lf-in-state lfs hyps context newchannel nil user uttnum))
+	(if (state-implicit-confirm dstate)
+	    ;; clear the state and start again
+	    (progn
+	      (if (consp (state-implicit-confirm dstate))
+		  (mapcar #'execute-action (state-implicit-confirm dstate)))
+	      (trace-msg 2 "~%Popping state ~S to try triggers"
+			 (state-id (current-dstate user)))
+	      (go-to-restart-state user)
+	      (check-for-triggers lfs hyps context newchannel nil user *segments* uttnum))
+	    ;; we failed to interpret utterance, release send part of input and try again
+	    (release-pending-speech-act))
+	)
+      ;;(uninterpretable-utterance-handler lfs hyps context channel words (current-dstate user) nil user uttnum)))
+      (check-for-triggers lfs hyps context newchannel nil user *segments* uttnum)))
+  )
 
 (defun make-mods-unique (lf)
   "If an LF has multiple MOD features, we add digits to the second and thrid, etc"
@@ -924,10 +963,13 @@
 	       ((notify-ba request)
 		(notify (cdr act) user channel uttnum))
 	       (set-alarm
-		(when *using-alarms*
+		(if *using-alarms*
 		  (let ((delay (find-arg-in-act act :delay))
 			(msg (find-arg-in-act act :msg)))
-		    (notify (list :msg (list 'SET-ALARM :delay delay :msg (list 'ALARM :user (user-channel-id user) :msg msg))) user channel uttnum))))
+		    (notify (list :msg (list 'SET-ALARM :delay delay :msg (list 'ALARM :user (user-channel-id user) :msg msg))
+				  :msg-type 'REQUEST)
+			    user channel uttnum))
+		  (trace-msg 1 "Not using alarms!")))
 	       (extract-goal-description
 		(apply #'extract-goal-description (cdr act)))
 	       ;; this function is called only if it is the the action slot of a state, so results are cached so the pattern rules 
@@ -988,8 +1030,10 @@
   "here we invoke the BA with a message but don't expect a response"
 ;  (clear-pending-speech-acts uttnum channel)
   (setq *interpretable-utt* t)
-  (let ((msg (instantiate-dstate-args (find-arg args :msg) user)))
-    (send-msg `(REQUEST :content ,msg))
+  (let ((msg (instantiate-dstate-args (find-arg args :msg) user))
+	(msg-type (instantiate-dstate-args (find-arg args :msg-type) user))
+	)
+    (send-msg `(,msg-type :content ,msg))
     ))
 
 (defun extract-goal-description (&key cps-act context result goal-id)
