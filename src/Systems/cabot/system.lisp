@@ -188,5 +188,5 @@
 ;; LOCALLY, but please do not commit without comments!
 
 
-(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
+;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")

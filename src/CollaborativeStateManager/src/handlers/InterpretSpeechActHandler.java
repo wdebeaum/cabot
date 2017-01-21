@@ -217,10 +217,13 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		for (Goal possibleSolutionGoal : possibleSolutionGoals)
 		{
 			System.out.println("Possible solution: " + possibleSolutionGoal.getKQMLTerm());
+			System.out.println("Possible solution goal: " + possibleSolutionGoal);
 			newContext.add(possibleSolutionGoal.getKQMLTerm());
 			
 			KQMLList adoptContent = adoptContent(possibleSolutionGoal.getId(),possibleSolutionGoal.getVariableName(),
 					"GOAL",null);
+			System.out.println("ID: " + possibleSolutionGoal.getId());
+			System.out.println("What: " + possibleSolutionGoal.getVariableName());
 			System.out.println("Content: " + adoptContent);
 			adoptContentList.add(adoptContent);
 			// Temporary? Only add one 
@@ -246,7 +249,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		{
 			System.out.println("Possible solution: " + possibleSolutionGoal.getKQMLTerm());
 			newContext.add(possibleSolutionGoal.getKQMLTerm());
-			KQMLList adoptContent = adoptContent(IDHandler.getNewID(),possibleSolutionGoal.getId(),
+			KQMLList adoptContent = adoptContent(possibleSolutionGoal.getId(),possibleSolutionGoal.getVariableName(),
 					"GOAL",null);
 			System.out.println("Content: " + adoptContent);
 			adoptContentList.add(adoptContent);

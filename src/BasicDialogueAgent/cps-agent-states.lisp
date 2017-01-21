@@ -26,10 +26,11 @@
 	 |#
 
 	 (transition
-	  :description "proposal/request. eg: Let's build a model/I need to find a treatment for cancer/You put a block on the table; Also: You do it (i.e., change performer)"
+	  :description "proposal/request. eg: Let's build a model/I need to find a treatment for cancer/You put a block on the table; Also: You do it (i.e., change performer); How about building a staircase?"
 	  :pattern '((ONT::SPEECHACT ?!sa (? x ONT::PROPOSE ONT::REQUEST ONT::REQUEST-COMMENT) :what ?!what)
 		     ;; ((? spec ONT::EVENT ONT::EPI) ?!what ?!t)
-		     (?!spec ?!what (? t ONT::EVENT-OF-ACTION ONT::EVENT ONT::EPI))
+		     ;(?!spec ?!what (? t ONT::EVENT-OF-ACTION)) ; "find" is not an EVENT-OF-ACTION
+		     (?!spec ?!what ?!t)
 		     (ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
 		     -propose-goal>
@@ -46,7 +47,8 @@
 	  :description "modification: Let's do X instead"
 	  :pattern '((ONT::SPEECHACT ?!sa (? x ONT::PROPOSE ONT::REQUEST ONT::REQUEST-COMMENT) :what ?!what :AS ONT::ALTERNATIVE)
 		     ;; ((? spec ONT::EVENT ONT::EPI) ?!what ?!t)
-		     (?!spec ?!what (? t ONT::EVENT-OF-ACTION ONT::EVENT ONT::EPI))
+		     ;(?!spec ?!what (? t ONT::EVENT-OF-ACTION)) ; "find" is not an EVENT-OF-ACTION
+		     (?!spec ?!what ?!t)
 		     (?!spec2 ?v ?type)  ; e.g.. ?type is CHOICE-OPTION but we could expand to others later
 		     (ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
@@ -356,6 +358,7 @@ ONT::INTERACT
 	 (transition
 	  :description "green; the green block; How about me?"
 	  :pattern '((ONT::SPEECHACT ?!sa (? t ONT::ANSWER ONT::IDENTIFY ONT::REQUEST-COMMENT) :what ?!ans)
+		     (?!spec ?!ans (? !t ONT::SITUATION-ROOT)) 
 		     (ont::eval (generate-AKRL-context :what ?!ans :result ?akrl-context))
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
 		     -user-response4b>

@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Thu Jan 19 13:32:11 CST 2017 lgalescu>
+;;;; Time-stamp: <Fri Jan 20 14:23:28 CST 2017 lgalescu>
 
 ;;;;
 
@@ -57,7 +57,8 @@
       ;; > ANSWERS
       "ok."
       ;; (commit) > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM  (initiative:maybe) (what-next) 
-      ;; (execution-status:waiting-for-user) > PERFORM-BA-REQUEST > CHECK-TIMEOUT-STATUS > NIL
+      ;; (execution-status:waiting-for-user) > PERFORM-BA-REQUEST
+      ;; > CHECK-TIMEOUT-STATUS > NIL
       (TELL :content (REPORT :content (EXECUTION-STATUS :goal G5 :status ONT::DONE)))
       ;; >> EXECUTION-STATUS-HANDLER > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:maybe) (what-next)
       ;; (propose) > PERFORM-BA-REQUEST
@@ -69,9 +70,9 @@
       ;; S: Done ;;** is this now done by the system?!?
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:maybe) (what-next)
       ;; (execution-status:done) > PERFORM-BA-REQUEST
-      ;; S: Done ;;** top goal
+      ;; S: Done (the staircase is finished)
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL
-      ;; S: We are done.
+      ;; S: We are done. (with all tasks)
       ;; FIXME? in the following DAGENT asks (WHAT-NEXT :goal NIL)
       ;; > WHAT-NEXT-INITIATIVE (what-next)
       ;; (propose) ;;** what do we do now?
@@ -124,8 +125,7 @@
       ;; S: we don't have enough blocks.  What shall we do?
       ;; > NIL
       "Let's build a 3 step staircase."
-      ;; >> PROPOSE-CPS-ACT > HANDLE-CSM-RESPONSE
-      ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
+      ;; >> PROPOSE-CPS-ACT ... (commit)
       ;; S: Okay.
       ;; S: Put block B6 on the table"
       ;; > ANSWERS
@@ -141,7 +141,7 @@
    
 
     (flow-action-topgoal-yes .
-     ;; user proposes action; system guesses top goal; user accepts
+     ;; user proposes action; system guesses top goal; user accepts; user signals goal-achieved
      (
       "Put block 1 on the table"
       ;; (CSM::failure:missing-goal)
@@ -153,70 +153,53 @@
       ;; > HANDLE-CSM-RESPONSE
       ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
       ;; S: ok (for PUT subgoal)
-      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM
-      ;; (initiative:yes) (what-next) (ex-status:done) -> PERFORM-BA-REQUEST 
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
+      ;; (ex-status:done) -> PERFORM-BA-REQUEST 
       ;; S: Done! (with "Put block 1 on the table")
-      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE  > WHAT-NEXT-INITIATIVE-CSM
-      ;; > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL ... (what-next)
+      ;; (ex-status:waiting-for-user) > PERFORM-BA-REQUEST
+      ;; > CHECK-TIMEOUT-STATUS -> NIL
       "We are done."
       ;; S: good!
-
-      ; FIXME: need a message to tell the BA that we are done
-
-      ;; S: what do you want to do?
-      ;; => DONE -> NIL
+      ; FIXME: don't we need a message to tell the BA that we are done? currently only CSM knows this. probably what needs to happen is that DAGENT should send (RELEASE :id G)
       ))
 
     (flow-action-topgoal-no .
      ;; user proposes action; system guesses top goal; user rejects
      (
       "Put block 1 on the table"
-      ;; (CSM::failure:missing-goal)
-      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE -> CLARIFY-GOAL
       ;; S: are you trying to build something?
       "no"
       ;; S: What do you want to do?
-      ;; -> PROPOSE-CPS-ACT
+      ;; -> NIL
+      ;; FIXME: DAGENT does all this by itself. is CSM left in a good state?
       ))
 
     (flow-staircase-user-directed .
-     ;; user proposes goal and directs system to complete the task
+     ;; user proposes goal and directs system to complete the task; user indicates goal-achieved
      ("Let's build a 2-step staircase"
-      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE
-      ;; -> PROPOSE-CPS-ACT-RESPONSE
       ;; S: ok
-      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
-      ;; DUMMY-BA says: WAITING-FOR-USER
-      ;; -> PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL ... (what-next)
+      ;; (ex-status:waiting-for-user) > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
       "Put block 1 on the table"
-      ;; PROPOSE-CPS-ACT -> HANDLE-CSM-RESPONSE
-      ;; -> PROPOSE-CPS-ACT-RESPONSE
+      ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
       ;; S: ok
-      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
-      ;; DUMMY-BA: EXECUTION-STATUS::DONE (PUT)
-      ;; -> PERFORM-BA-REQUEST
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
+      ;; (ex-status:done) -> PERFORM-BA-REQUEST 
       ;; S: Done (PUT)
-      ;; -> WHAT-NEXT-INITIATIVE-ON-NEW-GOAL
-      ;; -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
-      ;; DUMMY-BA says: WAITING-FOR-USER
-      ;; -> PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
       "Put block 2 on top of block 1"
-      ;; same as above
       ;; S: ok
-      ;; DUMMY-BA: EXECUTION-STATUS::DONE (PUT)
       ;; S: Done (PUT)
       "Put block 3 next to block 1"
-      ;; same as above
       ;; S: ok
-      ;; DUMMY-BA: EXECUTION-STATUS::DONE (PUT)
       ;; S: Done (PUT)
       "We're done"
       ;; S: good!
-      ;; S: what do you want to do?
-      ;; -> DONE -> NIL
+      ; FIXME: don't we need a message to tell the BA that we are done? currently only CSM knows this. probably what needs to happen is that DAGENT should send (RELEASE :id G)
      ))
 
     (test-alarm-waiting-for-user .
+     ;; user proposes goal, system directs and user executes; user takes a long time to perform action, triggering prompts; eventually, user executes action
      ((TELL :content (ENABLE-ALARMS)) 
       "Let's build a 3 step staircase."
       ;; "Put block B6 on the table"
@@ -229,6 +212,7 @@
       ))
 
     (test-alarm-waiting-for-system .
+     ;; user proposes goal and actions, system executes actions; system takes a long time to perform action, triggering repeated status checks; eventually, system executes action
      ((TELL :content (ENABLE-ALARMS)) 
       "Let's build a 3 step staircase."
       ;; OK  (system accepts the goal)
@@ -253,36 +237,49 @@
 						 (ONT::A st1 :instance-of ONT::STAIRS :mod r1)
 						 (ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
 						 (ONT::KIND s1 :instance-of ONT::STEP :amount 3))))
-      ;; => INITIATE-CPS-GOAL
       ;; S: Let's build a three step staircase.
-      ;; -> ANSWERS 
+      ;; > ANSWERS 
       "Let's build a tower instead."
-      ;; -> NIL (???)
-      ;; => INITIATE-CPS-GOAL -> HANDLE-CSM-RESPONSE
-      ;; -> PROPOSE-CPS-ACT-RESPONSE
-      ;; -> WHAT-NEXT-INITIATIVE-ON-NEW-GOAL -> WHAT-NEXT-INITIATIVE -> WHAT-NEXT-INITIATIVE-CSM
-      ;; FIXME: CSM holds on to initial goal!
-      ;; S: ok.  Put block B6 on the table.
-	))
+      ;; > NIL 
+      ;; >> PROPOSE-CPS-ACT > HANDLE-CSM-RESPONSE
+      ;; (evaluate-modification) (acceptable-with-effect) > PROPOSE-CPS-ACT-RESPONSE > (commit)
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:maybe) (what-next)
+      ;; (propose)
+      ;; S: [ok.]  Put block B6 on the table.
+      ;; >ANSWERS
+      ))
 
     (test-I-cannot-do-it .
+     ;; starts like test-generic, then user refuses to execute action and system asks user to suggest an alternative
      ( (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
 				       :context NIL))
-      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      ;;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+      ;; S: What do you want to do?
       "Let's build a 3 step staircase."
-      ;;  Okay. Put block B6 on the table"
+      ;; S: Okay.
+      ;; S: Put block B6 on the table"
       "ok."
-      ;; Please put B7 on B6.
+      (TELL :content (REPORT :content (EXECUTION-STATUS :goal G5 :status ONT::DONE)))
+      ;; S: Please put B7 on B6.
+      ;; > ANSWERS
       "I can't do it."
-      ;; What do you want to do?
+      ;; (rejected) > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM  (initiative:maybe) (what-next)
+      ;; (propose) > PERFORM-BA-REQUEST
+      ;; S: Suggest something else.
+      ;; > ANSWERS > NIL (?)
       "Put block 8 on block 6."
-      ;; ok.
-      ;; We are done.
-      ;; What do you want to do? 
+      ;; >> PROPOSE-CPS-ACT ... (commit)
+      ;; S: ok.
+      ;; S: Done (PUT)
+      ;; (execution-status:done)
+      ;; S: Done. (we built the staircase)
+      ;; S: Done. (all tasks accomplished)
+      ;; S: What do you want to do? 
       "Let's build a tower."
-      ;; ok.
-      ;; Done (Top goal is initiated properly, but we are immediately done because we have exhausted the dummy's ability to say other things.)
-      ;; What do you want to do?
+      ;; S: ok.
+      ;; S: Done (Top goal is initiated properly, but we are immediately done because we have exhausted the dummy's ability to say other things.)
+      ;; S: Done. (all tasks accomplished)
+      ;; S: What do you want to do?
       ))
     
     (test-who-move-user .
@@ -290,12 +287,17 @@
       (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
 				       :context NIL))
       "Let's build a 3 step staircase. who will move the blocks?"
-      ;;System generating: (:CONTENT
-      ;;              (ONT::ANSWER :TO ONT::V33443 :QUERY - :VALUE A1
-      ;;                :JUSTIFICATION -)
-      ;;               :CONTEXT
-      ;;               ((ONT::THE A1 :INSTANCE-OF ONT::PERSON :EQUALS USER))) ;; I will
-      ;; I will
+      ;; >> PROPOSE-CPS-ACT ... (commit)
+      ;; S: OK
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > NIL
+      ;; >> PROPOSE-CPS-ACT > HANDLE-CSM-RESPONSE 
+      ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE (commit)
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
+      ;; FIXME: the following ANSWER-with-EFFECT is not documented!
+      ;; (REPORT :content (ANSWER :TO C00088 :WHAT ONT::V60203 :QUERY ONT::V60222 :VALUE A1
+      ;;                   :EFFECT (ADOPT :ID XX1 :WHAT YY1 :AS (MODIFICATION :OF C00086)))
+      ;;  :context ((ONT::THE A1 :INSTANCE-OF ONT::PERSON :EQUALS USER)))
+      ;; S: I will
       ;;  WHAT-NEXT 
       ;;   (EXECUTION_STATUS  WAITING-FOR-USER)
       "Put B7 on the table"
@@ -306,14 +308,16 @@
 				       :context NIL))
       ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
       "Let's build a 3 step staircase. Can I move the blocks?"
-      ;; OK
+      ;; >> PROPOSE-CPS-ACT ... (commit)
+      ;; S: OK
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > NIL
+      ;; >> PROPOSE-CPS-ACT > HANDLE-CSM-RESPONSE 
+      ;; FIXME: CSM tags this as a PROPOSE SUBGOAL.  Either we change this or the BA should send back a MODIFICATION
       ;; (PROPOSE
       ;;  :CONTENT (ADOPT :WHAT A1 :AS (SUBGOAL :OF XXX))
-      ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::HAUL :AGENT A0 :AFFECTED A2)
+      ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::CAUSE-MOVE :AGENT A0 :AFFECTED A2)
       ;;            (ONT::THE A0 :INSTANCE-OF ONT::PERSON :SUCHTHAT A1)
       ;;            (ONT::THE A2 :INSTANCE-OF ONT::SET :ELEMENT-TYPE ONT::BLOCK)))
-
-      ;; TOFIX: CSM tags this as a PROPOSE SUBGOAL.  Either we change this or the BA should send back a MODIFICATION
       ))
 
     (test-user-move-true-ynq .
@@ -321,9 +325,17 @@
 				       :context NIL))
       ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
       "Let's build a 3 step staircase. Are there enough blocks?"
-      ;;  after many interactions, the system answers yes
-      ;;  then on the WHAT NEXT, it proposes an action
-      ;; END OF TEST
+      ;; >> PROPOSE-CPS-ACT ... (commit)
+      ;; S: ok
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > NIL
+      ;; >> PROPOSE-CPS-ACT > HANDLE-CSM-RESPONSE 
+      ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE (commit)
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
+      ;; (answer)
+      ;; S: yes
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:maybe) (what-next)
+      ;; (propose) > PERFORM-BA-REQUEST
+      ;; FIXME: Dummy proposes bad action (put b7 on b6 -- there is no b6!)
       ))
 
     
@@ -967,6 +979,7 @@ call TEST. Reports available KEYs on error."
      (t
       (setf *test-dialog* dialogue)
       (setf *test-dialog-id* key)
+      (setf dummy::*replycounter* 0)
       (start-conversation)
       (COMM::send 'test `(TELL :content (component-status :who TEST :what (TESTING ,key))))
       (test)))))
