@@ -947,7 +947,7 @@
       (add-to-conjunct (val (MODS ?advbv)) (old ?con) (new ?newc))
      
       )
-
+#||
     ;;   more/as/so ADJP than/as/that 
     ;;   e.g., more sensitive than that
     ((ADJP (LF (% PROP (CLASS ?lf) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
@@ -986,7 +986,7 @@
      ;;(np (var ?vnp))
      (add-to-conjunct (val (& (figure ?arg) (ground ?vg) (?sc-map ?vsc))) (old ?con) (new ?newc))
      )
-
+||#
     
 
     ;;  as ADJ as-PP
@@ -1085,7 +1085,9 @@
      (S (var ?vs))
      (add-to-conjunct (val (ground ?vs)) (old ?con) (new ?newc))
      )
-||#
+     ||#
+
+     #|
     ;; TEST: red enough
     ((ADJP (LF (% PROP (CLASS ?c) (VAR ?v) (CONSTRAINT ?newc) (sem ?sem)))
            (val ?val) (agr ?agr) (mass ?mass) (var ?v) (ARG ?arg) (gap ?gap)
@@ -1103,6 +1105,7 @@
      (add-to-conjunct (val (MODS ?advbv)) (old ?con) (new ?newc))
      
      )
+|#
 
     ;;  ADV modification
     ;; TEST: very quickly 
@@ -1385,18 +1388,18 @@
    ;; TEST: walk a short distance
    ;; TEST: The market fell three percent
    ((advbl (arg ?arg) ;;(role (:* ONT::distance W::quantity)) 
-     (var *)
+     (var *) (subj ?anysubj)
 	   (sort binary-constraint)
 	   (LF (% PROP (VAR *) (CLASS ONT::extent-predicate) (sem ?sem)
 		  (CONSTRAINT (& (FIGURE ?arg) (scale ?scale) (GROUND ?v)))))
 	   (atype (? x W::PRE W::POST))
-     (argument (% W::S
+     (argument (% W::S (subjvar ?anysubj)
                           ;; W::NP
 			  ;; W::VP)
-		  (SEM (? SEM8044 ($ F::event-of-change))))) ;;SITUATION (F::trajectory +)))))))
+		  (SEM ($ F::situation (f::type (? xx ont::event-of-action)))))) ;;SITUATION (F::trajectory +)))))))
      )
     -distance-np-advbl> .97
-    (head (np (var ?v) (sort unit-measure) (sem ?sem) 
+    (head (np (var ?v) (sort unit-measure) (sem ?sem)  
 	      (bare -) ;; we suppress this rule for distances without a specific amount (e.g., "miles")
 	      ;; the semantic restriction is not sufficient to prevent measure-unit phrases such as "a bit" or "a set" as distances so using the lfs to restrict
 	      (lf (% description (constraint (& (scale ?scale)))))
@@ -1467,7 +1470,7 @@
        (LF (% PROP (var *) (CLASS ONT::EXCLUSIVE) 
 	        (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE w::post) (focus ?v)
-      (ARGUMENT (% (? x W::VP W::S)))
+      (ARGUMENT (% (? x W::VP W::S) (subjvar ?subjv)))
       (SEM ?sem))
      -myself-as-advbl> .98
      (head (np  (var ?v) (REFL +) (PRO +)
@@ -1481,7 +1484,7 @@
 	        (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE (? xx w::post w::pre w::pre-vp)) (focus ?v)
       (lex ?hlex) (headcat ?hcat)
-      (ARGUMENT (% (? x W::VP W::S)))
+      (ARGUMENT (% (? x W::VP W::S) (subjvar ?subjv)))
       (SEM ?sem))
      -by-myself-as-advbl> .98
      (word (lex by))
@@ -1494,8 +1497,9 @@
        (LF (% PROP (var *) (CLASS ONT::EXCLUSIVE) 
 	        (Constraint (& (FIGURE ?arg) (GROUND ?v)))))
       (ATYPE (? xx w::post w::pre w::pre-vp)) (focus ?v)
-      (lex ?hlex) (headcat ?hcat)
-      (ARGUMENT (% (? x W::VP W::S)))
+      (lex ?hlex) (headcat ?hcat) 
+      
+      (ARGUMENT (% (? x W::VP W::S) (subjvar ?subjv)))
       (SEM ?sem))
      -all-by-myself-as-advbl> .98
      (word (lex all))

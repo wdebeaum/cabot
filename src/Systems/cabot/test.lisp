@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Fri Jan 20 14:23:28 CST 2017 lgalescu>
+;;;; Time-stamp: <Sun Feb 12 11:09:08 CST 2017 lgalescu>
 
 ;;;;
 
@@ -198,6 +198,31 @@
       ; FIXME: don't we need a message to tell the BA that we are done? currently only CSM knows this. probably what needs to happen is that DAGENT should send (RELEASE :id G)
      ))
 
+    (flow-user-directed-with-alarms .
+     ;; user proposes goal and directs system to complete the task; user indicates goal-achieved; user waits to trigger alarms
+     ((TELL :content (ENABLE-ALARMS))
+      "Let's build a 2-step staircase"
+      ;; S: ok
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL ... (what-next)
+      ;; (ex-status:waiting-for-user) > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      "Put block 1 on the table"
+      ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
+      ;; S: ok
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
+      ;; (ex-status:done) -> PERFORM-BA-REQUEST 
+      ;; S: Done (PUT)
+      "Put block 2 on top of block 1"
+      ;; S: ok
+      ;; S: Done (PUT)
+      "Put block 3 next to block 1"
+      ;; S: ok
+      ;; S: Done (PUT)
+      "We're done"
+      ;; S: good!
+      ; FIXME: don't we need a message to tell the BA that we are done? currently only CSM knows this. probably what needs to happen is that DAGENT should send (RELEASE :id G)
+      (TELL :content (DISABLE-ALARMS))
+     ))
+
     (test-alarm-waiting-for-user .
      ;; user proposes goal, system directs and user executes; user takes a long time to perform action, triggering prompts; eventually, user executes action
      ((TELL :content (ENABLE-ALARMS)) 
@@ -263,7 +288,7 @@
       ;; S: Please put B7 on B6.
       ;; > ANSWERS
       "I can't do it."
-      ;; (rejected) > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM  (initiative:maybe) (what-next)
+      ;; (rejected) > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM  (initiative:maybe) (what-next)
       ;; (propose) > PERFORM-BA-REQUEST
       ;; S: Suggest something else.
       ;; > ANSWERS > NIL (?)
@@ -352,6 +377,25 @@
       ;; 
       ))
 
+    (test-undo .
+     ;; user undoes accomplished subgoal
+     ("Let's build a 2-step staircase"
+      ;; S: ok
+      "Put a block on the table"
+      ;; S: ok.
+      "Undo that" ;; also: "Take that back" 
+      ;;
+      "Put a green block on the table"
+      ))
+
+    (test-undo-instead .
+     ;; user proposes modification of already accomplished subgoal
+     ("Let's build a 2-step staircase"
+      ;; S: ok
+      "Put a block on the table"
+      ;; S: ok. <and does it>
+      "Let's use a green block instead"
+      ))
 
     
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -359,8 +403,8 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
     (new-sift-demo .
-     ( (TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
-				       :context ((ONT::RELN ONT::PERFORM :what WH-TERM))))
+     ( (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
+				       :context NIL))
       "Let's build a 5 step staircase."
       ;; we don't have enough blocks
       "Let's build a 3 step staircase."

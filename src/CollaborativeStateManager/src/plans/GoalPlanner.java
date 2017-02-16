@@ -645,11 +645,12 @@ public class GoalPlanner {
 			String query = null;
 			if (act.getKeywordArg(":QUERY") != null)
 				query = act.getKeywordArg(":QUERY").stringValue();
-			if (query == null)
+			if (query == null && act.getKeywordArg(":OF") != null)
 				query = act.getKeywordArg(":OF").stringValue();
 			
 			KQMLObject whatObject = act.getKeywordArg(":WHAT");
-			
+			if (query == null)
+				query = "";
 			String what = "";
 			if (whatObject != null)
 				what = whatObject.stringValue();

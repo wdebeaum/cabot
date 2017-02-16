@@ -264,9 +264,13 @@
 		    (agenda-item-start i) (agenda-item-end i) (agenda-item-prob i) score)
 	    )
 	  (setf (agenda-item-score i) score)
-	  ;;	    (format t "%Bucket is ~S with size ~S~%" bucket (length (aref agenda bucket)))
-	  (setf (aref (agenda *chart*) bucket)
-		(insert-in-agenda i score (aref (agenda *chart*) bucket)))
+	  ;;(format t "%Bucket is ~S with size ~S~%" bucket (length (aref (agenda *chart*) bucket)))
+	  (if (< (length (aref (agenda *chart*) bucket)) 4000)
+	      (setf (aref (agenda *chart*) bucket)
+		     (insert-in-agenda i score (aref (agenda *chart*) bucket)))
+	      ;;(format t "~%Warning: bucket exceeds 4000 elements"))
+	      )
+
 	  (if (> bucket (top-bucket *chart*))
 	      (setf (top-bucket *chart*) bucket)
 	    ))
@@ -501,8 +505,9 @@
 
 
 (defun normalize (x)
-  "reduces a number to two decimal point precision"
-  (coerce (/ (round x .0001) 10000) 'short-float))
+  x)
+#||  "reduces a number to two decimal point precision"
+  (coerce (/ (round x .0001) 10000) 'short-float))||#
 
 (defvar *wn-wsd-enabled* nil)   ;; turns on WSD to WN sense
 

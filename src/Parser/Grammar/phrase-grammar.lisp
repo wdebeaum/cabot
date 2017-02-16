@@ -202,7 +202,7 @@
 	((possessor (LF ONT::DEFINITE) (AGR ?agr) (ARG ?arg) (MASS ?m) (RESTR (& (assoc-poss ?v)))
                (NObareSpec +))
 	 -possessive2>
-	 (head (NP (PRO -) (SEM ?sem) (VAR ?v) (agr 3p) (gerund -) (name -) (sort pred))) (^))
+	 (head (NP (PRO -) (SEM ?sem) (VAR ?v) (agr 3p) (gerund -) (name -) (sort pred) (headless -))) (^))
 #||
 	;; plural possessor of relational noun - the engines' wheels
 	;; Myrosia added a restriction (sort pred) to prevent wh-desc prhases appearing in this rule
@@ -405,6 +405,8 @@
     ;; MD 18/04/2008 added SEM as a headfeature to handle "in full" where in subcategorizes for adjp
     ;; Other option might be to subcategorize for adj - need to consider in the future
     (ADJP arg lex headcat transform argument sem) ;; post-subcat)     
+    (ADJ1 arg lex headcat transform argument sem sort lf allow-deleted-comp allow-post-n1-subcat)
+    (ADJ arg lex headcat transform argument sem sort) ;; post-subcat)     
     )
    
    ;; common nouns without modifiers, e.g. boxcar, juice, trains
@@ -787,38 +789,9 @@
 	   )
      (add-to-conjunct (val (:MODS ?m)) (old ?r) (new ?con)))
 
-;;;    ;; Split phrases like "the same reading as in 3"
-;;;    ((N1 (RESTR ?con) (CLASS ?c) (SORT ?sort) (QUAL -) (COMPLEX +)
-;;;      (relc ?relc) (subcat ?subcat)
-;;;      )
-;;;     -N1-post-subcat>
-;;;     (ADJP (atype (? at attributive-only central)) 
-;;;      (LF ?qual) 
-;;;      (ARG ?v) (VAR ?adjv)
-;;;      (argument (% NP (sem ?nsem))) 
-;;;      (COMPLEX -) (comparative ?com)
-;;;      (post-subcat ?!post-subcat)
-;;;      (psarg ?psvar)
-;;;      (post-subcat (% ?xxx (var ?psvar) (gap -)))
-;;;      )
-;;;     (head (N1 (RESTR ?r) (VAR ?v) (SEM ?nsem) (CLASS ?c)
-;;;	    (SORT ?sort) (relc ?relc) (subcat ?subcat) 
-;;;	    (post-subcat -)
-;;;	    )
-;;;      )
-;;;     ?!post-subcat
-;;;     (UNIFY (arg1 (% ?xxx (var ?psvar))) (arg2 ?!post-subcat))
-;;;     (add-to-conjunct (val (:MODS ?adjv)) (old ?r) (new ?con)))
-
-
-
-    
- 
-    ;; A few adjectives can have their subcat after the head noun, e.e., "the same ideas as me", "a faster car than that"
-     ((N1 (RESTR ?con) (CLASS ?c) (SORT ?sort) (QUAL -) (COMPLEX +)(set-restr ?sr)
-       (relc ?relc) (subcat ?subcat)
-       (post-subcat +)
-       (no-postmodifiers +) ;; add an extra feature to say "no further postmodifiers". If we say "The bulb in 1 is in the same path as the battery in 1", we don't want "in 1" to attach to "the path"
+ #||   ;; Split phrases like "a larger apple that that
+    ((N1 (RESTR ?con) (CLASS ?c) (SORT ?sort) (QUAL -) (COMPLEX +)
+      (relc ?relc) (subcat ?subcat)
       )
      -N1-post-subcat>
      (ADJP (atype (? at attributive-only central)) 
@@ -826,11 +799,39 @@
       (ARG ?v) (VAR ?adjv)
       (argument (% NP (sem ?nsem))) 
       (COMPLEX -) (comparative ?com)
-      ;;(post-subcat ?!post-subcat)
+      (post-subcat ?!post-subcat)
       (psarg ?psvar)
-      (post-subcat ?!psct)  ;; just to make sure its not empty
-      (post-subcat (% PP (var ?psvar) (ptype ?ptype) (gap -) (sem ?pssem)
-		      ))
+      (post-subcat (% ?xxx (var ?psvar) (gap -)))
+      )
+      (head (N1 (RESTR ?r) (VAR ?v) (SEM ?nsem) (CLASS ?c)
+		(SORT ?sort) (relc ?relc) (subcat ?subcat) 
+		(post-subcat -)
+		)
+       )
+     ?!post-subcat
+     (UNIFY (arg1 (% ?xxx (var ?psvar))) (arg2 ?!post-subcat))
+     (add-to-conjunct (val (:MODS ?adjv)) (old ?r) (new ?con)))
+    ||#
+ 
+    ;; A few adjectives can have their subcat after the head noun, e.e., "the same ideas as me", "a faster car than that"
+     ((N1 (RESTR ?newr) (CLASS ?c) (SORT ?sort) (QUAL -) (COMPLEX +)(set-restr ?sr)
+       (relc ?relc) (subcat ?subcat)
+       ;;(post-subcat +)
+       (no-postmodifiers +) ;; add an extra feature to say "no further postmodifiers". If we say "The bulb in 1 is in the same path as the battery in 1", we don't want "in 1" to attach to "the path"
+      )
+     -N1-post-subcat>
+     (ADJ1 (atype (? at attributive-only central)) 
+      (LF ?qual) 
+      (ARG ?v) (VAR ?adjv)
+      (argument (% NP (sem ?nsem))) 
+      (COMPLEX -) (comparative ?com)
+      (constraint ?adjcon)
+      (subcat-map ?submap)
+      (argument-map ?argmap)
+      ;;(post-subcat ?!post-subcat)
+      ;;(subcat ?!psct)  ;; just to make sure its not empty
+      (subcat (% PP (var ?psvar) (ptype ?ptype) (gap -) (sem ?pssem)
+		 ))
       )
      (head (N1 (RESTR ?r) (VAR ?v) (SEM ?nsem) (CLASS ?c)(set-restr ?sr)
 	    (SORT ?sort) (relc ?relc) (subcat ?subcat) 
@@ -840,7 +841,13 @@
       (PP (ptype ?ptype) (var ?psvar) (gap -) (sem ?pssem))
       ;; ?!psct
      ;;(UNIFY (arg1 (% ?xxx (var ?psvar))) (arg2 ?!post-subcat))
-     (add-to-conjunct (val (:MODS ?adjv)) (old ?r) (new ?con)))
+      (append-conjuncts  (conj1 ?adjcon) (conj2 (& (?submap ?psvar) (?argmap ?v))) (new ?newadjcon))
+      (add-to-conjunct (val (:MOD 
+			     (% *pro* (var ?adjv) (status ont::f) (class ?qual)
+				    (constraint ?newadjcon))))
+				   
+       (old ?r) (new ?newr))
+      )
     
     
     ;; 500 mb or greater
@@ -918,11 +925,12 @@
 	     (transform ?transform) (sem ?sem) (premod -)
 	     )))
      -adj-scalar-pred> 1
-     (head (ADJ (LF ?lf) (SUBCAT -) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
-	    (transform ?transform) (constraint ?con) (functn ?fn) (comp-op ?dir)
+     (head (ADJ1 (LF ?lf) (SUBCAT -) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
+	    (transform ?transform) (constraint ?con) (comp-op ?dir)
 	    (Atype ?atype) (comparative ?cmp) (lex ?lx) ;(lf (:* ?lftype ?lex))
 	    (sem ($ F::ABSTR-OBJ (f::scale ?!scale) (F::intensity ?ints) (F::orientation ?orient)))
 	    (post-subcat -) (prefix -)
+	    (functn -)
 	    ))
      (append-conjuncts (conj1 ?con) (conj2 (& (orientation ?orient) (intensity ?ints)
 					    (?argmap ?arg) (scale ?!scale) 
@@ -932,7 +940,7 @@
 
     ;; prefix ADV modification of an ADJ
    ((ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
-     (transform ?transform) (constraint ?newc) (functn ?fn) (comp-op ?dir)  (argument ?argument)
+     (transform ?transform) (constraint ?newc) (comp-op ?dir)  (argument ?argument)
      (atype ?atype) (comparative ?cmp) (lex ?lx) ; (lf (:* ?lftype ?lx))
      ;(sem ($ F::SITUATION))
      (arg ?arg)
@@ -944,7 +952,7 @@
      )
     (word (lex w::punc-minus))
     (head (ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
-	       (transform ?transform) (constraint ?con) (functn ?fn) (comp-op ?dir) (arg ?arg)
+	       (transform ?transform) (constraint ?con) (comp-op ?dir) (arg ?arg)
 	       (atype ?atype) (comparative ?cmp) (lex ?lx) (argument ?argument)
 	       ))
     (add-to-conjunct  (val (:MOD (% *PRO* (status ont::f) (class ?qual)
@@ -952,9 +960,10 @@
      (old ?con) 
      (new ?newc))
     )
-     
+
+   ;; advberb prefix     
     ((ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
-     (transform ?transform) (constraint ?newc) (functn ?fn) (comp-op ?dir)  (argument ?argument)
+     (transform ?transform) (constraint ?newc) (comp-op ?dir)  (argument ?argument)
      (atype ?atype) (comparative ?cmp) (lex ?lx) ; (lf (:* ?lftype ?lx))
      ;(sem ($ F::SITUATION))
      (arg ?arg)
@@ -965,7 +974,7 @@
      (argument (% ADJP (sem ?sem))) (LF ?qual)
      )
     (head (ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
-	       (transform ?transform) (constraint ?con) (functn ?fn) (comp-op ?dir) (arg ?arg)
+	       (transform ?transform) (constraint ?con) (comp-op ?dir) (arg ?arg)
 	       (atype ?atype) (comparative ?cmp) (lex ?lx) (argument ?argument)
 	       ))
     (add-to-conjunct  (val (:MOD (% *PRO* (status ont::f) (class ?qual)
@@ -976,7 +985,7 @@
   
 ;;  Pertainyms
    ((ADJ (LF ONT::ASSOC-WITH) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
-     (transform ?transform) (constraint ?newc) (functn ?fn) (comp-op ?dir)  (argument ?argument)
+     (transform ?transform) (constraint ?newc) (comp-op ?dir)  (argument ?argument)
      (atype ?atype) (comparative ?cmp) (lex ?lx) ; (lf (:* ?lftype ?lx))
      ;(sem ($ F::SITUATION))
      (arg ?arg)
@@ -985,7 +994,7 @@
    -adj-pertainym-construction> 1
     (head (ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) 
 	       (pertainym ?!pert-type) (pert-domain-info ?pert-domain-info)
-	       (transform ?transform) (constraint ?con) (functn ?fn) (comp-op ?dir) (arg ?arg)
+	       (transform ?transform) (constraint ?con) (comp-op ?dir) (arg ?arg)
 	       (atype ?atype) (comparative ?cmp) (lex ?lx) (argument ?argument)
 	       ))
     (compute-sem-features (lf ?!pert-type) (sem ?pert-sem) (domain-info ?pert-domain-info))
@@ -1002,17 +1011,37 @@
 	     (transform ?transform) (sem ?sem) (premod -)
 	     )))
      -adj-nonscalar-pred> 1
-     (head (ADJ (LF ?lf) (SUBCAT -) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
-	    (transform ?transform) (constraint ?con) (functn ?fn) (comp-op ?dir)
+     (head (ADJ1 (LF ?lf) (SUBCAT -) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
+	    (transform ?transform) (constraint ?con) (comp-op ?dir)
 	    (atype ?atype) (comparative ?cmp) (lex ?lx) ; (lf (:* ?lftype ?lx))
 	    (sem ($ F::ABSTR-OBJ
 		    (f::scale -)))
+	    (FUNCTN -)
 	    ;;(sem ($ F::SITUATION))
 	    (post-subcat -) (prefix -)
 	    ))
      (append-conjuncts (conj1 ?con) (conj2 (& (?argmap ?arg)))
       (new ?newc))
      )
+
+   ;; once morphology is done, move up the attach subcats
+   ((ADJ1 (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
+	    (transform ?transform) (constraint ?con) (comp-op ?dir)  (SUBCAT-MAP ?subm)
+	    (atype ?atype) (comparative ?cmp) (lex ?lx)
+             (FUNCTN -)
+	    (post-subcat ?psub) (prefix -)
+	    )
+       
+     -adj-adj1> 1
+     (head (ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
+	    (transform ?transform) (constraint ?con) (comp-op ?dir) (SUBCAT-MAP ?subm)
+	    (atype ?atype) (comparative ?cmp) (lex ?lx)
+	    (sem ?sem)
+	    (FUNCTN -)
+	    (post-subcat ?psub) (prefix -)
+	    ))
+
+    )
 
     ;;  a (ten foot) high fence, a three mile wide path, .. 
     ((ADJP (ARG ?arg) (VAR ?adjv) (sem ?sem) (atype ?atype) (comparative ?cmp)
@@ -1028,6 +1057,7 @@
 		(transform ?transform) (constraint ?con)
 	    (atype ?atype) (comparative ?cmp)
 	    (post-subcat -)
+	    (FUNCTN -)
 	    ))
      (class-greatest-lower-bound (in1 ?sc1) (in2 ?sc) (out ?finalsc))
      (append-conjuncts (conj1 ?restr) (conj2 ?r) (new ?tempcon))
@@ -1049,6 +1079,7 @@
 		(transform ?transform) (constraint ?con)
 	    (atype ?atype) (comparative ?cmp)
 	    (post-subcat -)
+	    (FUNCTN -)
 	    ))
       (class-greatest-lower-bound (in1 ?sc1) (in2 ?sc) (out ?finalsc))
      (append-conjuncts (conj1 ?restr) (conj2 ?r) (new ?tempcon))
@@ -1057,37 +1088,36 @@
 
    ;; adjectives with deleted complements  JFA 8/02
     ;; different (truck)    
-    ((ADJP (ARG ?arg) (VAR ?v) (atype ?atype) (comparative -)
+    ((ADJP (ARG ?arg) (VAR ?v) (atype ?atype) (comparative ?comp)
       (LF (% PROP (CLASS ?lf) (VAR ?v) 
 	     (sem ?sem) 
 	     (CONSTRAINT ?newc)
 	     (transform ?transform)
 	     )))
      -adj-pred-object-deleted>
-     (head (ADJ (LF ?lf) (VAR ?v) (sem ?sem) (atype ?atype)
-		(CONSTRAINT ?con) (comparative -) (prefix -) (pertainym -)
+     (head (ADJ1 (LF ?lf) (VAR ?v) (sem ?sem) (atype ?atype)
+		(CONSTRAINT ?con) (comparative ?comp) (prefix -) (pertainym -)
 		(SUBCAT (% ?!subc (SEM ?subsem) ))
 		(sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
 		(SORT PRED) (SUBCAT-MAP ?submap)
-;		(Functn ?fn)  ;; don't need functn in none comparative rules
 		(COMP-OP ?dir)
 		(transform ?transform)
-	    (ARGUMENT-MAP ?argmap)
+		(ARGUMENT-MAP ?argmap)
 	    (allow-deleted-comp +)
 	    (post-subcat -)
 	    ))
      (append-conjuncts (conj1 ?con)
 		       (conj2 (& (scale ?scale) (f::intensity ?ints) (f::orientation ?orient)
-;				 (Functn ?fn)
 				 (?argmap ?arg) 
-				 (?submap (% *PRO* (var *) (sem ?subsem) (constraint (& (related-to ?v)))))))
+				 ;;(?submap (% *PRO* (var *) (sem ?subsem) (constraint (& (related-to ?v)))))
+				 ))
 				 
 		       (new ?newc))
      )
 
      ;; more quickly
      ((ADVBL (ARG ?arg)
-	 (VAR ?v) (atype ?atype) (comparative (? cc + w::superl))
+	 (VAR ?v) (atype ?atype) (comparative (? cc + w::superl)) (SORT PRED)
       (LF (% PROP (CLASS ?lf) (VAR ?v)
 	     (sem ?sem) 
 	     (CONSTRAINT ?newc)
@@ -1101,28 +1131,25 @@
 	     (SUBCAT (% ?!subc (SEM ?subsem) ))
 	     (SORT PRED) (var ?v)
 	     (SUBCAT-MAP ?submap)
-	     (Functn ?fn)
 	     (comp-op ?dir)
 	     (transform ?transform)
 	     (ARGUMENT-MAP ?argmap)
-	     (functn-map ?fnmap)
 	     (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
 	     (ARGUMENT (% ?x (sem ?argsem) (lex ?arglex)))
 	     (post-subcat -)
 	     ))
       (append-conjuncts (conj1 ?con)
-       (conj2 (& (scale ?fn) (orientation ?orient) (intensity ?ints)
-;		 (Functn ?fn)
+       (conj2 (& (scale ?scale) (orientation ?orient) (intensity ?ints)		
 		 (?argmap ?arg) 
-		 (functn-arg ?fnmap)
-		 (?submap (% *PRO* (var *) (class ?c) (sem ?argsem)))))      
+		 ;;(?submap (% *PRO* (var *) (class ?c) (sem ?argsem)))
+		 ))
        (new ?newc))
       )
     
 
     ;; comparatives with deleted complements  JFA 8/02
      ;; bigger
-
+#||
     ((ADJP (ARG ?arg) (VAR ?v) (atype ?atype) (comparative (? cc + w::superl))
       (LF (% PROP (CLASS ?lf) (VAR ?v)
 	     (sem ?sem) 
@@ -1135,150 +1162,186 @@
 		(CONSTRAINT ?con) (comparative (? cc + w::superl))
 		(SUBCAT (% ?!subc (SEM ?subsem) ))
 		(SORT PRED) (SUBCAT-MAP ?submap)
-		(Functn ?fn)
 		(COMP-OP ?dir)
 		(transform ?transform)
 		(ARGUMENT-MAP ?argmap)
-	    (ARGUMENT (% ?x (sem ?argsem) (lex ?arglex)))
-	    (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
-	    (post-subcat -);;(W::allow-deleted-comp +)
+		(ARGUMENT (% ?x (sem ?argsem) (lex ?arglex)))
+		(sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
+		(post-subcat -);;(W::allow-deleted-comp +)
+		(FUNCTN -)
 	    ))
      (unify (value ?argsem) (pattern ($ ?type (f::type ?c))))
      (append-conjuncts (conj1 ?con)
-		       (conj2 (& ;(Functn ?fn)
-			         (scale ?fn) (orientation ?orient) (intensity ?ints)
+		       (conj2 (& 
+			       (scale ?scale)
+			       (orientation ?orient) (intensity ?ints)
 				 (?argmap ?arg) 
 				 (?submap (% *PRO* (var *) (class ?c) (sem ?argsem)))))
       (new ?newc))
-     )
+     )||#
 
 		       
-     ;; (a) BIGGER (computer than that) -- requiring a post-N1 subcat
-    ((ADJP (ARG ?arg) (VAR ?v) (atype ?atype) (comparative +)
-      (LF (% PROP (CLASS ?lf) (VAR ?v)
-	     (sem ?sem) 
-	     (CONSTRAINT ?newc)
-	     (transform ?transform)
-	     ))
-       (post-subcat ?!subcat) (psarg ?psvar))
+  #||   ;; (a) BIGGER (computer than that) -- requiring a post-N1 subcat
+    ((ADJ1 (ARG ?arg) (VAR ?v) (atype ?atype) (comparative +)
+      (LF ?lf)
+      (sem ?sem) 
+      (CONSTRAINT ?newc)
+      (transform ?transform)
+      (post-subcat ?!subcat) (psarg ?psvar))
      -adj-compar-subcat-post-N1>
-     (head (ADJ (LF ?lf) (sem ?sem) (VAR ?v) (atype ?atype)
+     (head (ADJ1 (LF ?lf) (sem ?sem) (VAR ?v) (atype ?atype)
 		(CONSTRAINT ?con) (allow-post-n1-subcat +) (prefix -)
 		(subcat ?!subcat)
 		(SORT PRED) (SUBCAT-MAP ?submap)
-		(Functn ?fn)		
 		(COMP-OP ?dir)
 		(transform ?transform)
 		(sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
 		(ARGUMENT-MAP ?argmap)
 		(ARGUMENT (% ?x (sem ?argsem) (lex ?arglex)))
+		(FUNCTN -)
 	    ))
      (append-conjuncts (conj1 ?con)
-		       (conj2 (& ;(Functn ?scale)
-				 (scale ?fn)
+		       (conj2 (& 
+				 (scale ?scale)
 				 (orientation ?orient) (intensity ?ints)
 				 (?argmap ?arg) 
 				 (?submap ?psvar)))
 				 
 		       (new ?newc))
-     )
+     )||#
 
-    ;; a house bigger than that
-    ((ADJP (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only))
+   #|| ;; a house bigger than that
+    ((ADJP (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only)) 
       (LF (% PROP  (CLASS ?lf)
-	     (VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?argv) (scale ?fn) (intensity ?ints) (orientation ?orient)
+	     (VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?argv)
+				     (scale ?scale)
+				     (intensity ?ints) (orientation ?orient)
 						      ))
-	     (transform ?transform) (sem ?sem)
+	     (transform ?transform) (sem ?sem) 
 	     )))
      -adj-pred-compar-subcat>
-     (head (ADJ (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative +)
+     (head (ADJ (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) ;;(comparative +)
 		(SUBCAT ?subcat) (SUBCAT-MAP ?reln) (SUBCAT (% ?xx (var ?argv)))
 		(ARGUMENT-MAP ?argmap) 	
-		(functn ?fn)
+		
 		(SORT PRED) (prefix -)
 		(sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
 		(transform ?transform)
+		(FUNCTN -)
 		))
      ?subcat)
-
+||#
 
       
     ;; adjectives that map to predicates with subcats, e.g.,  close to avon
     ;; The resulting adjective phrase is marked as predicative only, because really it cannot be used otherwise
     ;; ?? the afraid of dogs man ???
-     ((ADJP (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only)) (gap ?gap)
-      (LF (% PROP  (CLASS ?lf)
-	     (VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?argv) (FUNCTN ?fn) (scale ?scale) (intensity ?ints) (orientation ?orient)
-						      ))
+    ;; subcat is not passed up, so no "apples are larger than pears than oranges"
+     ((ADJ1 (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only)) (gap ?gap)
+      	     (CONSTRAINT ?newc) (ARGUMENT-MAP ?argmap)
 	     (transform ?transform) (sem ?sem)
-	     )))
+	     )
      -adj-pred-subcat>
-     (head (ADJ (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -)
+     (head (ADJ1 (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) ;;(comparative -)
 		(SUBCAT ?subcat) (SUBCAT-MAP ?reln) (SUBCAT (% ?xx (var ?argv) (gap ?gap)))
 		(ARGUMENT-MAP ?argmap) (prefix -)
-		(functn ?fn)
 		(SORT PRED)
 		(sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
 		(transform ?transform)
+		(constraint ?con)
 		))
-     ?subcat)
+      ?subcat
+      (append-conjuncts (conj1 ?con) (conj2 (& (?argmap ?arg) (?reln ?argv) (scale ?scale) (intensity ?ints) (orientation ?orient)))					     
+		       (new ?newc)))
 
-   ;; adjectives with an explicit scale, e.g., red in color, high in temperature
-   ((ADJP (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only)) (gap ?gap) (comparative ?comp)
-     (LF (% PROP  (CLASS ?lf)
-	    (VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?argv) (FUNCTN ?fn) (scale ?newscale) (intensity ?ints) (orientation ?orient)
-				    ))
-	    (transform ?transform) (sem ?sem)
-	    )))
-    -adj-pred-scale> 
-    (head (ADJ (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative ?comp)
-	       (ARGUMENT-MAP ?argmap) (prefix -)
-	       (functn ?fn)
-	       (SORT PRED)
-	       (sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale1) (F::intensity ?ints) (F::orientation ?orient)))
-	       (transform ?transform)
-	       ))
-    (pp (ptype w::in) (var ?sc-var) (sem  ($ F::ABSTR-OBJ (f::scale ?!scale2))) (gap ?gap))
-    (class-greatest-lower-bound (in1 ?scale1) (in2 ?!scale2) (out ?newscale))
+   ;; pre adverb mod of adjective
+
+   ((ADJ1 (ARG ?arg) (VAR ?v) (atype ?atype) (gap ?gap) (ARGUMENT-MAP ?argmap) 
+     (CONSTRAINT ?newc)(SUBCAT ?subcat) (SUBCAT-MAP ?reln)
+     (transform ?transform) (sem ?sem)
+	     )
+     -advbl-pre-adj1>
+     (advbl (ATYPE PRE) (VAR ?advbv) (ARG ?v) ;;(SORT OPERATOR) 
+            (argument (% ADJP (sem ?sem)))
+            (gap -)
+      )
+     (head (ADJ1 (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v)  (atype ?atype);;(comparative -)
+		(SUBCAT ?subcat) (SUBCAT-MAP ?reln) (SUBCAT (% ?xx (var ?argv) (gap ?gap)))
+		(ARGUMENT-MAP ?argmap) (prefix -)
+		(SORT PRED)
+		(sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
+		(transform ?transform)
+		(constraint ?con)
+		))
+    (add-to-conjunct (val (MODS ?advbv)) (old ?con) (new ?newc))
     )
 
- 
+   ;; post adverb mod of adjective
+   ;; apples are larger on the outside than pears
+   ;; apples are larger than pears on the outside
+   ((ADJ1 (ARG ?arg) (VAR ?v) (atype ?atype) ;;(gap ?gap) 
+     (ARGUMENT-MAP ?argmap) 
+     (CONSTRAINT ?newc) (SUBCAT ?subcat) (SUBCAT-MAP ?reln)
+     (transform ?transform) (sem ?sem)
+	     )
+     -advbl-post-adj1> .98
+     (head (ADJ1 (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v)  (atype ?atype);;(comparative -)
+		(SUBCAT ?subcat) (SUBCAT-MAP ?reln) ;;(SUBCAT (% ?xx (var ?argv) (gap ?gap)))
+		(ARGUMENT-MAP ?argmap) (prefix -)
+		(SORT PRED)
+		;;(argument (% ?any (var ?vv) (sem ?argsem)))
+		(sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
+		(transform ?transform)
+		(constraint ?con)
+		))
+     (advbl (ATYPE POST) (VAR ?advbv) ;(ARG ?v) ;;(SORT OPERATOR) 
+        (SEM ($ F::ABSTR-OBJ (f::type (? ont::position-reln ont::adequate)) ))  ; e.g. on the outside, enough
+            ;;(argument (% ?any (var ?vv) (sem ?argsem)))
+            (gap -)
+      )
+     
+    (add-to-conjunct (val (MODS ?advbv)) (old ?con) (new ?newc))
+    )
+
+   
    ;;  the ADJP please "difficult to please" has an ARG that is the GAP in the clause. 
-    ((ADJP (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only)) (gap -)
-      (LF (% PROP  (CLASS ?lf)
-	     (VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?predv) (FUNCTN ?fn) (scale ?scale) (intensity ?ints) (orientation ?orient)
-						      ))
-	     (transform ?transform) (sem ?sem)
-	     )))
-     -adj-pred-subcat-gap-as-arg>
-     (head (ADJ (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -)
+    ((ADJ1 (ARG ?arg) (VAR ?v) (COMPLEX +) (atype (? atp postpositive predicative-only)) (gap -)
+      (CONSTRAINT ?newc)
+						     
+      (transform ?transform) (sem ?sem)
+      )
+     -adj-difficult-to-please>
+     (head (ADJ1 (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -)
 		(SUBCAT ?subcat) (SUBCAT-MAP ?reln) (SUBCAT (% CP ))
 		(ARGUMENT-MAP ?argmap) (prefix -)
-		(functn ?fn)
 		(SORT PRED)
 		(sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
 		(transform ?transform)
 		))
-     (CP (var ?predv) (gap ?!gap) (gap (% np (var ?arg)))))
+     (CP (var ?predv) (gap ?!gap) (gap (% np (var ?arg))))
+     (append-conjuncts (conj1 ?con) (conj2 (& (?argmap ?arg) (?reln ?predv) (scale ?scale) (intensity ?ints) (orientation ?orient)))
+		       (new ?newc)))
 
    ;;  special rule for COMPAR-OPS, converting an adjective to a comparative adjective
  
    ((ADJ (LF (:* ?pred ?lftype))
      (VAR ?v) (comparative +)
-     (ALLOW-POST-N1-SUBCAT ?xx)
-     (SUBCAT-MAP ?subcat-map)
-     (subcat  ?subcat)
-     (comp-ptype ?pt)
+     (allow-deleted-comp +) (allow-post-n1-subcat +) ;(ALLOW-POST-N1-SUBCAT ?xx)
+     ;(SUBCAT-MAP ?subcat-map)
+     ;(subcat  ?subcat)
+     (SUBCAT-MAP ?ground-smap)
+     (subcat  ?ground-subcat)
+     ;(comp-ptype ?pt)
      (ground-oblig ?go)
      (ground-subcat ?ground-subcat)
      (ATYPE CENTRAL)
-     (functn ?scale)
      (SORT PRED)
-     (sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+     ;(sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+     (sem ?sem)
      (transform ?transform) (argument-map ont::figure) (argument ?argument)  (arg ?arg)
      )
      -more-adj-compar> 1.0
-    (ADV (compar-op +) (lf (:* ?pred ?xx)) (ground-oblig ?go) (SUBCAT ?ground-subcat))
+    (ADV (compar-op +) (lf (:* ?pred ?xx)) (ground-oblig ?go) (SUBCAT ?ground-subcat) (SUBCAT-MAP ?ground-smap))
     (head (ADJ (LF (:* ?lftype ?w)) (var ?v) 
 	       (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -)
 	       (SUBCAT ?subcat) 
@@ -1286,10 +1349,45 @@
 	       (ATYPE central)
 	       (argument ?argument) (arg ?arg)
 	       (SORT PRED)
-	       (sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+	       ;;(sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+	       (sem ?sem)
 	       (transform ?transform)
 	       ))
     )
+
+   ; get FUNCTN into SCALE
+   ((ADJ (LF (:* ?lftype ?w)) ;(LF (:* ?pred ?lftype))
+     (VAR ?v) (comparative +)
+     ;(ALLOW-POST-N1-SUBCAT ?xx)
+     (SUBCAT-MAP ?subcat-map)
+     (subcat  ?subcat)
+     ;(comp-ptype ?pt)
+     ;(ground-oblig ?go)
+     ;(ground-subcat ?ground-subcat)
+     (ATYPE CENTRAL)
+     (SORT PRED)
+     (sem ($ F::ABSTR-OBJ (f::scale ?!functn)))
+     (allow-deleted-comp +) (allow-post-n1-subcat +)
+     ;(sem ?sem)
+     (transform ?transform) (argument-map ont::figure) (argument ?argument)  (arg ?arg)
+     )
+     -adj-compar-functn-to-scale> 1.0
+    ;(ADV (compar-op +) (lf (:* ?pred ?xx)) (ground-oblig ?go) (SUBCAT ?ground-subcat))
+     (head (ADJ (LF (:* ?lftype ?w)) (LF ?oldlf)
+		(var ?v) 
+	       (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative +)
+	       (SUBCAT ?subcat) 
+	       (subcat-map ?subcat-map)
+	       (ATYPE central)
+	       (argument ?argument) (arg ?arg)
+	       (SORT PRED)
+	       (FUNCTN ?!functn)
+	       ;(sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+	       ;(sem ?sem)
+	       (transform ?transform)
+	       ))
+    )
+   
 #||
 
    ((less-more (pred ONT::MORE-VAL) (ptype w::than))
@@ -1309,23 +1407,27 @@
     (head (word (lex least))))
 ||#
 
-    ;; MD 2008/06/05 removed because it seems to cause excessive ambiguity without evident benefit
+    
    ;; adjectives that map to predicates with two subcats, e.g.,  closer to avon than bath
-    ((ADJP (ARG ?arg) (VAR ?v) (COMPLEX +) (atype predicative-only)
-      (LF (% PROP (CLASS ?lf) (VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?argv) (?reln2 ?argv2)))
-	     (transform ?transform) (sem ?sem)
-	     )) 
-           )
+    ((ADJ1 (ARG ?arg) (VAR ?v) (COMPLEX +) (atype predicative-only)
+      (CONSTRAINT ?newc)
+      (transform ?transform) (sem ?sem)
+	    )
+           
      -adj-pred-subcat+>
-     (head (ADJ (LF ?lf)  (VAR ?v)
+     (head (ADJ1 (LF ?lf)  (VAR ?v)
 	    (transform ?transform) (sem ?sem)
 	    (SUBCAT ?subcat) (SUBCAT-MAP ?reln) (SUBCAT (% ?xx (var ?argv)))
 	    (SUBCAT2 ?subcat2) (SUBCAT2-MAP ?reln2) (SUBCAT2 (% ?xx2 (var ?argv2)))
 	    (post-subcat -)
 	    (ARGUMENT-MAP ?argmap)
+	    (CONSTRAINT ?con)
 	    (SORT PRED)))
      ?subcat
-     ?subcat2)
+     ?subcat2
+     (append-conjuncts (conj1 ?con) (conj2 (& (?argmap ?arg) (?reln ?argv) (?reln2 ?argv2))
+					     )
+		       (new ?newc)))
        
     
     ;;=============================================================================
@@ -1670,7 +1772,57 @@
 (parser::augment-grammar
   '((headfeatures
      (N1 var arg lex headcat transform agr mass case sem quantity indef-only refl abbrev nomobjpreps)
+     (ADJ1 arg  lex headcat transform argument subcat allow-deleted-comp subcat-map)); constraint))
+
+     ;; adjectives with an explicit scale, e.g., red in color, high in temperature, apples are larger in size (than oranges)
+   ((ADJ1 (ARG ?arg) (VAR ?v) (COMPLEX +) (LF ?lf)
+     (atype (? atp postpositive predicative-only)) (gap ?gap) (SORT PRED)
+     (comparative ?comp) (ARGUMENT-MAP ?argmap) (constraint ?con)
+     (sem ($ F::ABSTR-OBJ (f::scale ?newscale) (F::intensity ?ints) (F::orientation ?orient)))
+          
+     ;;(LF (% PROP  (CLASS ?lf)
+     ;;(VAR ?v) (CONSTRAINT (& (?argmap ?arg) (?reln ?argv) (FUNCTN ?fn) (scale ?newscale) (intensity ?ints) (orientation ?orient)
+     ;;))
+     (transform ?transform) 
+     ;(sem ?sem)
      )
+    -adj-pred-scale> 
+    (head (ADJ1 (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative ?comp)
+	       (ARGUMENT-MAP ?argmap) (prefix -) 
+	       (subcat ?subcat) (subcat-map ?subm)
+	       (SORT PRED) (constraint ?con)
+	       (sem ?sem) (sem ($ F::ABSTR-OBJ (f::scale ?scale1) (F::intensity ?ints) (F::orientation ?orient)))
+	       (transform ?transform)
+	       (FUNCTN -)
+	       ))
+    (pp (ptype w::in) (var ?sc-var) (sem  ($ F::ABSTR-OBJ (f::scale ?!scale2))) (gap ?gap))
+    (class-greatest-lower-bound (in1 ?scale1) (in2 ?!scale2) (out ?newscale))
+    )
+
+   ;; adjectives with a standard, e.g., He is tall for a midget.
+   ((ADJ1 (ARG ?arg) (VAR ?v) (COMPLEX +) (LF ?lf)
+     (atype (? atp postpositive predicative-only)) (gap ?gap) (SORT PRED)
+     (comparative -) (ARGUMENT-MAP ?argmap) (constraint ?newcon)
+     ;(sem ($ F::ABSTR-OBJ (f::scale ?newscale) (F::intensity ?ints) (F::orientation ?orient)))
+     (subcat -) (subcat-map -)
+     (transform ?transform) 
+     (sem ?sem)
+     )
+    -adj-standard> 
+    (head (ADJ1 (LF ?lf) (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -) ;(comparative ?comp)
+		(ARGUMENT-MAP ?argmap) (prefix -)
+		(ARGUMENT (% ?x (sem ?argsem) (lex ?arglex)))
+	       ;(subcat ?subcat) (subcat-map ?subm)
+	       (SORT PRED) (constraint ?con)
+	       (sem ?sem) ;(sem ($ F::ABSTR-OBJ (f::scale ?scale1) (F::intensity ?ints) (F::orientation ?orient)))
+	       (transform ?transform)
+	       (FUNCTN -)
+	       ))
+    (pp (ptype w::for) (var ?!pp-var) (sem ?argsem) (gap ?gap))
+    (append-conjuncts (conj1 ?con) (conj2 (& (standard ?!pp-var))) (new ?newcon))
+    )
+
+   
     ((N1 (sort pred) (var ?v) (class ?lf) (qual -) (COMPLEX +)
       (restr (& (?smap ?v1) (?amap ?v2)))
       (subcat -) (argument -)
@@ -2125,7 +2277,8 @@
 	     (simple +)
 	     )
          -bare-singular> .98
-         (head (N1 (SORT PRED) (MASS  count) (gerund -) (complex -) (name-or-bare ?nob)
+         (head (N1 (SORT PRED) (MASS  count) (gerund -) ;;(complex -) 
+		   (name-or-bare ?nob)
 		(AGR 3s) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -)
 		(sem ?sem) (transform ?transform)
 		)))
@@ -2135,6 +2288,7 @@
         ((NP (LF ?r) (SORT ?sort) (VAR ?v) (comma +))
          -np-comma>
          (head (NP (LF ?r) (SORT ?sort) (VAR ?v) (COMPLEX -))) (punc (Lex w::punc-comma)))
+
 	;; reference/citations
 	((NP (LF (% description (STATUS ?spec) (VAR ?v) 
 		    (CLASS ?c) (CONSTRAINT ?newc)
@@ -2155,11 +2309,11 @@
 	 (parenthetical (var ?pv) (arg ?v) (role ?role))
 	 (add-to-conjunct (val (parenthetical ?pv)) (old ?constr) (new ?newc)))
 
-  ((parenthetical (var ?cc) (arg ?arg) (role :identified-as))
+#||	((parenthetical (var ?cc) (arg ?arg) (role :identified-as))
 	 -paren-np> 1
 	 (punc (lex (? x W::START-SQUARE-PAREN W::START-PAREN w::punc-comma)))
 	 (head (np (var ?cc)))
-	 (punc (lex  (? y W::END-SQUARE-PAREN W::END-PAREN w::punc-comma))))
+	 (punc (lex  (? y W::END-SQUARE-PAREN W::END-PAREN w::punc-comma))))||#
 
 	((parenthetical (var ?cc) (arg ?arg) (role :parenthetical))
 	 -paren1> 1
@@ -2458,7 +2612,7 @@
 				    
 	     (Sem ?sem)))
       (transform ?transform))
-     -adj-number-noun> .97    ;; this is very rare 
+     -adj-number-noun> .98    ;; this is very rare 
      (NUMBER  (val ?sz) (VAR ?nv) (restr -))
      (Gt (arg1 ?sz) (arg2 0))   ;; negative numbers don't work as cardinailty adjectives!
      (head (N (VAR ?v) (LF ?c) (Mass count) (sort PRED)
@@ -2480,11 +2634,11 @@
 				    (CONSTRAINT ?constr)))))
 	     (Sem ?sem)))					
       (transform ?transform))
-     -adj-number-unit-modifier>
+     -adj-number-unit-modifier> .98
      (NUMBER  (val ?sz) (VAR ?nv) (restr -))
      (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
 	       (KIND -) ;;(agr 3s)   we allow either 61 year old or 61 years old
-	       (sem ?sem)  (sem ($ f::abstr-obj (f::scale ?sc)))
+	       (sem ?sem)  (sem ($ f::abstr-obj (f::scale ont::linear-d)))
 	       (RESTR ?restr) (transform ?transform)
 	       (postadvbl -) (post-subcat -)
 	       ))
@@ -2983,7 +3137,7 @@
       
       )
      -n1-nom-with-obj> 1
-      (head (n  (var ?v) (gap -) (aux -) (agr ?agr) (sort pred)
+      (head (n  (var ?v) (gap -) (aux -) (agr ?agr) (sort pred) (headless -)
 		(sem ?sem)  (sem ($ F::SITUATION)) ; (f::type ont::event-of-change)))
 		(LF ?class) (transform ?transform)
             ;; these are dummy vars for trips-lcflex conversion, please don't delete
@@ -3019,7 +3173,7 @@
       
       )
      -n1-nom-without-obj> 1
-      (head (n  (var ?v) (gap -) (aux -) (agr ?agr) (sort pred)
+      (head (n  (var ?v) (gap -) (aux -) (agr ?agr) (sort pred) (headless -)
 		(sem ?sem)  (sem ($ F::SITUATION)) ; (f::type ont::event-of-change)))
 		(LF ?class) (transform ?transform)
             ;; these are dummy vars for trips-lcflex conversion, please don't delete
@@ -3163,7 +3317,7 @@
       (comp3-map ?comp-map)
       )
      -nom-n-n>
-     (np (AGR 3s) (abbrev -)
+     (np (AGR 3s) (abbrev -) (sort pred) (headless -)
       (var ?v1) 
       (PRO -) (N-N-MOD -) (COMPLEX -) (GAP -)
       (postadvbl -) (post-subcat -) (sem ?dobjsem)
@@ -3201,7 +3355,7 @@
       (comp3-map ?comp-map)
       )
      -nom-n-n-hyphen> 1
-     (np (AGR 3s) (abbrev -)(agr ?agr)
+     (np (AGR 3s) (abbrev -)(agr ?agr) (sort pred) (headless -)
       (var ?v1) 
       (PRO -) (N-N-MOD -) (COMPLEX -) (GAP -)
       (postadvbl -) (post-subcat -) (sem ?dobjsem)
@@ -3241,7 +3395,7 @@
       (comp3-map ?comp-map)
       )
      -nom-n-n-subj> 
-     (np (AGR 3s) (abbrev -) 
+     (np (AGR 3s) (abbrev -) (sort pred) (headless -)
       (var ?v1) 
       (PRO -) (N-N-MOD -) (COMPLEX -) (GAP -)
       (postadvbl -) (post-subcat -) (sem ?subjsem)
@@ -3281,7 +3435,7 @@
       (comp3-map ?comp-map)
       )
      -nom-n-n-subj1> 
-     (np (AGR 3s) (abbrev -) 
+     (np (AGR 3s) (abbrev -) (sort pred) (headless -)
       (var ?v1) 
       (PRO -) (N-N-MOD -) (COMPLEX -) (GAP -)
       (postadvbl -) (post-subcat -) (sem ?subjsem)
@@ -3321,7 +3475,7 @@
       (comp3-map ?comp-map)
       )
      -nom-n-n-dobj> 
-     (np (AGR 3s) (abbrev -) 
+     (np (AGR 3s) (abbrev -) (sort pred) (headless -)
       (var ?v1) 
       (PRO -) (N-N-MOD -) (COMPLEX -) (GAP -)
       (postadvbl -) (post-subcat -) (sem ?subjsem)
@@ -4432,7 +4586,7 @@
 
     ;;  simple conjuncts/disjunct of NPS, e.g., the dog and the cat, the horse or the cow
      ((NP (ATTACH ?a) (var ?v) (agr 3p) (SEM ?sem) (gerund ?ger) 
-      (LF (% Description (Status ?status) (var ?v) 
+      (LF (% Description (Status ?status-out) (var ?v) 
 	     (class ?class)
 	     (constraint (& (operator ?op) (sequence (?v1 ?v2))))
 	     (sem ?sem) (CASE ?c)
@@ -4452,11 +4606,12 @@
      (NP (SEM ?s2) (VAR ?v2) (agr ?agr1)  (complex -) (expletive -) ;;(bare-np ?bnp)
 	    (generated ?gen2)  (time-converted ?tc1)  (gerund ?ger)
 	    ;; (bare-sequence -)
-	    (LF (% ?sort (class ?c2))) (CASE ?c) (constraint ?con2) (mass ?m1) ;; allowing mismatch on mass -- e.g. "fatigue and weakness"
+	    (LF (% ?sort (class ?c2) (status ?status2))) (CASE ?c) (constraint ?con2) (mass ?m1) ;; allowing mismatch on mass -- e.g. "fatigue and weakness"
 	    (sort (? !sort unit-measure)))
      (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
      (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class))
      (logical-and (in1 ?gen1) (in2 ?gen2) (out ?generated))
+     (combine-status (in1 ?status) (in2 ?status2) (out ?status-out))
      )
 
     ;;  But not construction, e,g,. apples but not pears, apples not pears, 

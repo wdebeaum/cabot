@@ -45,7 +45,7 @@
 	 	 
 	 (transition
 	  :description "modification: Let's do X instead"
-	  :pattern '((ONT::SPEECHACT ?!sa (? x ONT::PROPOSE ONT::REQUEST ONT::REQUEST-COMMENT) :what ?!what :AS ONT::ALTERNATIVE)
+	  :pattern '((ONT::SPEECHACT ?!sa (? x ONT::PROPOSE ONT::REQUEST ONT::REQUEST-COMMENT) :what ?!what :AS (? ONT::ALTERNATIVE ONT::MODIFICATION))
 		     ;; ((? spec ONT::EVENT ONT::EPI) ?!what ?!t)
 		     ;(?!spec ?!what (? t ONT::EVENT-OF-ACTION)) ; "find" is not an EVENT-OF-ACTION
 		     (?!spec ?!what ?!t)
@@ -418,33 +418,6 @@ ONT::INTERACT
 		     )
 	  :destination 'propose-cps-act-response
 	  )
-
-	 
-	 (transition
-	  :description "CSM returns a successful proposal interpretation"
-	  ;;  JFA:  delete once Ian has made his changes
-	  :pattern '((BA-RESPONSE X REPORT :psact (? act ADOPT ASSERTION ASSERT ASK-WH ASK-IF) :what ?!goal :as ?as 
-		      :content ?content :context ?new-akrl :alternative ?alt-as)
-		     ;;(BA-RESPONSE X ?!X :content ((? act ADOPT ASSERTION) :what ?!goal :as ?as :alternative ?alt-as) :context ?new-akrl)
-		     -successful-interp1>
-		     (UPDATE-CSM (PROPOSED :content ?content
-				  :context ?new-akrl))
-		     (RECORD PROPOSAL-ON-TABLE (ONT::PROPOSE-GOAL
-						:content ?content
-						:context ?new-akrl))
-		     (RECORD ACTIVE-GOAL ?!goal)
-		     (RECORD ALT-AS ?alt-as)
-		     (RECORD ACTIVE-CONTEXT ?new-akrl)
-		     ;(RECORD LAST-MSG (EVALUATE 
-				     ; :content ?content
-				     ; :context ?new-akrl))
-		     (INVOKE-BA :msg (EVALUATE 
-				      :content ?content
-				      :context ?new-akrl))
-		     )
-	  :destination 'propose-cps-act-response-old-format
-	  )
-
 
 	 (transition
 	  :description "CSM returns a successful ANSWER interpretation"  
@@ -1208,13 +1181,15 @@ ONT::INTERACT
 		     (record active-goal nil)
 		     (record active-context nil)
 		     ;(UPDATE-CSM (GOAL-ACHIEVED))
-		     (GENERATE :content (ONT::TELL :content (ONT::DONE)))  ; generate something neutral, e.g., ok.  We might have got here because the goal has been abandoned (not accomplished)
+		     (GENERATE :content (ONT::TELL :content (ONT::ACK)))  ; generate something neutral, e.g., ok.  We might have got here because the goal has been abandoned (not accomplished)
 		     
 		     ; ?? commented this out because perhaps the system wants to propose something next??
-		     ;(GENERATE
-		      ;:content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))
+		     ; i put it back in for now -- 
+		     (GENERATE
+		      :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))
+		     
 		     )
-	  :destination 'what-next-initiative ;'segmentend
+	  :destination 'segmentend
 	  )
 	 (transition
 	  :description "default"
@@ -1477,13 +1452,13 @@ ONT::INTERACT
 	  :description "goal accomplished"
 	  :pattern '((ONT::F ?!v ONT::HAVE-PROPERTY :FORMAL ?!f)
 		     (ONT::F ?!f ONT::FINISHED)
+		     (ont::eval (find-attr :result ?!active :feature ACTIVE-GOAL))
 		     -done1>
-		     (UPDATE-CSM (GOAL-ACHIEVED))  ; top goal, but this might not be the current active goal
+		     (UPDATE-CSM (STATUS-REPORT :GOAL ?!active
+		      :STATUS ONT::DONE))  ; what if the active goal isn't the top goal? It seems that "I'm done" could refer to the current goal and not say the task is complete. So I'm going with that right now. So I'm redirecting this back to what-next!! Then if we are done, we'll find out then.
 		     (GENERATE :content (ONT::EVALUATION :content (ONT::GOOD)))
-		     ;(GENERATE :content (ONT::CLOSE)))
-		     (GENERATE
-		      :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER))))
-	  :destination 'segmentend ;'propose-cps-act
+		     (QUERY-CSM :content (ACTIVE-GOAL)))
+	  :destination 'what-next-initiative-on-new-goal
 	  :trigger t)				
 	 )
 	))
@@ -1612,9 +1587,9 @@ ONT::INTERACT
 	(list
 	 (transition
 	  :description "action is reported as completed"
-	  :pattern '((EXECUTION-STATUS :goal ?!action :status ONT::DONE)
+	  :pattern '((EXECUTION-STATUS :goal ?!action :status ?!status)
 		     -ba-exec-status-done>
-		     (UPDATE-CSM (STATUS-REPORT :goal ?!action :status ONT::DONE))
+		     (UPDATE-CSM (STATUS-REPORT :goal ?!action :status ?!status))
 		     (QUERY-CSM :content (ACTIVE-GOAL))
 		     )
 	  :destination 'what-next-initiative-on-new-goal

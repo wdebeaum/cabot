@@ -187,7 +187,7 @@
 ;;             (:REQUIRED ONT::VAL (F::Situation (F::aspect F::dynamic)))
 	     ;; purposes don't have to be dynamic -- e.g. to store something, to remember, etc.
 ;	     (:REQUIRED ONT::GROUND ((? xx F::Situation f::abstr-obj f::phys-obj) (F::scale (? !sc ont::duration-scale))))
-	     (:REQUIRED ONT::GROUND ((? xx F::Situation f::abstr-obj f::phys-obj) (F::scale -)))
+	     (:REQUIRED ONT::GROUND ((? xx F::Situation f::abstr-obj f::phys-obj) (f::type (? !t ONT::ORGANISM)) (F::scale -)))
 	     ;; a separate role because it will be lower priority
 ;	     (:required ont::obj-val (f::abstr-obj)) ;; needed for non-situation ont::vals -- e.g., hit return for more results
 	    ;; (:required ont::REASON (f::abstr-obj)) ;; needed for non-situation ont::vals -- e.g., hit return for more results
@@ -363,10 +363,12 @@
 ;; in that event
 (define-type ONT::situated-in
  :parent ONT::SITUATION-MODIFIER
- :arguments (;(:ESSENTIAL ONT::OF (F::Situation))
-             ;(:REQUIRED ONT::val (F::situation))
-	     (:ESSENTIAL ONT::FIGURE (F::Situation))
-             (:REQUIRED ONT::GROUND (F::situation))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
+	     ;(:REQUIRED ONT::GROUND (F::situation))
+            #|| (:REQUIRED ONT::GROUND ((? at F::abstr-obj F::situation) (F::type (? t ONT::SITUATION-ROOT ONT::DOMAIN ONT::SCALE)))) ; abstr-obj for ONT::DOMAIN/SCALE, e.g., "large in size"
+	     ||# 
+	     ;; SITUATED-IN shouldn't be used for scales!
+	     (:REQUIRED ONT::GROUND (F::situation (F::type (? t ONT::SITUATION-ROOT))))
              )
  )
 

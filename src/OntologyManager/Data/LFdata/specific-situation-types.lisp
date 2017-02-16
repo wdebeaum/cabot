@@ -20,6 +20,7 @@
 	      )
  )
 
+#||  ;; I think this is a duplicate of ont::place-in-position
 (define-type ont::cause-position
     :comment "events involving causing a state of type ONT::POSITION"
     :parent ont::event-of-causation
@@ -27,7 +28,7 @@
 	     (:optional ont::affected ((? aff F::Phys-obj f::abstr-obj)))
              (:optional ont::affected1 ((? aff1 F::Phys-obj f::abstr-obj)))
 	     )
- )
+ )||#
 
 (define-type ont::retrieve
  :wordnet-sense-keys ("recover%2:40:00" "retrieve%2:40:00" "find%2:40:15" "regain%2:40:00")
@@ -870,7 +871,7 @@
  		)
 
 (define-type ONT::die
- :wordnet-sense-keys ("demise%1:28:00" "dying%1:28:00" "death%1:28:00" "death%1:26:01" "destruction%1:26:00" "end%1:26:00" "last%1:28:01" "death%1:28:01" "death%1:26:00" "death%1:19:00" "die%2:30:00" "decease%2:30:00" "perish%2:30:00" "go%2:30:00" "exit%2:30:00" "pass_away%2:30:00" "expire%2:30:00" "pass%2:30:11" "kick_the_bucket%2:30:00" "cash_in_one's_chips%2:30:00" "buy_the_farm%2:30:00" "conk%2:30:00" "give-up_the_ghost%2:30:00" "drop_dead%2:30:00" "pop_off%2:30:00" "choke%2:30:01" "croak%2:30:00" "snuff_it%2:30:00" "die%2:30:02"  "death%1:11:00" "decease%1:11:00" "expiry%1:11:00")
+ :wordnet-sense-keys ("demise%1:28:00" "dying%1:28:00" "death%1:28:00" "death%1:26:01" "destruction%1:26:00" "last%1:28:01" "death%1:28:01" "death%1:26:00" "death%1:19:00" "die%2:30:00" "die%2:30:02"  "death%1:11:00" "decease%1:11:00" "expiry%1:11:00")
  :parent ONT::life-process
   :sem (f::situation (:default (f::aspect f::dynamic)))
  		)
@@ -2217,13 +2218,8 @@
  :parent ONT::PUT
  )
 
-(define-type ONT::SOW-SEED
- :wordnet-sense-keys ("seed%2:35:01" "sow%2:35:02" "plant%2:35:00")
- :parent ONT::PUT
- )
-
 (define-type ONT::Correlation
- :wordnet-sense-keys ("indicate%2:32:02" "argue%2:32:01" "imply%2:32:01" "entail%2:42:01" "imply%2:42:00" "mean%2:42:00" "affirm%2:31:00" "read%2:32:02")
+ :wordnet-sense-keys ("indicate%2:32:02" "argue%2:32:01" "imply%2:32:01" "entail%2:42:01" "imply%2:42:00" "mean%2:42:00" "affirm%2:31:00" "read%2:32:02"  "underlie%2:42:00")
  :parent ONT::event-of-state
  :sem (F::situation (F::aspect F::static) (F::trajectory -))
  :arguments ((:ESSENTIAL ONT::neutral ((? n  F::Phys-obj f::abstr-obj) (F::intentional -)))
@@ -2275,10 +2271,10 @@
 (define-type ONT::calc-add
  :parent ONT::calculation
  :wordnet-sense-keys ("add%2:31:00")
- :arguments ((:REQUIRED ONT::Formal (F::ABSTR-OBJ) (F::TYPE ONT::MATHEMATICAL-TERM))
-	     (:OPTIONAL ONT::formal1)
-             )
- )
+ :arguments ((:REQUIRED ONT::Formal (F::ABSTR-OBJ (F::TYPE ONT::MATHEMATICAL-TERM)))
+	     (:OPTIONAL ONT::formal1  (F::ABSTR-OBJ (F::TYPE ONT::MATHEMATICAL-TERM)))
+	     
+	     ))
 
 (define-type ONT::calc-subtract
     :wordnet-sense-keys ("subtract%2:31:00")
@@ -2337,6 +2333,15 @@
  :parent ONT::cause-to-move
  )
 
+(define-type ONT::propel
+ :wordnet-sense-keys ("throw%1:04:00" "propel%2:35:00" "throw%2:35:02")
+ :parent ONT::cause-to-move
+ )
+
+(define-type ONT::SOW-SEED
+ :wordnet-sense-keys ("seed%2:35:01" "sow%2:35:02" "plant%2:35:00")
+ :parent ONT::PROPEL
+ )
 
 (define-type ONT::Cause-Action
  :parent ONT::CAUSE-effect
@@ -3347,12 +3352,13 @@
 
 ;; for configure, arrange X (into Y) e.g. he arranged them into groups of three
 (define-type ONT::arranging
- :wordnet-sense-keys ("set_up%2:35:00" "arrange%2:35:00" "reorient%2:30:00" "put%2:35:05" "arrangement%1:09:00" "organization%1:09:00" "organisation%1:09:00" "system%1:09:02" "put_aside%2:35:00" "address%2:32:02" "hairdressing%1:04:00")
+ :wordnet-sense-keys ("set_up%2:35:00" "arrange%2:35:00" "reorient%2:30:00" "put%2:35:05" "arrangement%1:09:00" "organization%1:09:00" "organisation%1:09:00" "system%1:09:02" "put_aside%2:35:00" "address%2:32:02" "hairdressing%1:04:00" "alternate%2:30:01")
  :parent ONT::control-manage
  :sem (F::SITUATION (F::Cause F::agentive) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::Agent  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
              (:REQUIRED ONT::Formal ((? thm F::phys-obj f::abstr-obj f::situation)))
 	     (:OPTIONAL ONT::Result ((? res F::phys-obj f::abstr-obj)))
+	     (:OPTIONAL ONT::AFFECTED-RESULT ((? res F::phys-obj f::abstr-obj)))
 ;	     (:OPTIONAL ONT::Content ((? ct F::phys-obj f::abstr-obj f::situation f::time))) ;; sort by time, price, size, color, etc.
              )
  )
@@ -3624,7 +3630,7 @@
 ;; for positionals: lie, stand
 (define-type ONT::BE-AT-LOC
  :comment "relations that indicate an postural attitude as well as a location"
- :wordnet-sense-keys ("sit%2:35:00" "sit_down%2:35:03" "settle%2:30:00" "fall%2:35:00" "hang%2:35:03" "hang%2:35:05" "hang%2:35:06" "hang%2:42:01" "confine%2:41:00" "lie%2:35:00" "trail%2:35:05")
+ :wordnet-sense-keys ("sit%2:35:00" "sit_down%2:35:03" "settle%2:30:00" "fall%2:35:00" "hang%2:35:03" "hang%2:35:05" "hang%2:35:06" "hang%2:42:01" "confine%2:41:00" "lie%2:35:00" "trail%2:35:05" "lie%2:42:00")
  :parent ONT::BE-AT
  :sem (F::Situation (F::aspect F::stage-level))
  :arguments ((:ESSENTIAL ONT::neutral (F::Phys-obj)) ;; formal is restricted to phys-obj; otherwise same as be-at
@@ -3739,7 +3745,7 @@
  :parent ONT::event-of-action
  :sem (F::situation (F::Cause F::Agentive) (F::Time-span F::Extended))
  :arguments ((:ESSENTIAL ONT::agent (F::Phys-obj  (:required (f::origin (? org f::human f::non-human-animal)))))
-	     (:optional ONT::NEUTRAL )
+	     (:optional ONT::NEUTRAL (F::abstr-obj (f::type ont::information-function-object)))
              )
  )
 

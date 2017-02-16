@@ -319,10 +319,13 @@
   )
 
 (defun class-cglb (args) 
- (let ((in1 (second (assoc 'w::in1 args)))
+  (let* ((in1 (second (assoc 'w::in1 args)))
         (in2 (second (assoc 'w::in2 args)))
-	(OUT (second (assoc 'w::out args))))
-   (match-vals nil out (compute-class-cglb in1 in2))))
+	(OUT (second (assoc 'w::out args)))
+	(cglb (compute-class-cglb in1 in2)))
+    (if cglb
+	(match-vals nil out cglb)
+	(values (match-vals nil out in2) .9))))
 
 (defun compute-class-CGLB (in1 in2)
   (cond
@@ -345,11 +348,17 @@
  (let* ((in1 (second (assoc 'w::in1 args)))
 	(in2 (second (assoc 'w::in2 args)))
 	(OUT (second (assoc 'w::out args)))
-	(lub (compute-class-lub in1 in2)))
+	(lub (compute-class-lub in1 in2))
+	(core-in1 (core-type in1))
+	(core-in2 (core-type in2))
+	(parents1 (om::get-parents core-in1))
+	(parents2 (om::get-parents core-in2)))
    (values 
     (match-vals nil out lub)
     (cond ((member lub '(ont::referential-sem ont::root)) .9)
-	  ((equal (core-type in1) (core-type in2)) 1)
+	  ((equal core-in1 core-in2) 1)  
+	  ((and parents1 parents2) (+ 0.96 (/ (* 0.04 0.9) (+ 1 (max (or (position lub parents1) 0)
+								     (or (position lub parents2) 0))))))
 	  (t .98)))))
 
 (defun core-type (x)
@@ -582,3 +591,21 @@
 	 )
     (match-vals nil out result)
     ))
+
+(define-predicate 'w::combine-status
+    #'(lambda (args)
+	(combine-status args))
+  )
+
+(defun combine-status (args)
+  (let ((in1 (second (assoc 'w::in1 args)))
+        (in2 (second (assoc 'w::in2 args)))
+	(out (second (assoc 'w::out args)))
+	)
+    (if (and (member in1 '(ONT::DEFINITE ONT::DEFINITE-PLURAL))
+	     (member in2 '(ONT::DEFINITE ONT::DEFINITE-PLURAL)))
+	(match-vals nil out 'ONT::DEFINITE-PLURAL)
+        (match-vals nil out 'ONT::INDEFINITE-PLURAL)
+      )
+))
+

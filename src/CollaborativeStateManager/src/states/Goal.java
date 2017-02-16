@@ -190,6 +190,8 @@ public class Goal {
     	adopt.add("ADOPT");
     	adopt.add(":what");
     	adopt.add(getVariableName());
+    	adopt.add(":id");
+    	adopt.add(getId());
     	adopt.add(":as");
     	
     	KQMLList goal = new KQMLList();

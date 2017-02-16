@@ -318,7 +318,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		KQMLList assertionRelnContent = new KQMLList();
 		assertionRelnContent.add("ont::RELN");
-		assertionRelnContent.add(ee.getID());
+		assertionRelnContent.add(ee.getWhat());
 		assertionRelnContent.add(":instance-of");
 		assertionRelnContent.add("ONT::EVENTS-IN-MODEL");
 		assertionRelnContent.add(":events");
@@ -331,8 +331,10 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		KQMLList assertionContent = new KQMLList();
 		assertionContent.add("ASSERTION");
+		assertionContent.add(":ID");
+		assertionContent.add(ee.getId());
 		assertionContent.add(":what");
-		assertionContent.add(ee.getID());
+		assertionContent.add(ee.getWhat());
 		
 		KQMLList contributesList = new KQMLList();
 		
@@ -454,8 +456,9 @@ public class InterpretSpeechActHandler extends MessageHandler{
 //						replacementGoal.setInitiativeAgent(agentSymbol, (KQMLList)context);
 //						proposeAdoptContent = goalPlanner.modify(replacementGoal,goalToModify.getVariableName());
 //					}
-					
-					proposeAdoptContent = adoptContent(null,what,"ELABORATION",goalPlanner.getGoalUnderDiscussion().getId());
+					if (goalPlanner.getGoalUnderDiscussion() == null)
+						return missingActiveGoal();
+					proposeAdoptContent = adoptContent(IDHandler.getNewID(),what,"ELABORATION",goalPlanner.getGoalUnderDiscussion().getId());
 				}
 			}
 			
