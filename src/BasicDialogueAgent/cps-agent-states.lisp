@@ -45,7 +45,7 @@
 	 	 
 	 (transition
 	  :description "modification: Let's do X instead"
-	  :pattern '((ONT::SPEECHACT ?!sa (? x ONT::PROPOSE ONT::REQUEST ONT::REQUEST-COMMENT) :what ?!what :AS (? ONT::ALTERNATIVE ONT::MODIFICATION))
+	  :pattern '((ONT::SPEECHACT ?!sa (? x ONT::PROPOSE ONT::REQUEST ONT::REQUEST-COMMENT) :what ?!what :AS (? a ONT::ALTERNATIVE ONT::MODIFICATION))
 		     ;; ((? spec ONT::EVENT ONT::EPI) ?!what ?!t)
 		     ;(?!spec ?!what (? t ONT::EVENT-OF-ACTION)) ; "find" is not an EVENT-OF-ACTION
 		     (?!spec ?!what ?!t)
