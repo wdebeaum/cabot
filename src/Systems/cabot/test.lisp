@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Sun Feb 12 11:09:08 CST 2017 lgalescu>
+;;;; Time-stamp: <Thu Feb 23 13:30:49 CST 2017 lgalescu>
 
 ;;;;
 
@@ -36,6 +36,8 @@
     ;;;;;;;;;;;; The following scripts are (or should be!) working ;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
+
+
     (test-generic .
      ;; system asks for goal; system acts
      ( ;;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
@@ -72,10 +74,9 @@
       ;; (execution-status:done) > PERFORM-BA-REQUEST
       ;; S: Done (the staircase is finished)
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL
+      ;; FIXME: 170223: we now generate an ACK here!!! why???
       ;; S: We are done. (with all tasks)
-      ;; FIXME? in the following DAGENT asks (WHAT-NEXT :goal NIL)
-      ;; > WHAT-NEXT-INITIATIVE (what-next)
-      ;; (propose) ;;** what do we do now?
+      ;; (propose-goal) ;;** what do we do now?
      ))
 
     (test-set-system-goal .
@@ -154,14 +155,15 @@
       ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
       ;; S: ok (for PUT subgoal)
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
-      ;; (ex-status:done) -> PERFORM-BA-REQUEST 
+      ;; (execution-status:done) -> PERFORM-BA-REQUEST 
       ;; S: Done! (with "Put block 1 on the table")
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL ... (what-next)
-      ;; (ex-status:waiting-for-user) > PERFORM-BA-REQUEST
+      ;; (execution-status:waiting-for-user) > PERFORM-BA-REQUEST
       ;; > CHECK-TIMEOUT-STATUS -> NIL
       "We are done."
       ;; S: good!
       ; FIXME: don't we need a message to tell the BA that we are done? currently only CSM knows this. probably what needs to happen is that DAGENT should send (RELEASE :id G)
+      ;; FIXME: 170223: we now generate an ACK here!!! why???
       ))
 
     (flow-action-topgoal-no .
@@ -180,12 +182,12 @@
      ("Let's build a 2-step staircase"
       ;; S: ok
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL ... (what-next)
-      ;; (ex-status:waiting-for-user) > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      ;; (execution-status:waiting-for-user) > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
       "Put block 1 on the table"
       ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
       ;; S: ok
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
-      ;; (ex-status:done) -> PERFORM-BA-REQUEST 
+      ;; (execution-status:done) -> PERFORM-BA-REQUEST 
       ;; S: Done (PUT)
       "Put block 2 on top of block 1"
       ;; S: ok
@@ -196,6 +198,7 @@
       "We're done"
       ;; S: good!
       ; FIXME: don't we need a message to tell the BA that we are done? currently only CSM knows this. probably what needs to happen is that DAGENT should send (RELEASE :id G)
+      ;; FIXME: 170223: we now generate an ACK here!!! why???
      ))
 
     (flow-user-directed-with-alarms .
@@ -204,12 +207,12 @@
       "Let's build a 2-step staircase"
       ;; S: ok
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL ... (what-next)
-      ;; (ex-status:waiting-for-user) > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
+      ;; (execution-status:waiting-for-user) > PERFORM-BA-REQUEST -> CHECK-TIMEOUT-STATUS -> NIL
       "Put block 1 on the table"
       ;; (evaluate) (acceptable) > PROPOSE-CPS-ACT-RESPONSE > (commit)
       ;; S: ok
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
-      ;; (ex-status:done) -> PERFORM-BA-REQUEST 
+      ;; (execution-status:done) -> PERFORM-BA-REQUEST 
       ;; S: Done (PUT)
       "Put block 2 on top of block 1"
       ;; S: ok
@@ -228,11 +231,22 @@
      ((TELL :content (ENABLE-ALARMS)) 
       "Let's build a 3 step staircase."
       ;; "Put block B6 on the table"
+      ;; > ANSWERS
       ;; can wait for timeouts here without interfering with the upcoming answer
+      ;; > ALARM-HANDLER > PERFORM-BA-REQUEST > CHECK-TIMEOUT-STATUS > ANSWERS
+      ;; > ALARM-HANDLER
+      ;; S: waiting for you to do something
+      ;; > ANSWERS
       "ok."
+      ;; (commit) > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM  (initiative:maybe) (what-next) 
+      ;; (execution-status:waiting-for-user) > PERFORM-BA-REQUEST
+      ;; > CHECK-TIMEOUT-STATUS > NIL
       ;; now wait until time out ;; after second time the system says its waiting
-
-      (TELL :content (REPORT :content (EXECUTION-STATUS :goal G5 :status ONT::DONE)))  ;; we know its G5 as the dummy geerated the request
+      ;; > ALARM-HANDLER
+      ;; S: waiting for you to do something
+      ;; > NIL
+      (TELL :content (REPORT :content (EXECUTION-STATUS :goal G5 :status ONT::DONE)))  ;; we know its G5 as the dummy generated the request
+      ;; NB: Dummy comes back with the same subgoal. oh, well...
       (TELL :content (DISABLE-ALARMS))
       ))
 
@@ -243,7 +257,13 @@
       ;; OK  (system accepts the goal)
       "Put block B6 on the table"
       ;;  OK.
+      ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > WHAT-NEXT-INITIATIVE-CSM (initiative:yes) (what-next)
+      ;; (execution-status:working-on-it) -> PERFORM-BA-REQUEST 
+      ;; > CHECK-TIMEOUT-STATUS > NIL
       ;;  wait for timeout here, on the second one it reports it is done
+      ;; > ALARM-HANDLER > NIL
+      ;; > ALARM-HANDLER > (what-next) (execution-status:done) -> PERFORM-BA-REQUEST 
+      ;; S: Done.
       ;;  and after that the system just continually reports that its waiting for the user
       (TELL :content (DISABLE-ALARMS))
       ))
@@ -253,6 +273,32 @@
     ;;;;;;;;;;; The following test scripts have known problems ;;;;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+    (test-i-will-tell-you . 
+     ((TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
+				      :context NIL))
+      "Let's build a 3 step staircase."
+      ;; S: Ok. Put b6 on the table.
+      "No. I will tell you what to do."
+      ;; S: Ok
+      "You build the bottom row."
+      ;; S: Ok <System does it>
+      "Great. Now put a red block on the green one."
+      ;; S: Ok.
+      "Ok. Finish up the staircase."
+    ))
+
+    (test-staircase-green-block .
+     ((TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
+				      :context NIL))
+      "I'm going to tell you how to build a staircase."
+      ;; S: Ok
+      "Make a row out of three red blocks."
+      ;; S: Ok
+      "Now place a green block on the red block at the left end."
+      ;; S: Ok
+      "Put a red block beside it."
+      "Add another red one on top of the green block"
+    ))
   
 
     (test-instead .
@@ -299,6 +345,7 @@
       ;; (execution-status:done)
       ;; S: Done. (we built the staircase)
       ;; S: Done. (all tasks accomplished)
+      ;; FIXME: 170223: we now generate an ACK here!!! why???
       ;; S: What do you want to do? 
       "Let's build a tower."
       ;; S: ok.
@@ -329,6 +376,7 @@
       ))
 
     (test-user-move-ynq-as-propose .
+     ;; user makes proposal via YN question 
      ((TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
 				       :context NIL))
       ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
@@ -337,7 +385,7 @@
       ;; S: OK
       ;; > WHAT-NEXT-INITIATIVE-ON-NEW-GOAL > WHAT-NEXT-INITIATIVE > NIL
       ;; >> PROPOSE-CPS-ACT > HANDLE-CSM-RESPONSE 
-      ;; FIXME: CSM tags this as a PROPOSE SUBGOAL.  Either we change this or the BA should send back a MODIFICATION
+      ;; FIXME: CSM interprets this as a SUBGOAL; maybe it should be an ELABORATION?
       ;; (PROPOSE
       ;;  :CONTENT (ADOPT :WHAT A1 :AS (SUBGOAL :OF XXX))
       ;;  :CONTEXT ((ONT::RELN A1 :INSTANCE-OF ONT::CAUSE-MOVE :AGENT A0 :AFFECTED A2)
@@ -346,6 +394,7 @@
       ))
 
     (test-user-move-true-ynq .
+     ;; user asks YN question
      ( (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
 				       :context NIL))
       ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
@@ -382,6 +431,7 @@
      ("Let's build a 2-step staircase"
       ;; S: ok
       "Put a block on the table"
+      ;; FIXME: no Dummy msgs
       ;; S: ok.
       "Undo that" ;; also: "Take that back" 
       ;;
@@ -391,10 +441,13 @@
     (test-undo-instead .
      ;; user proposes modification of already accomplished subgoal
      ("Let's build a 2-step staircase"
+      ;; FIXME: no Dummy msgs
       ;; S: ok
       "Put a block on the table"
+      ;; FIXME: no Dummy msgs
       ;; S: ok. <and does it>
       "Let's use a green block instead"
+      ;; FIXME: CSM interprets this as a SUBGOAL, not MODIFICATION
       ))
 
     

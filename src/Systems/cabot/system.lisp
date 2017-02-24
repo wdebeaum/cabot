@@ -1,4 +1,4 @@
- ;;;;
+;;;;
 ;;;; File: system.lisp
 ;;;;
 ;;;; Defines and loads an instance of the TRIPS system for CABOT 
@@ -145,8 +145,8 @@
 ;; don't use wordnet if we have domain-specific info from TextTagger
 (setq lxm::*no-wf-senses-for-words-tagged-with-ont-types* t)
 ;; don't use wordnet if we have TRIPS entries  
-(setq  lxm::*use-trips-and-wf-senses* nil) ;; probably not necessary given next line, but to be on the safe side!
-(setq lxm::*unknown-words-only* t)   
+(setq  lxm::*use-trips-and-wf-senses* nil) ;; get senses of POS that are not in the TRIPS lexion
+(setq lxm::*unknown-words-only* nil)   
 
 ;;;; LOGGING options
 (setq logging::*logging-enabled* nil)
@@ -167,6 +167,7 @@
 
 ; just the default user
 (setq dagent::*users* (list (cons "desktop" (dagent::make-user :name "desktop" :channel-id 'dagent::desktop))))
+
 
 ;; and here's the state definitions for the dialogue manager
 
@@ -190,3 +191,4 @@
 
 ;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")
+

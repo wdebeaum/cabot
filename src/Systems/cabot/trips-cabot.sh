@@ -3,7 +3,7 @@
 # File: trips-cabot.sh
 # Creator: George Ferguson
 # Created: Wed Jun 20 10:38:13 2012
-# Time-stamp: <Thu Jan 19 11:07:08 CST 2017 lgalescu>
+# Time-stamp: <Wed Feb 22 14:29:10 CST 2017 lgalescu>
 #
 # trips-cabot: Run TRIPS/CABOT
 #
@@ -37,49 +37,58 @@ TRIPS_VOICE_DEFAULT=allison
 #
 # Command-line
 
-usage="trips-$TRIPS_SYSNAME [-display tty] [-nouser] [-nolisp] [-port 6200]"
+usage="trips-$TRIPS_SYSNAME [-debug] [-port 6200] [-logdir DIR] [-nouser] [-nolisp] [-nocsm] [-nochat] [-showgen] [-showtraffic] [-display tty]"
 
+debug=false
 port=''
+logdir=''
 display=''
 voice="${TRIPS_VOICE:-$TRIPS_VOICE_DEFAULT}"
-nolisp=''
 who=User
 channel=Desktop
 mode=continuous
-debug=t
 display="${TRIPS_DISPLAY}"
 usettsdic=''
 nospeech=''
 # disabled for now LG 2015/12/04
 nospeechin=t
 nospeechout=t
-nouser=''
 speechonly=''
+nochat=''
 nobeep=''
 noapparatus=''
+# dev options
+nouser=''
+nolisp=''
+nocsm=''
 showgen=false
+showtraffic=''
 
 while test ! -z "$1"; do
     case "$1" in
 	-port)		port="$2";	shift;;
-        -voice)         voice="$2" ;    shift;;
-        -mode)          mode="$2" ;     shift;;
-        -who)           who="$2";       shift;;
-        -channel)       channel="$2";   shift;;
-        -display)       display="$2";   shift;;
-        -debug)         debug=t;;
-        -nodebug)       debug='';;
-        -usettsdic)     usettsdic=t;;
-        -nolisp)        nolisp=t;;
-        -nospeech)      nospeech=t;;
-        -nospeechin)    nospeechin=t;;
-        -nospeechout)   nospeechout=t;;
-        -nouser)        nouser=t;;
-        -speechonly)    speechonly=t;;
-        -nobeep)        nobeep=t;;
-        -quiet)         nospeech=t; nobeep=t;;
-	-noapparatus)   noapparatus=t;;
+	-voice)		voice="$2" ;	shift;;
+	-mode)		mode="$2" ;	shift;;
+	-who)		who="$2";	shift;;
+	-channel)	channel="$2";	shift;;
+	-display)	display="$2";	shift;;
+	-logdir)	logdir="$2";	shift;;
+	-debug)		debug=t;;
+	-nodebug)	debug='';;
+	-nouser)	nouser=t;;
+	-nolisp)	nolisp=t;;
+	-nocsm)		nocsm=t;;
+	-nochat)	nochat=t;;
+	-usettsdic)	usettsdic=t;;
+	-nospeech)	nospeech=t;;
+	-nospeechin)	nospeechin=t;;
+	-nospeechout)	nospeechout=t;;
+	-speechonly)	speechonly=t;;
+	-nobeep)	nobeep=t;;
+	-quiet)		nospeech=t; nobeep=t;;
+	-noapparatus)	noapparatus=t;;
 	-showgen)	showgen=t;;
+	-showtraffic)	showtraffic=t;;
 	-help|-h|-\?)
 	    echo "usage: $usage"
 	    exit 0;;
@@ -109,14 +118,17 @@ export LC_ALL=en_US.UTF-8
 export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8
 
 # Make sure log directory exists
-logdir=${TRIPS_LOGS:-`pwd`}/`date '+%Y%m%dT%H%M'`
+if test -z "$logdir"; then
+    logdir=${TRIPS_LOGDIR:-${TRIPS_LOGS:-`pwd`}/`date '+%Y%m%dT%H%M'`}
+fi
 if test -d "$logdir"; then
     echo "Using log directory $logdir"
 else
     echo "Creating log directory $logdir"
-    mkdir $logdir || exit 1
+    mkdir -p "$logdir" || exit 1
 fi
-cd $logdir || exit 1
+original_cwd=`pwd`
+cd "$logdir" || exit 1
 
 # Clean up any child process when we die
 # Note [LG, 2011/03/11]: We used to use pkill to kill subprocesses. Turns out 
@@ -150,47 +162,9 @@ rkill() {
 cat - <<_EOF_ >/tmp/trips$$
 (register :name init)
 (tell :content (status ready))
-(request
- :receiver facilitator
- :content (start-module
-	   :name SRIWrapper
-           :class TRIPS.SRIWrapper.SRIWrapper
-	   :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SRIWrapper.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.util.jar"
-                          "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
-			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
-                          "$TRIPS_BASE/src/SRIWrapper/src")
-	   :argv ($port_opt $noapparatus)))
-(request
- :receiver facilitator
- :content (start-module
-        :name Conceptualizer
-            :class TRIPS.Conceptualizer.Conceptualizer
-        :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.Conceptualizer.jar"
-                        "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-                        "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-                        "$TRIPS_BASE/etc/java/TRIPS.util.jar"
-                        "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
-                        "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
-                        "$TRIPS_BASE/src/Conceptualizer/src")
-        :argv ($port_opt $TRIPS_SYSNAME)))
-(request
-  :receiver facilitator
-  :content (start-module
-        :name CSM
-        :class TRIPS.CollaborativeStateManager.CollaborativeStateManager
-        :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.CollaborativeStateManager.jar"
-                        "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-                        "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-                        "$TRIPS_BASE/etc/java/TRIPS.util.jar"
-                        "$TRIPS_BASE/src/CollaborativeStateManager/src")
-        :argv ($port_opt
-    	   -data "$TRIPS_BASE/etc/$TRIPS_SYSNAME")))
-
 _EOF_
-if test -z "$nouser" ; then
+
+if test "$display" != "tty" -a -z "$nouser" -a -z "$nochat"; then
 cat - <<_EOF_ >>/tmp/trips$$
 (request
  :receiver facilitator
@@ -209,6 +183,54 @@ cat - <<_EOF_ >>/tmp/trips$$
                   -beep $beep_kbd
 		  -showGenerate $showgen
 		  $port_opt)))
+_EOF_
+fi
+
+# SRI Wrapper
+cat - <<_EOF_ >>/tmp/trips$$
+(request
+ :receiver facilitator
+ :content (start-module
+	   :name SRIWrapper
+	   :class TRIPS.SRIWrapper.SRIWrapper
+	   :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SRIWrapper.jar"
+			  "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
+			  "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
+			  "$TRIPS_BASE/etc/java/TRIPS.util.jar"
+			  "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
+			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
+			  "$TRIPS_BASE/src/SRIWrapper/src")
+	   :argv ($port_opt $noapparatus)))
+(request
+ :receiver facilitator
+ :content (start-module
+	:name Conceptualizer
+	    :class TRIPS.Conceptualizer.Conceptualizer
+	:urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.Conceptualizer.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.util.jar"
+		       "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
+		       "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
+		       "$TRIPS_BASE/src/Conceptualizer/src")
+	:argv ($port_opt $TRIPS_SYSNAME)))
+_EOF_
+
+# CSM
+if test -z "$nocsm"; then
+cat - <<_EOF_ >>/tmp/trips$$
+(request
+  :receiver facilitator
+  :content (start-module
+	:name CSM
+	:class TRIPS.CollaborativeStateManager.CollaborativeStateManager
+	:urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.CollaborativeStateManager.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.util.jar"
+		       "$TRIPS_BASE/src/CollaborativeStateManager/src")
+	:argv ($port_opt
+	   -data "$TRIPS_BASE/etc/$TRIPS_SYSNAME")))
 _EOF_
 fi
 
@@ -267,11 +289,11 @@ cat - <<_EOF_ >>/tmp/trips$$
  :receiver facilitator
  :content (start-module
 	   :name speech-out
-           :class TRIPS.SpeechOutNot.SpeechOutNot
-           :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SpeechOutNot.jar"
-                          "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-                          "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-                          "$TRIPS_BASE/etc/java/TRIPS.util.jar")
+	   :class TRIPS.SpeechOutNot.SpeechOutNot
+	   :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SpeechOutNot.jar"
+			  "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
+			  "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
+			  "$TRIPS_BASE/etc/java/TRIPS.util.jar")
 	   :argv ($port_opt)
 ))
 _EOF_
@@ -287,7 +309,7 @@ fi
      -default-type '(or affixes words punctuation terms-from-file)' \
  2>&1 | tee $logdir/TextTagger.err) &
 
-# set display option for facilitator           
+# set display option for facilitator
 if test -n "$nouser"; then
     display='none'
 fi
@@ -297,9 +319,16 @@ else
     display_opt=''
 fi
 
+# set traffic option for facilitator
+if test -z "$showtraffic"; then
+    traffic_opt="-notraffic"
+else
+    traffic_opt=''
+fi
+
 # Launch facilitator and send initial messages via stdin
 cat /tmp/trips$$ |\
- $TRIPS_BASE/bin/Facilitator -port $TRIPS_PORT -title $TRIPS_SYSNAME_ALLCAPS -geometry 260x600-0+0 $display_opt 2>&1 | tee facilitator.err &
+ $TRIPS_BASE/bin/Facilitator -port $TRIPS_PORT -title $TRIPS_SYSNAME_ALLCAPS -geometry 260x600-0+0 $traffic_opt $display_opt >facilitator.err 2>&1 &
 
 # Wait for Facilitator to die
 wait $!

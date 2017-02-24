@@ -2858,7 +2858,9 @@
 	     ;;(:ESSENTIAL ONT::Agent (F::Phys-obj (F::intentional +)))
 	     ;; for "An open switch creates a gap / FN: "it created fanatics during the Aphgan war"
 	     ;; the process creates compression
-	     (:OPTIONAL ONT::agent((? cs F::Phys-obj f::abstr-obj) ))
+	     (:OPTIONAL ONT::agent ((? cs F::Phys-obj f::abstr-obj) ))
+	     (:essential ont::affected-result ((? aff  F::Phys-obj f::abstr-obj) 
+					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction))))
 	     (:OPTIONAL ONT::result ((? res F::Phys-obj f::abstr-obj) (F::intentional -))) ;; he made a box from paper
              )
  )
@@ -2948,7 +2950,7 @@
 ;; host, sponsor
 (define-type ONT::HOST
  :wordnet-sense-keys ("sponsor%2:40:00" "patronize%2:40:00" "patronise%2:40:00")
- :parent ONT::intentionally-act
+ :parent ONT::CONTROL-MANAGE ;ONT::intentionally-act
  :sem (F::SITUATION (:required (F::Cause F::agentive) (F::Trajectory -))(:default (F::Aspect F::bounded)))
  :arguments ((:REQUIRED ONT::FORMAL ((? th23 F::Phys-obj F::situation)))
 	     (:ESSENTIAL ONT::Agent (F::Phys-obj (F::intentional +)))
@@ -4880,7 +4882,7 @@
 ;; guide, lead, direct, conduct
 (define-type ont::guiding
  :wordnet-sense-keys ("lead%2:38:01" "take%2:38:09" "direct%2:38:00" "conduct%2:38:01" "guide%2:38:00" "call%2:38:00" "lead%2:42:01")
- :parent ONT::intentionally-act
+ :parent ONT::CONTROL-MANAGE ;ONT::intentionally-act
  :sem (F::situation (:required (F::trajectory +))(:default (F::aspect F::dynamic)(F::time-span F::extended)))
  :arguments ((:required ont::agent  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
 	     (:optional ont::neutral ((? th31 f::phys-obj f::abstr-obj f::situation))) ;; a person, a discussion, an event

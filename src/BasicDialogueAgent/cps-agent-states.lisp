@@ -210,6 +210,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default1
+		     (clear-pending-speech-acts)
 		     (GENERATE :content (ONT::TELL :content (ONT::DONT-UNDERSTAND)))
 		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
 		     )
@@ -451,6 +452,7 @@ ONT::INTERACT
 		     (RECORD POSSIBLE-GOAL ?!possible-goal)
 		     (RECORD POSSIBLE-GOAL-ID ?goal-id)
 		     (RECORD POSSIBLE-GOAL-CONTEXT ?goal-description)
+		     (clear-pending-speech-acts) ; in preparation of saying something in clarify-goal
 		     )
 	  :destination 'clarify-goal
 	  )
@@ -463,6 +465,7 @@ ONT::INTERACT
 		     -intention-complete-failure>
 		     (RECORD FAILURE (FAILED-TO-INTERPRET :WHAT ?!content :REASON (MISSING-ACTIVE-GOAL) :context ?context))
 		     (RECORD POSSIBLE-GOAL nil)
+		     (clear-pending-speech-acts)
 		     (GENERATE
 		      :content (ONT::FAILED-TO-UNDERSTAND-GOAL :content ?!content)
 		      :context ?context)
@@ -476,6 +479,7 @@ ONT::INTERACT
 	  :pattern '((BA-RESPONSE  X REPORT :psact FAILURE :type FAILED-TO-INTERPRET :WHAT ?!content :REASON (NO-EVENTS-IN-CONTEXT) :context ?context)
 		     -intention-failure-noevent>
 		     (RECORD FAILURE (FAILED-TO-INTERPRET :WHAT ?!content :REASON (NO-EVENTS-IN-CONTEXT) :context ?context))
+		     (clear-pending-speech-acts)
 		     (GENERATE
 		      :content (ONT::FAILED-TO-UNDERSTAND-RELEVANCE :content ?!content)
 		      :context ?context)		     
@@ -490,6 +494,7 @@ ONT::INTERACT
 	  :pattern '((BA-RESPONSE  X REPORT :psact FAILURE :type ?!type :WHAT ?!content :REASON ?r :context ?context)
 		     -intention-failure-others>
 		     (RECORD FAILURE (?!type :WHAT ?!content :REASON ?r :context ?context))
+		     (clear-pending-speech-acts)
 		     (GENERATE
 		      :content (?!type :content ?!content)
 		      :context ?context)		     
@@ -503,6 +508,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default2
+		     (clear-pending-speech-acts)
 		     (GENERATE
 		      :content (ONT::TELL :content (ONT::SOMETHING-IS-WRONG)))
 		     (GENERATE
@@ -682,6 +688,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default3
+		     (clear-pending-speech-acts)
 		     (GENERATE
 		      :content (ONT::TELL :content (ONT::SOMETHING-IS-WRONG)))
 		     (GENERATE
@@ -790,6 +797,7 @@ ONT::INTERACT
 		     (ont::eval (find-attr :result ?failure-context :feature REJECTED-CONTEXT))
 		     -failure-with-no-alt>>
 		     ;(GENERATE :content (ONT::TELL :content (?failure)))
+		     (clear-pending-speech-acts)
 		     (GENERATE :content ?failure :context ?failure-context)
 		     (GENERATE
 		      :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))
@@ -827,6 +835,7 @@ ONT::INTERACT
 	  :pattern '((ANSWER :value NO)
 		     -propose-cps-act>
 		     ;(GENERATE :content (ONT::OK))
+		     (clear-pending-speech-acts)
 		     (GENERATE
 		      :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))
 		     )
@@ -837,6 +846,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default4
+		     (clear-pending-speech-acts)
 		     (GENERATE :content (ONT::TELL :content (ONT::DONT-UNDERSTAND)))
 		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
 		     )
@@ -884,6 +894,7 @@ ONT::INTERACT
 		     ;(RECORD POSSIBLE-GOAL ?poss)
 		     (RECORD PROPOSAL-ON-TABLE nil)
 		     (UPDATE-CSM (V REJECTED) :context ?context)
+		     (clear-pending-speech-acts)
 		     (GENERATE :content (V REJECTED) :context ?context)
 		     (GENERATE
 		      :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
@@ -900,6 +911,7 @@ ONT::INTERACT
 		     (RECORD POSSIBLE-GOAL nil)
 		     (RECORD PROPOSAL-ON-TABLE nil)
                      (UPDATE-CSM (V REJECTED) :context ?context)
+		     (clear-pending-speech-acts)
 		     (GENERATE :content (V REJECTED) :context ?context)
 		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
 		     )
@@ -910,6 +922,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default5
+		     (clear-pending-speech-acts)
 		     (GENERATE :content (ONT::TELL :content (ONT::SOMETHING-IS-WRONG)))
 		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
 		     )
@@ -960,6 +973,7 @@ ONT::INTERACT
 	  :description "default: act as if no pending speech act"
 	  :pattern '((?!spec ?sa ?t)
 		     -default-psa
+		     (clear-pending-speech-acts)
 		     (nop)
 		     )
 	  :destination 'what-next-initiative-CSM
@@ -1006,12 +1020,14 @@ ONT::INTERACT
 	(list
 	 (transition
 	  :description "failed trying to achieve the goal"
-	  :pattern '((BA-RESPONSE X REPORT :psact FAILURE :what ?!F1 :as ?as-role :context ?context)
+	  :pattern '((BA-RESPONSE X REPORT :psact FAILURE :what ?!F1 :as ?as-role :type ?t :reason ?r :context ?context) ; I think there isn't an :as, but I'll leave it in just in case
 		     -failed1>
-		     (UPDATE-CSM (FAILED-ON  :what ?!F1 :as ?as-role :context ?context))
+		     (UPDATE-CSM (FAILED-ON  :what ?!F1 :as ?as-role :type ?t :reason ?r :context ?context))
+		     (clear-pending-speech-acts)
 		     (GENERATE 
-		      :content (ONT::TELL :content (ONT::FAIL :formal ?!F1 :tense PAST))
+		      :content (ONT::TELL :content (ONT::FAIL :formal ?!F1 :tense PAST :type ?t :reason ?r))
 		      :context ?context)
+		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))
 		     )
 	  :destination 'segmentend)
 	
@@ -1181,7 +1197,8 @@ ONT::INTERACT
 		     (record active-goal nil)
 		     (record active-context nil)
 		     ;(UPDATE-CSM (GOAL-ACHIEVED))
-		     (GENERATE :content (ONT::TELL :content (ONT::ACK)))  ; generate something neutral, e.g., ok.  We might have got here because the goal has been abandoned (not accomplished)
+		     (clear-pending-speech-acts)
+		     (GENERATE :content (ONT::TELL :content (ONT::CLOSE-TOPIC)))  ; generate something neutral, e.g., ok.  We might have got here because the goal has been abandoned (not accomplished)
 		     
 		     ; ?? commented this out because perhaps the system wants to propose something next??
 		     ; i put it back in for now -- 
@@ -1195,6 +1212,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default7
+		     (clear-pending-speech-acts)
 		     (GENERATE :content (ONT::TELL :content (ONT::SOMETHING-IS-WRONG)))
 		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
 		     )
@@ -1255,6 +1273,7 @@ ONT::INTERACT
 	  :description "default"
 	  :pattern '((?!spec ?sa ?t)
 		     -default8
+		     (clear-pending-speech-acts)
 		     ;(GENERATE :content (ONT::TELL :content (ONT::SOMETHING-IS-WRONG)))
 		     (GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))		     
 		     )

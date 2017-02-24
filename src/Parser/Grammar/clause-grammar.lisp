@@ -1003,9 +1003,10 @@
        )
       -pred-advbl> 0.98 ;; don't use it if a regular advbl interpretation is possible
       ;; md: argument should be % np, if an adverbial does not apply to nps, don't use it
-      (head (advbl (lf ?lf) (var ?v) (arg ?arg) (argument ?argument) (argument (% np (var ?arg)))
-	     (wh (? wh - q)) (sort (? srt binary-constraint pp-word pred))
-	     (gap ?gap)
+      (head (advbl (lf ?lf) (var ?v) (arg ?arg) (argument ?argument) 
+		   (argument (% np (var ?arg))) (sem ?sem)
+		   (wh (? wh - q)) (sort (? srt binary-constraint pp-word pred))
+		   (gap ?gap)
 	     ))
       )
 
@@ -1656,7 +1657,8 @@
 	   (subj-map ?lsubj-map) (dobj-map ?dobj-map) (iobj-map ?iobj-map) (comp3-map ?comp3-map)
 	   
 	   ))
-    (advbl (particle +) (var ?adv-v)  (arg ?v) (argument (% s (sem ?sem))) (gap -))
+    ;(advbl (particle +) (var ?adv-v)  (arg ?v) (argument (% s (sem ?sem))) (gap -))
+    (advbl (particle +) (var ?adv-v)  (arg ?dobjvar) (argument (% s (sem ?dobjsem))) (gap -))
     ?dobj
     ?comp
     )

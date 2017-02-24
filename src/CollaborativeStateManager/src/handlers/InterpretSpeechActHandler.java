@@ -650,7 +650,10 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	KQMLList queryInContext = new KQMLList();
     	queryInContext.add("QUERY-IN-CONTEXT");
     	queryInContext.add(":goal");
-    	queryInContext.add(currentAcceptedGoal.getId());
+    	if (currentAcceptedGoal != null)
+    		queryInContext.add(currentAcceptedGoal.getId());
+    	else
+    		queryInContext.add(new KQMLToken("NIL"));
     	
     	askWhatIsContent.add(queryInContext);
     	

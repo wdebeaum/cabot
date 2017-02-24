@@ -339,6 +339,7 @@
  :parent ont::pos-relative-wrt-trajectory
  )
 
+#|
 ; ground is the trajectory
 (define-type ont::pos-located-in-trajectory
  :parent ont::position-w-trajectory-reln
@@ -359,6 +360,8 @@
 (define-type ont::pos-midway
  :parent ont::pos-located-in-trajectory
  )
+
+|#
 
  ; <
 
@@ -432,16 +435,20 @@
  :arguments ((:ESSENTIAL ONT::FIGURE)); ((? of F::Situation) (F::trajectory +))))  ; FIGURE should point to the argument, not the verb
  )
 
+;;  This should modify the event - as the object arises from the event (e.g., It melted in a soft pile)
+
 (define-type ONT::resulting-object
- :parent ONT::goal-reln
- :arguments ((:ESSENTIAL ONT::FIGURE); (F::Situation (f::aspect f::dynamic) (f::type ont::change)))
+ :parent ONT::predicate
+ :arguments ((:ESSENTIAL ONT::FIGURE
+			 (F::Situation (f::aspect f::dynamic) (f::type ont::event-of-creation)))
              (:REQUIRED ONT::GROUND (F::Phys-obj ))
              )
  )
 
 (define-type ONT::resulting-state
  :parent ONT::goal-reln
- :arguments ((:ESSENTIAL ONT::FIGURE); (F::Situation (f::aspect f::dynamic) (f::type ont::change)))
+ :arguments ((:ESSENTIAL ONT::FIGURE 
+			 (F::Situation (f::aspect f::dynamic) (f::type ont::change)))
              (:REQUIRED ONT::GROUND ((? t F::Abstr-obj F::situation)))
              )
  )
@@ -657,10 +664,18 @@
 
 (define-type ONT::direction
  :parent ONT::position-reln
- :arguments ((:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation) (F::trajectory +) (f::type (? tt ONT::MOTION ONt::APPLY-FORCE))))
+ :arguments (;(:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation) (F::trajectory +) 
+		;		      (f::type (? tt ONT::MOTION ONt::APPLY-FORCE ONT::PUT))))
+	     (:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation F::abstr-obj)))
 	     (:ESSENTIAL ONT::GROUND (F::Phys-obj))
             )
  )
+
+(define-type ont::direction-down
+    :parent ONT::DIRECTION)
+
+(define-type ont::direction-up
+    :parent ONT::DIRECTION)
 
 ;; north, south, east, west
 (define-type ont::cardinal-direction

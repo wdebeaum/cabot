@@ -302,6 +302,7 @@
 
 (defun restart-dagent nil
   (mapcar #'reset-user (mapcar #'cdr *users*))
+  (setq *interpretable-utt* nil)
   (send-status 'OK)
   )
 
@@ -994,6 +995,10 @@
 	       (nop t)   ; don't do anything (fortriggers)
 	       (continue
 		(cache-response-for-processing '((continue :arg dummy))))
+	       (clear-pending-speech-acts
+		(clear-pending-speech-acts  uttnum channel)
+		(setq *interpretable-utt* nil)		
+		)
 	       (true (clear-pending-speech-acts  uttnum channel))
 	       (next (release-pending-speech-act))
 	       (otherwise
@@ -1071,9 +1076,9 @@
   (setf (user-time-of-last-user-interaction user) (get-time-of-day))
   (let ((expanded-msg (expand-args msg)))
     (Format t "~%~%==========================~% System generating: ~S ~%========================~%" expanded-msg)
-    ;;  we clear any remaining input as we generate
-;    (clear-pending-speech-acts uttnum channel)
-    (setq *interpretable-utt* t)
+    ;;  we clear any remaining input as we generate  ;;; we don't because it might just be responding with an "ok" and we want to process the next speech act
+;    (clear-pending-speech-acts uttnum channel)  
+;    (setq *interpretable-utt* t)
     (send-msg `(REQUEST :content ,(cons 'GENERATE expanded-msg)))))
 
 (defun expand-args (msg)

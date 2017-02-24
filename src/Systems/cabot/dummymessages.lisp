@@ -33,7 +33,7 @@
 ;		  (find-arg (find-lf-in-context context active-goal) :instance-of))
 	  (process-reply msg args 
 			 (case user::*test-dialog-id*
-			   ((user::test-generic user::test-not-enough-blocks-and-you-do-it user::test-I-cannot-do-it user::flow-action-topgoal-no user::test-set-system-goal user::test-instead)
+			   ((user::test-generic user::test-not-enough-blocks-and-you-do-it user::test-I-cannot-do-it user::flow-action-topgoal-no user::test-set-system-goal user::test-instead user::test-i-will-tell-you user::test-staircase-green-block)
 			    (let ((action (find-lf-in-context-tmp context active-goal)))
 			      (case (find-arg action :instance-of)
 				(ont::create

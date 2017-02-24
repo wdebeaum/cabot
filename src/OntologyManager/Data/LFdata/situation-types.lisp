@@ -26,8 +26,9 @@
  :arguments ((:ESSENTIAL ONT::agent ((? oc F::Phys-obj F::Abstr-obj F::Situation)))
 	     (:optional ont::affected ((? aff F::SITUATION F::ABSTR-OBJ F::Phys-obj)))
 	     (:optional ont::result ((? res1 F::SITUATION F::ABSTR-OBJ)))
-	     (:optional ont::formal ((? res2 F::SITUATION F::ABSTR-OBJ))) ;; here for now while we decide the FORMAL/RESULT issue
-	     )
+	     (:optional ont::formal ((? res2 F::SITUATION F::ABSTR-OBJ)
+				     (F::type (? ftype ONT::SITUATION-ROOT ONT::PROPERTY-VAL ONT::POSITION-RELN)) ;; here for now while we decide the FORMAL/RESULT issue
+				     )))
  )
 
 (define-type ONT::inhibit-effect
@@ -553,10 +554,10 @@
 (define-type ONT::put
  :wordnet-sense-keys ("put%2:35:00" "set%2:35:00" "place%2:35:00" "pose%2:35:02" "position%2:35:00" "lay%2:35:01" "interpose%2:38:01")
  :parent ont::event-of-causation
+ :sem (F::Situation (F::trajectory +))
  :arguments ((:ESSENTIAL ONT::agent)
 	     (:ESSENTIAL ONT::AFFECTED (F::Phys-obj (F::mobility f::movable)))
-	     ;;(:OPTIONAL ONT::Spatial-Loc (F::Phys-obj (F::spatial-abstraction F::Any-spatial-abstraction))
-             ;; (:implements goal))
+	     
              )
  )
 
@@ -593,7 +594,7 @@
 ;; enter,  ingress
 (define-type ONT::ENTERING
  :wordnet-sense-keys ("enter%2:38:00" "come_in%2:38:02" "get_into%2:38:00" "get_in%2:38:01" "go_into%2:38:00" "go_in%2:38:00" "move_into%2:38:00" "enter%2:36:00")
- :parent ont::motion
+ :parent ont::event-of-action ;ont::motion
  :arguments ((:REQUIRED ONT::affected ((? ttype f::phys-obj)))
 	     (:ESSENTIAL ont::result (F::phys-obj (F::spatial-abstraction (? sa F::spatial-region))
 					       (F::object-function (? of f::spatial-object f::building))))
@@ -604,7 +605,7 @@
 ;; poke, prod, ...
 (define-type ONT::Penetrate
  :wordnet-sense-keys ( "stab%2:35:02" "penetrate%2:35:00")
- :parent ont::entering
+ :parent ont::event-of-causation ;ont::entering
  :arguments ((:REQUIRED ONT::agent ((? ttype f::phys-obj)))
 	     (:ESSENTIAL ONT::affected (F::phys-obj (F::spatial-abstraction (? sa F::spatial-region))
 					       (F::object-function (? of f::spatial-object f::building))))

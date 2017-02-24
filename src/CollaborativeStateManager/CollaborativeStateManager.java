@@ -267,7 +267,18 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 													referenceHandler,
 													goalPlanner, ontologyReader);
 
-			KQMLList responseContent = isah.process();
+			
+			KQMLList responseContent = null;
+			try {
+				responseContent = isah.process();
+			}
+			catch (RuntimeException re)
+			{
+				re.printStackTrace();
+				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
+				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				reply(msg, replyMessage);
+			}
 			if (responseContent != null)
 			{
 				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
@@ -280,7 +291,17 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			
 			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content, referenceHandler,
 															goalPlanner, ontologyReader);
-			KQMLList responseContent = tih.process();
+			KQMLList responseContent = null;
+			try {
+				responseContent = tih.process();
+			}
+			catch (RuntimeException re)
+			{
+				re.printStackTrace();
+				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
+				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				reply(msg, replyMessage);
+			}
 			if (responseContent != null)
 			{
 				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
@@ -291,7 +312,17 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");	
 			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, referenceHandler, goalPlanner);
-			KQMLList responseContent = uch.process();
+			KQMLList responseContent = null;
+			try {
+				responseContent = uch.process();
+			}
+			catch (RuntimeException re)
+			{
+				re.printStackTrace();
+				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
+				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				reply(msg, replyMessage);
+			}
 			if (responseContent != null)
 			{
 				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
@@ -303,7 +334,17 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			QueryCSMHandler qch = new QueryCSMHandler(msg, content, referenceHandler,
 														goalPlanner, ontologyReader);
-			KQMLList responseContent = qch.process();
+			KQMLList responseContent = null;
+			try {
+				responseContent = qch.process();
+			}
+			catch (RuntimeException re)
+			{
+				re.printStackTrace();
+				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
+				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				reply(msg, replyMessage);
+			}
 			if (responseContent != null)
 			{
 				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
