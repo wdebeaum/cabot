@@ -26,6 +26,58 @@
 |#
 	  
 ;;;;;;;;;;;;;;;
+
+          ; MOVE: move, slide
+	  ; PUT: put, place, position, stick
+	  ; PUSH/PULL
+	  ; TRANSPORT: bring, carry, transport, convey
+	  ((?!spec ?ev (:* (? type ONT::MOVE ONT::PUT ONT::PULL ONT::PUSH ONT::TRANSPORT) ?w) :AFFECTED ?!obj :OPERATOR - )
+           (?spec2 ?!obj ?t2)
+           -rule_move>
+           60
+           (?!spec ?ev ONT::MOVE
+            :rule -rule_move
+            :TYPE ?type
+	    :LEX ?w
+            )
+           )	  
 	  
+	  ((?!spec ?ev (:* (? type ONT::MOVE-UPWARD ONT::PICKUP) ?w) :AFFECTED ?!obj :OPERATOR - )
+           (?spec2 ?!obj ?t2)
+           -rule_move_up>
+           70
+           (?!spec ?ev ONT::MOVE
+	    :DIRECTION ONT::DIRECTION-UP
+            :rule -rule_move_up
+            :TYPE ?type
+	    :LEX ?w
+            )
+           )	  
+
+	  ((?!spec ?ev (:* (? type ONT::MOVE-DOWNWARD ) ?w) :AFFECTED ?!obj :OPERATOR - )
+           (?spec2 ?!obj ?t2)
+           -rule_move_down>
+           70
+           (?!spec ?ev ONT::MOVE
+	    :DIRECTION ONT::DIRECTION-DOWN
+            :rule -rule_move_down
+            :TYPE ?type
+	    :LEX ?w
+            )
+           )	  
+
+	  ; ACQUIRE: take, grab
+	  ; BODY-MANIPULATION: grasp
+	  ((?!spec ?ev (:* (? type ONT::ACQUIRE ONT::BODY-MANIPULATION) ?w) :AFFECTED ?!obj :OPERATOR - )
+           (?spec2 ?!obj ?t2)
+           -rule_acquire>
+           60
+           (?!spec ?ev ONT::ACQUIRE
+            :rule -rule_acquire
+            :TYPE ?type
+	    :LEX ?w
+            )
+           )	  
+
 	  )
 	)

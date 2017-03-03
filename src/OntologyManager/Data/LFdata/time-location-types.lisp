@@ -284,12 +284,6 @@
 ;             )
  )
 
-; figure is linear and adjacent to ground
-; along, alongside (of)
-(define-type ont::linear-extent
- :parent ont::position-as-extent-reln
- )
-
 ; figure is distributed over ground
 ; over
 (define-type ont::pos-as-over
@@ -302,15 +296,6 @@
  :parent ont::pos-as-over
  )
 
-; figure is linear and crosses ground
-; across
-(define-type ont::pos-as-opposite
- :parent ont::position-as-extent-reln
- )
-
-(define-type ont::pos-as-around
- :parent ont::position-as-extent-reln
- )
 
 ; *********************************************
 ;
@@ -322,6 +307,22 @@
 ; ?? how do these relate to the ont::path subtree?
 (define-type ont::position-w-trajectory-reln
  :parent ont::position-reln
+ )
+
+; figure is linear and crosses ground
+; across
+(define-type ont::pos-as-opposite
+ :parent ont::position-w-trajectory-reln
+ )
+
+(define-type ont::pos-as-around
+ :parent ont::position-w-trajectory-reln
+ )
+
+; figure is linear and adjacent to ground
+; along, alongside (of)
+(define-type ont::linear-extent
+ :parent ont::position-w-trajectory-reln
  )
 
 ; ground is in the trajectory
@@ -445,6 +446,14 @@
              )
  )
 
+(define-type ONT::original-material
+ :parent ONT::predicate
+ :arguments ((:ESSENTIAL ONT::FIGURE
+			 (F::Situation (f::aspect f::dynamic) (f::type ont::event-of-creation)))
+             (:REQUIRED ONT::GROUND (F::Phys-obj ))
+             )
+ )
+
 (define-type ONT::resulting-state
  :parent ONT::goal-reln
  :arguments ((:ESSENTIAL ONT::FIGURE 
@@ -560,6 +569,7 @@
 
 ;; ***************************************************************
 
+#|
 ;; the idea in the document?
 (define-type ONT::spatial-loc
  :parent ONT::PREDICATE
@@ -579,6 +589,7 @@
              )
              )
  )
+|#
 
 ;; among, next to, adjacent to, nearby
 ;; the house/party around the corner, he walked around the party/the house
@@ -635,6 +646,7 @@
 	     )
  )
 
+#|
 ;; for from phrases that modify nouns, like "the girl from california" "the plane from rochester"
 (define-type ONT::source-loc
  :parent ONT::predicate
@@ -642,6 +654,7 @@
 	     (:ESSENTIAL ont::FIGURE  (f::phys-obj ))
 	     )
  )
+|#
 
 (define-type ONT::through
  :parent ONT::TRAJECTORY

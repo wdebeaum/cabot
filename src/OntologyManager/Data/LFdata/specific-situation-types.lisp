@@ -2536,7 +2536,7 @@
  :parent ONT::cause-effect
  :sem (F::Situation (F::Aspect F::Dynamic))
  :arguments ( ;; run the script/program
-	     (:optional ont::neutral ((? thm f::abstr-obj f::situation)))
+	     (:optional ont::neutral ((? thm f::abstr-obj f::situation) (f::type (? tt ONT::PROCEDURE ONT::EVENT-OF-ACTION ))))
 	     )
  )
 
@@ -3727,7 +3727,7 @@
 
 (define-type ONT::SPACE
  :wordnet-sense-keys ("space%2:38:00")
- :parent ONT::event-of-causation
+ :parent ONT::ARRANGING ;ONT::event-of-causation
  :sem (F::SITUATION (F::Cause F::Agentive) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::affected (F::Phys-obj))
              (:REQUIRED ONT::AGENT  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
