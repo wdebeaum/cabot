@@ -19,8 +19,8 @@ public class UpdateCSMHandler extends MessageHandler {
 	KQMLList innerContent = null;
 	KQMLObject context;
 	String updateType;
-	GoalPlanner goalPlanner;
 	String activeGoal = null;
+	GoalPlanner goalPlanner;
 	
 	public UpdateCSMHandler(KQMLPerformative msg, KQMLList content, 
 			ReferenceHandler referenceHandler,
@@ -488,6 +488,8 @@ public class UpdateCSMHandler extends MessageHandler {
 		{
 			goalPlanner.createGoalFromAct("ACCEPT", (KQMLList)effectContent, (KQMLList)context);
 		}
+		
+		goalPlanner.hasAcceptedGoal = true;
 		
 		return null;
 	}

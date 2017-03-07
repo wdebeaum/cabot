@@ -546,7 +546,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 			{
 				term = TermExtractor.extractTerm(what, (KQMLList)context);
 				String goalType = term.getKeywordArg(":INSTANCE-OF").stringValue();
-				if (!ontologyReader.isRootGoal(goalType))
+				if (!goalPlanner.hasAcceptedGoal && !ontologyReader.isRootGoal(goalType))
 					return missingActiveGoal(goalType);
 				Goal newGoal = new Goal(what,(KQMLList)context);
 				proposeAdoptContent = adoptContent(newGoal.getId(),what,"GOAL",null);

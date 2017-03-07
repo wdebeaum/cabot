@@ -31,6 +31,7 @@ public class GoalPlanner {
 	private boolean overrideSystemInitiativeValue = false;
 	private Goal underDiscussion;
 	private ReferenceHandler referenceHandler;
+	public boolean hasAcceptedGoal = false;
 	
 	public GoalPlanner(ReferenceHandler referenceHandler)
 	{
