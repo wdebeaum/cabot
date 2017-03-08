@@ -158,7 +158,7 @@
 
 ;;  DM settings
 (setq dagent::*silent-failures* nil)  ;; don't ignore utterance failure
-(setq dagent::*using-alarms* nil)   ;; using alarms, default OFF- use (ENABLE-ALARMS) message to turn on
+(setq dagent::*using-alarms* t)   ;; using alarms, default should be OFF - use (ENABLE-ALARMS) message to turn on and (DISABLE-ALARMS) to turn off
 (setq dagent::*disabled-wizard* t)  ;; no wizard
 (setq dagent::*max-wait-until-prompt-in-seconds* 30)  ;; if we don't hear from the user for 30 seconds, we check the dialogue status
 (setq dagent::*max-wait-until-prompt-in-minutes* (/ dagent::*max-wait-until-prompt-in-seconds* 60))
