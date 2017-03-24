@@ -69,7 +69,7 @@
 
 ;; make/earn money, a profit
 (define-type ONT::earning
- :parent ONT::commerce-collect
+ :parent ONT::acquire
  :sem (F::SITUATION (F::Aspect F::dynamic))
  :arguments ((:REQUIRED ONT::affected ((? th12 F::Phys-obj F::Abstr-obj) (f::type ONT::MONEY) (f::object-function f::currency) (f::intentional -))))
  )
@@ -422,9 +422,8 @@
  :parent ONT::MOVE
  :sem (F::SITUATION (:required (F::Cause F::Agentive))(:default (F::Aspect F::unbounded) (F::Time-span F::extended)))
  :arguments ((:ESSENTIAL ONT::AGENT (F::Phys-obj (F::origin (? o f::non-human-animal F::human))) (:implements FORMAL))
-	     (:optional ont::neutral )  ;; the path, road, as in "walk the path"
-             )
- )
+	     (:optional ont::neutral (F::phys-obj (f::type ont::geo-object))  ;; the path, road, as in "walk the path, walk the hills"
+             )))
 
 (define-type ONT::swim
  :wordnet-sense-keys ("float%2:38:01" "swim%2:38:01")
@@ -464,8 +463,9 @@
 ;; takes a formal object -- walk the dog; walk the patient over to the xray facility
 (define-type ONT::walking
  :wordnet-sense-keys ("walk%2:38:05" "walk%2:38:00" "walk%2:38:02" "walk%2:38:04")
- :parent ONT::self-locomote
- :arguments ((:ESSENTIAL ONT::affected(F::Phys-obj (F::origin (? o f::non-human-animal F::human))))
+ :parent ONT::cause-move
+ :arguments ((:ESSENTIAL ONT::affected (F::Phys-obj (F::origin (? o f::non-human-animal F::human))
+						    (F::mobility f::movable)))
              )
  )
 
@@ -664,11 +664,11 @@
 
 (define-type ONT::DEPART
  :wordnet-sense-keys ("depart%2:38:01" "part%2:38:00" "start%2:38:02" "start_out%2:38:00" "set_forth%2:38:00" "set_off%2:38:00" "set_out%2:38:00" "take_off%2:38:00")
-; :parent ONT::DEPARTING
  :parent ONT::EVENT-OF-ACTION
- :sem (F::SITUATION (F::Aspect F::Bounded) (F::Cause F::Force) (F::Time-span F::Atomic))
- :arguments ((:OPTIONAL ONT::Source))
- )
+ :sem (F::SITUATION (F::Aspect F::Bounded) (F::Cause F::Force) (F::Time-span F::Atomic)) 
+ :arguments ((:OPTIONAL ONT::neutral)  ;; I left the party
+	     (:optional ONT::source  ;; as in "I left from the party"
+			)))
 
 ;;; A more abstract motion. Involves object changing places, but
 ;;; possibly through a sequence of motions
@@ -801,10 +801,11 @@
 (define-type ONT::PULL
  :wordnet-sense-keys ("force%2:35:01" "draw%2:35:03" "pull%2:35:00" "pull%2:35:04" "trigger%2:33:00")
  :parent ONT::apply-force
+ :arguments ((:optional ONT::source (F::abstr-obj (f::type ONT::SOURCE-RELN))))
  )
 
 (define-type ONT::PUSH
- :wordnet-sense-keys ("poke%2:35:01" "push%2:38:00" "force%2:38:00" "thrust%2:38:00" "thrust%2:42:01" "wedge%2:35:00")
+ :wordnet-sense-keys ("poke%2:35:01" "push%2:38:00" "force%2:38:00" "thrust%2:38:00" "thrust%2:42:01" "wedge%2:35:00" "bump%2:35:00")
   :parent ONT::apply-force
  )
 
@@ -2501,7 +2502,7 @@
   )
 
 (define-type ONT::USE
- :wordnet-sense-keys ("use%1:04:01" "habit%1:04:02" "use_of_goods_and_services%1:22:00" "use%1:22:00" "usance%1:22:00" "economic_consumption%1:22:00" "consumption%1:22:00" "use%1:07:02" "use%1:07:00" "role%1:07:00" "purpose%1:07:00" "function%1:07:00" "exercise%1:04:03" "employment%1:04:01" "utilisation%1:04:00" "utilization%1:04:00" "usage%1:04:00" "use%1:04:00" "practical_application%1:04:00" "application%1:04:02" "use%2:41:03" "use%2:41:04" "apply%2:41:01" "practice%2:41:01" "use%2:41:14" "expend%2:34:00" "use%2:34:00" "habituate%2:34:00" "use%2:34:02" "use%2:34:01" "utilize%2:34:00" "utilise%2:34:00" "apply%2:34:00" "employ%2:34:00")
+ :wordnet-sense-keys ("use%1:04:01" "habit%1:04:02" "use_of_goods_and_services%1:22:00" "use%1:22:00" "usance%1:22:00" "economic_consumption%1:22:00" "consumption%1:22:00" "use%1:07:02" "exercise%1:04:03" "employment%1:04:01" "utilisation%1:04:00" "utilization%1:04:00" "usage%1:04:00" "use%1:04:00" "practical_application%1:04:00" "application%1:04:02" "use%2:41:03" "use%2:41:04" "apply%2:41:01" "practice%2:41:01" "use%2:41:14" "expend%2:34:00" "use%2:34:00" "habituate%2:34:00" "use%2:34:02" "use%2:34:01" "utilize%2:34:00" "utilise%2:34:00" "apply%2:34:00" "employ%2:34:00")
  :parent ONT::CAUSE-effect
  :sem (F::SITUATION (F::Cause F::agentive))
  ;;; an object used in action
@@ -2536,6 +2537,7 @@
  :parent ONT::cause-effect
  :sem (F::Situation (F::Aspect F::Dynamic))
  :arguments ( ;; run the script/program
+	     (:essential ont::agent (F::PHYS-OBJ (f::intentional +) (F::type ont::human)))
 	     (:optional ont::neutral ((? thm f::abstr-obj f::situation) (f::type (? tt ONT::PROCEDURE ONT::EVENT-OF-ACTION ))))
 	     )
  )
@@ -2640,7 +2642,7 @@
  :wordnet-sense-keys ("leave%2:31:05" "leave%2:30:03" "leave_behind%2:38:00" "abandon%2:31:01" "abandon%2:40:01")
  :parent ONT::intentionally-act
  :arguments ((:REQUIRED ONT::AGENT ((? ag f::abstr-obj F::Phys-obj) (F::intentional +)))
-	     (:REQUIRED ONT::affected((? tt F::phys-obj F::abstr-obj f::situation)))
+	     (:REQUIRED ONT::affected (F::phys-obj (F::mobility f::movable)))
              )
  )
 
@@ -2665,6 +2667,7 @@
  :parent ONT::event-of-causation
  :arguments ((:REQUIRED ONT::Agent)
 	     (:required ont::source)
+	     (:optional ont::affected-result (F::phys-obj))
              )
  )
 
@@ -2706,7 +2709,6 @@
  )
 
 (define-type ONT::push-out-of
-; :parent ONT::come-out-of
  :parent ONT::cause-out-of
  )
 
@@ -2788,7 +2790,7 @@
 
 ;; 20120524 GUM change new type
 (define-type ont::act-behave
-    :wordnet-sense-keys ("act%2:36:04" "act%2:41:00" "act%2:41:07" "behave%2:41:01")
+    :wordnet-sense-keys ("act%2:29:00" "act%2:36:04" "behave%2:41:01")
     :parent ont::acting
     :arguments ((:REQUIRED ONT::formal (F::phys-obj)))   ;; the role -- acted as a judges, acts as a catalyst
     )
@@ -2856,10 +2858,12 @@
  :sem (F::SITUATION (:required (F::Cause F::agentive) (F::Trajectory -))(:default (F::Aspect F::bounded)))
  :arguments (;;(:REQUIRED ONT::FORMAL ((? th F::Phys-obj F::Abstr-obj F::situation)))
 	     ;;(:ESSENTIAL ONT::Agent (F::Phys-obj (F::intentional +)))
-	     ;; for "An open switch creates a gap / FN: "it created fanatics during the Aphgan war"
+	     ;; for "An open switch creates a gap / FN: "it created fanatics during the Afgan war"
 	     ;; the process creates compression
 	     (:OPTIONAL ONT::agent ((? cs F::Phys-obj f::abstr-obj) ))
 	     (:essential ont::affected-result ((? aff  F::Phys-obj f::abstr-obj) 
+					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction))))
+	     (:essential ont::affected ((? aff  F::Phys-obj f::abstr-obj) 
 					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction))))
 	     (:OPTIONAL ONT::result ((? res F::Phys-obj f::abstr-obj) (F::intentional -))) ;; he made a box from paper
              )
@@ -2924,7 +2928,7 @@
 
 ;; write a book (about trucks), write your name
 (define-type ONT::write
- :wordnet-sense-keys ("create_verbally%2:36:00" "complete%2:32:00")
+ :wordnet-sense-keys ("create_verbally%2:36:00" "write%2:32:00")
  :parent ONT::CREATE
  :arguments ((:optional ont::affected-result ((? tt F::phys-obj F::abstr-obj) (F::information (? inf f::data F::information-content))))
 
@@ -2933,7 +2937,14 @@
 
 ;; 20120523 GUM change new type
 (define-type ont::author-write-burn-print_reprint_type_retype_mistype
+     :wordnet-sense-keys ("type%2:32:00" "write%2:36:01")
     :parent ont::write
+    )
+
+(define-type ont::enter-on-form
+    :wordnet-sense-keys ("complete%2:32:00")
+    :parent ont::write
+    
     )
 
 #|
@@ -3084,6 +3095,7 @@
 
 (define-type ONT::change-magnitude
  :wordnet-sense-keys ("change_magnitude%2:30:00" "change_intensity%2:39:00")
+ :arguments ((:essential ONT::scale (f::abstr-obj (F::scale ont::domain))))
  :parent ONT::adjust
  )
 
@@ -3823,9 +3835,9 @@
  :wordnet-sense-keys ("maintain%2:32:04" "keep%2:32:00" "take%1:04:00")
  :parent ONT::event-of-action
  :sem (F::situation)
- :arguments ((:optional ONT::Formal ((? oc F::Phys-obj F::Abstr-obj F::Situation)))
+ :arguments (;;(:optional ONT::Formal ((? oc F::Phys-obj F::Abstr-obj F::Situation)))
              (:REQUIRED ONT::Agent)
-	     (:optional ont::neutral (?ttype (f::information f::information-content)))
+	     (:optional ont::neutral (F::situation (f::type ont::event-of-change)))
              )
  )
 
@@ -4178,13 +4190,6 @@
     :arguments ((:optional ont::neutral (f::situation))  ;; the action that is affecting the object
 		)
     )
-
-;; undergo treatment
-(define-type ont::undergo
-    :wordnet-sense-keys ("catch_it%2:41:00" "clear%2:40:07" "come_out%2:32:00")
-    :parent ont::have-experience
-    )
-
 
 ;; Added by myrosia for "differentiate", "factorise" etc.
 (define-type ONT::function-calculation

@@ -66,8 +66,8 @@ public class UpdateCSMHandler extends MessageHandler {
 		case "initiative-taken-on-goal":
 			return handleInitiativeTakenOnGoal();
 		case "failed-on":
-			return handleFailedOn();
 		case "unacceptable":
+		case "failure":
 			return handleFailedOn();
 		case "solved":
 			return handleSolved();
@@ -425,6 +425,7 @@ public class UpdateCSMHandler extends MessageHandler {
 		if (asType.equalsIgnoreCase("MODIFICATION"))
 			goalName = ofSymbol;
 		System.out.println("Accepting goal: " + goalName);
+		
 		//TODO: Give better error message
 		
 		
@@ -432,14 +433,23 @@ public class UpdateCSMHandler extends MessageHandler {
 		{
 			Goal g = null;
 			if (goalPlanner.hasGoalById(id))
+			{
 				g = goalPlanner.getGoalById(id);
+				System.out.println("Found goal in planner by id " + id);
+			}
 			else if (goalPlanner.hasGoal(goalName))
+			{
 				g = goalPlanner.getGoal(goalName);
+				System.out.println("Found goal in planner by name " + goalName);
+			}
 			
 			if (g instanceof Action)
 			{
 				g.setAccepted();
+				goalPlanner.setActiveGoal(g);
+				System.out.println("G id: " + g.getId());
 				System.out.println("Action " + goalName + " accepted.");
+				System.out.println("Active goal now: " + goalName);
 			}
 			else if (g instanceof Elaboration)
 			{
@@ -478,6 +488,7 @@ public class UpdateCSMHandler extends MessageHandler {
 		}
 		else // Do we want to add this if we don't know of the goal?
 		{
+			System.out.println("Goal with ID " + id + "accepted without being known");
 			if (goalPlanner.createGoalFromAct("ACCEPT",acceptContent, (KQMLList)context))
 				System.out.println("Goal successfully created from act");
 			else

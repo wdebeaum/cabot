@@ -5,11 +5,11 @@
 
 (defun Do-discourse-reference (index)
   (let ((refs (find-possible-antecedents-in-act index)))
-    (format t "~% possible referents are ~S" refs)
+    ;;(trace-msg 2 "~% possible referents are ~S" refs)
     ;; Here's where we would do something intelligent - right now we remove any referents that follow a RE in the same sentence
     (mapcar #'(lambda (rr)
 		(setf (referent-ref-hyps rr)
-		      (remove-if #'(lambda (x) (member :post (ref-hyp-score x)))
+		      (remove-if #'(lambda (x) (member 'post (ref-hyp-score x)))
 				 (referent-ref-hyps rr))))
 	    refs)
     
@@ -122,8 +122,8 @@
 (defun classify-num (lf)
   (case (first lf) 
     ((ont::the-set ont::indef-set ont::pro-set) 'set)
-    ((ont::the ont::a ont::pro ont::F) 'individual)
-    ((ont::bare ont::kind) 'kind)
+    ((ont::the ont::a ont::pro ont::F ont::bare) 'individual)
+    ((ont::kind) 'kind)
     (otherwise 'other)))
 
 (defun read-sem (x)
@@ -177,7 +177,8 @@
 (defun install-hyp-in-referent (ref hyp)
   "We have picked a HYP and now update the discourse state to reflect this"
   (if hyp
-      (let* ((id (referent-id ref)))	    
+      (let* ((id (referent-id ref))
+	     (lf (referent-lf ref)))
 	(setf (referent-refers-to ref) (ref-hyp-refers-to hyp))
 	
 	(if (and (or (ref-hyp-refers-to hyp) ;; if the ID's differ, this was a real anaphoric reference and we make it concrete
@@ -187,10 +188,18 @@
 	(setf (referent-coref ref) (ref-hyp-coref hyp))
 	(if (ref-hyp-lf-type hyp)
 	    (setf (referent-lf-type ref) (simplify-lf-type (ref-hyp-lf-type hyp) (referent-lf ref))))
+	(if (and (referent-lf-type ref)
+		 (not (eq (referent-lf-type ref) (simplify-generic-type (third lf)))))
+	    (setq lf (cons (car lf) (cons (cadr lf) (cons (referent-lf-type ref)
+							       (cdddr lf))))))
+	(if (ref-hyp-sem hyp)
+	    (setf (referent-sem ref) (ref-hyp-sem hyp)))
 	;; add to the LF
 	(let* ((ref-exprs (if (referent-refers-to ref) (list :refers-to (referent-refers-to ref))
 			      (if (referent-coref ref) (list :coref (referent-coref ref)))))
-	       (newlf (if ref-exprs (append (referent-lf ref) ref-exprs))))
+	       (newlf (if ref-exprs
+			  (append lf ref-exprs)
+			  lf)))
 	  (when newlf
 	    (setf (referent-lf ref) newlf)
 	    (storeLF newlf (referent-start ref) (referent-end ref) :replace t)))
@@ -346,7 +355,7 @@
 	    ((;ont::you ont::your ont::yourself
 	      W::you W::your W::yourself W::yourselves) 
 	     (list (make-ref-hyp :id id :refers-to addressee)))
-	    ((ont::we ont::ourre ont::us ont::ourself ont::ourselves
+	    ((ont::we ont::our ont::us ont::ourself ont::ourselves
 		      W::we W::our W::us W::ourself W::ourselves) ; "we" can refer to "you and I"
 	     (list (make-ref-hyp :id id ;;:refers-to id
 				 :lf-type '(ONT::SET-OF ONT::PERSON)
@@ -383,7 +392,7 @@
 							;;	       'ONT::MALE-PERSON 'ont::female-person)))
 			     3
 			     role)
-		 ;;   backoff strategy for gendered pronouns - just look for people
+		 ;;   backoff strategy for gendered pronouns - just look for people of unknown gender
 		 (if (member (cadr lf-type) '(ONT::MALE-PERSON ONT::FEMALE-PERSON))
 		     (let ((opposite-type (if (eq (cadr lf-type) 'ONT::MALE-PERSON)
 					      'ONT::FEMALE-PERSON 'ONT::MALE-PERSON)))
@@ -497,7 +506,7 @@
 	(prior post)
       (split-list-at-id id id-order)
     (mapcar #'(lambda (x)
-		(if (member (ref-hyp-id x) prior)
+		(if (member (ref-hyp-coref x) prior)
 		    (setf (ref-hyp-score x)
 			  (list* :history-posn 0 :order 'prior
 				(ref-hyp-score x)))
@@ -595,7 +604,7 @@
 	 (progressive-search-for-possible-refs lf-type sem id (cdr access) num index range fn))))
 
 (defun search-for-possible-refs (lf-type id sem access num index range fn)
-  (remove-if-not fn (find-most-salient lf-type id sem access num index range)))
+  (remove-if-not fn (find-most-salient-relaxed lf-type id sem access num index range)))
 
 (defun sort-by-access (results access)
   results)
@@ -670,18 +679,18 @@
      
 (defun standard-definite-reference (id index lf lf-type sem speaker addressee &optional name)
   (let* ((proform (find-arg-in-act lf :proform))
-	 (possibles (find-most-salient-relaxed lf-type id sem (if ;(and proform (member proform '(ont::this ont::that ont::these ont::those)))
-						      (and proform (member proform '(W::this W::that W::these W::those)))
-						      '(visible-focus concrete event abstract)
-						      (if (eq proform 'w::one)
-							  '(concrete abstract kind) ; kind is also for BARE
-							  '(concrete wh-term event abstract kind)))
-				       (list (classify-num lf) 'kind)
-				       (- index 1) (if proform 3 200) name))
-	 (ans (filter-by-fastmatch-subsumes id (mapcar #'referent-id possibles))))
+	 (possibles (find-most-salient-relaxed lf-type id sem 
+					       (if (and proform (member proform '(W::this W::that W::these W::those)))
+						   '(visible-focus concrete event abstract)
+						   (if (eq proform 'w::one)
+						       '(concrete abstract kind) ; kind is also for BARE
+						       '(concrete wh-term event abstract kind)))
+					       (list (classify-num lf) 'kind)
+					       (- index 1) (if proform 3 200) name))
+	 (ans possibles)) ;;  I can't remember why I did this -- (filter-by-fastmatch-subsumes id (mapcar #'referent-id possibles))))
     (if ans
-	(mapcar #'(lambda (a) (bind-to-referent lf lf-type a)) 
-		(mapcar #'get-referential-info ans))
+	(mapcar #'(lambda (a) (filter-and-build-hyp lf lf-type a sem)) 
+		ans) ;;(mapcar #'get-referential-info ans))
 	)))
 
 (defun remove-null-impro (id lf lfs)
@@ -786,18 +795,22 @@
 	(id (second lf))
 	)
     (make-ref-hyp  :id id
-		   :lf-type (or (om::more-specific (referent-lf-type ante) lf-type) lf-type (referent-lf-type ante))
+		   :lf-type (or (om::more-specific (referent-lf-type ante) lf-type) (referent-lf-type ante) lf-type)
 		   :refers-to (referent-refers-to ante)
 		   :coref (or (referent-coref ante) (referent-id ante)))
     ))
 
 (defun filter-and-build-hyp (id lf-type ante sem)
   "Build a new coreferent structure that refers to ANTE"
-  (let ((score (score-sem-and-order id ante sem)))
+  (multiple-value-bind
+	(newsem score)
+      (score-sem-and-order id ante sem)
     (make-ref-hyp  :id id
-		   :lf-type (or (om::more-specific (referent-lf-type ante) lf-type) lf-type (referent-lf-type ante))
+		   :lf-type (or (om::more-specific (referent-lf-type ante) (simplify-generic-type lf-type)) lf-type (referent-lf-type ante))
 		   :refers-to (referent-refers-to ante)
 		   :coref (or (referent-coref ante) (referent-id ante))
+		   :sem (if (and (var-p newsem) (arrayp (var-values newsem)))
+			    (cons '$ (build-list-from-sem-array (var-values newsem))))
 		   :score score
 		   )))
 
@@ -810,7 +823,8 @@
 	  (unify-sem-structures semarray refsem)
 
 	(setf (flexible-semantic-matching *chart*) oldflex)
-	(list :sem-score score)))))
+	(values result (list :sem-score score))
+	))))
      
 
 (defun recordable-referent (lf)
@@ -832,9 +846,17 @@
 	(third (car equality)))))
 
 (defun find-most-salient-relaxed (lf-type id sem access-requirement num index limit &optional name)
-  (or  (find-most-salient lf-type id sem access-requirement num index limit  name)
-       (if (not (eq lf-type 'ont::referential-sem))
-	   (find-most-salient (om::get-parent lf-type) id sem access-requirement num index limit  name))))
+ (let ((lf-type-simp (simplify-generic-type lf-type)))
+  (or  (find-most-salient lf-type-simp id sem access-requirement num index limit  name)
+       (if (not (eq lf-type-simp 'ont::referential-sem))
+	   (if (member lf-type-simp '(ONT::MALE-PERSON ONT::FEMALE-PERSON))
+	       (let ((opposite-type (if (eq lf-type-simp 'ONT::MALE-PERSON)
+					'ONT::FEMALE-PERSON 'ONT::MALE-PERSON)))
+		 (remove-if-not
+		  #'(lambda (x) 
+		      (not (subtype-check (referent-lf-type x) opposite-type)))
+		  (find-most-salient (om::get-parent lf-type-simp) id sem access-requirement num index limit  name)))
+	       (find-most-salient (om::get-parent lf-type-simp) id sem access-requirement num index limit  name))))))
 
 (defun find-most-salient (lf-type id sem access-requirement num index limit &optional name)
   "Gathers up potential referents in preference order based on the parameters"
@@ -910,7 +932,7 @@
 	  )))))
 
 (defun find-possible-referents-in-current-sentence (lf-type sem id access-requirement nums index role fn)
-  "returns the objects that meet the access requirement AND that precede the id in the sentence"
+  "returns the objects that meet the access requirement AND whether it precedes the id in the sentence"
   (let ((r (get-im-record index))
 	;(event-ids (cadr role))
 	(event-ids (get-referent-role role))

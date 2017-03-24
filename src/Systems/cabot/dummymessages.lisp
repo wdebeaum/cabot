@@ -11,13 +11,6 @@
 ;;    allow developers to run the system as they add functionality
 ;;   As functionality is added, messages should be commented out
 
-(defun find-lf-in-context-tmp (context id)  ; id not used
-  (find-if #'(lambda (x) (member (find-arg x :instance-of)
-				 '(ONT::CREATE ONT::PUT-B6-ON-THE-TABLE ONT::Please-put-B7-on-B6 ONT::PUT
-				   ONT::EXECUTE)))
-		 context))
-
-
 ;;=================
 ;;  Ba interactions
 ;;=================

@@ -1,12 +1,23 @@
 (in-package :om)
 
 (define-type ont::acting
- :wordnet-sense-keys ("do%2:29:09" "behave%2:29:00" "act%2:29:00" "act%1:03:00" "deed%1:03:00" "human_action%1:03:00" "human_activity%1:03:00" "activity%1:04:00")
     :parent ont::event-of-action
     :comment "abstract event of doing something: behave, activity, ..."
     :arguments ((:required ont::agent  ((? cz F::Phys-obj f::abstr-obj f::situation)))
 		(:optional ONT::NOROLE)
 		))
+
+(define-type ont::ACTIVITY-EVENT
+ :wordnet-sense-keys ("activity%1:04:00" "action%1:04:02" "act%1:03:00" "act%2:41:00" "act%2:41:07")
+    :parent ont::event-of-action
+    :arguments ((:required ont::FORMAL)
+		))
+
+(define-type ont::ABILITY-EVENT
+ :wordnet-sense-keys ("ability%1:07:00" "ability%1:09:00")
+    :parent ont::event-of-action
+)
+
 
 #|
 (define-type ont::act
@@ -947,7 +958,7 @@
  )
 
 (define-type ont::control-manage
- :wordnet-sense-keys ("control%2:41:00" "command%2:41:00" "discharge%2:33:01" "direct%2:41:00" )
+ :wordnet-sense-keys ("control%2:41:00" "control%1:04:00""command%2:41:00" "discharge%2:33:01" "direct%2:41:00" )
  :comment "an agent controls another object, typically by some manipulation (physical, adding a substance,...)"
  :parent ont::event-of-causation
  :arguments ((:REQUIRED ont::affected ((? th9 f::situation F::PHYS-OBJ F::ABSTR-OBJ)))

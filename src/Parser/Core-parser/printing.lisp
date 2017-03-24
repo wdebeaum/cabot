@@ -4,7 +4,7 @@
 ;;; Author:  James Allen <james@cs.rochester.edu>
 ;;;
 
-;;; Time-stamp: <Tue Feb 28 10:08:21 EST 2017 jallen>
+;;; Time-stamp: <Sun Mar 19 09:05:47 EDT 2017 jallen>
 
 (in-package "PARSER")
 
@@ -1833,7 +1833,7 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 (defun refine-abstract-roles (roles type-maps lf-type existing-roles)
   (when roles
     (case (car roles) 
-      (:mod
+      ((:mod :result)
 	(let* 
 	    ((arg (cadr roles))
 	     (argtype (get-type (cadr (assoc arg type-maps)))))
@@ -1862,7 +1862,9 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	 
 
 (defun map-role (map-info lf-type arg-type old-role-name)
-  (if (om::subtype lf-type (car map-info))
+  (if (and (om::subtype lf-type (caar map-info))
+	   (eq (cadar map-info) old-role-name)
+	   )
       (let ((new-role-names (find-if #'(lambda (x) 
 				     (if (consp (car x))
 					 (find-if #'(lambda (xx)
@@ -1882,7 +1884,7 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	   (car really-new-names))
       ;; otherwise we look for first one that doesn't already exist
       ((member (car really-new-names) existing-roles)
-       (return-first-refinement really-new-names old-role-name existing-roles))
+       (return-first-refinement (cdr really-new-names) old-role-name existing-roles))
       ;; otherwise, the first one is the answer
       (really-new-names 
        (car really-new-names))
@@ -1893,50 +1895,54 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 						
 (setq *role-mapping-table*
       '(
-	(ont::situation-root
+	((ont::situation-root :mod)
 	 ((ont::at-loc) :location))  ;; at-loc is always location
-	 (ont::send
+	((ont::send :mod)
 	 ((ont::to-loc ont::goal-reln  ont::direction-reln) :RESULT)
 	 ((ont::position-reln) :location))
-	(ont::motion
+	((ont::motion :mod)
 	 ((ont::pos-as-containment-reln) :location)
 	 ((ont::to-loc ont::position-reln ont::goal-reln ont::direction-reln) :result)
-	 ((ont::source-reln) :source)
+	 ((ont::source-reln) :source))	
+	((ont::motion :result)
 	 ((ont::obj-in-path ont::trajectory) :transient-result)
 	 )
-	(ont::put
+	((ont::put :mod)
 	 ((ont::to-loc ont::position-reln ont::goal-reln  ont::direction-reln) :result)
 	 ((ont::source-reln) :source)
 	 )
-	(ont::apply-force
+	((ont::apply-force :mod)
 	 ((ont::to-loc ont::position-reln ont::goal-reln  ont::direction-reln) :result)
-	 ((ont::source-reln) :source)
+	 ((ont::source-reln) :source))	
+	((ont::apply-force :result)
 	 ((ont::obj-in-path ont::trajectory) :transient-result)
 	 )
-	(ont::giving
+	((ont::giving :mod)
 	 ((ont::to-loc) :result)
 	 ((ont::source-reln) :source)
 	 )
-	(ont::acquire 
+	((ont::acquire :mod)
 	  ((ont::to-loc ont::position-reln ont::goal-reln  ont::direction-reln) :result)
-	 ((ont::source-reln) :source)
+	 ((ont::source-reln) :source))
+	((ont::acquire :result)
+	 ((ont::obj-in-path ont::trajectory) :transient-result)
 	 )
-	(ont::joining 
+	((ont::joining :mod)
 	  ((ont::goal-reln) :result)  ; into
 	 ((ont::source-reln) :source)
 	 )
-	(ont::change
+	((ont::change :mod)
 	  ((ont::to-loc ont::goal-reln ont::direction-reln) :result)
 	  ((ont::source-reln) :source))
-	(ont::phys-object 
+	((ont::phys-object :mod)
 	 ((ont::position-reln ) :location))
 	 ;;((ont::assoc-with) :assoc-with))
-	(ont::abstract-object
+	((ont::abstract-object :mod)
 	 ((ont::position-reln) :location)
 	;; ((ont::assoc-with) :assoc-with)
 	 ((ont::degree-modifier) :degree)
 	 )
-	(ont::situation-root
+	((ont::situation-root :mod)
 	 ((ont::goal-reln) :result)
 	 ((ont::reason ont::purpose) :reason)
 	 ((ont::therefore) :result)

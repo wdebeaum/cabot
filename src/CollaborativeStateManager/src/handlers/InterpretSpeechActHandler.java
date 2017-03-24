@@ -66,12 +66,13 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		KQMLObject activeGoalObject = innerContent.getKeywordArg(":active-goal");
 		
-		if ((activeGoalObject != null) &&
-		    !activeGoalObject.stringValue().equalsIgnoreCase("nil") &&
-		    !activeGoalObject.stringValue().equals("-"))
-		{
-			activeGoal = activeGoalObject.stringValue();
-		}
+		// Disabled for now, active-goal isn't helpful
+//		if ((activeGoalObject != null) &&
+//		    !activeGoalObject.stringValue().equalsIgnoreCase("nil") &&
+//		    !activeGoalObject.stringValue().equals("-"))
+//		{
+//			activeGoal = activeGoalObject.stringValue();
+//		}
 		
 		for (KQMLObject lfTerm : (KQMLList)context)
 		{
@@ -358,6 +359,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		}
 		
 		Action action = new Action(assertionRelnContent, new KQMLList());
+		action.setId(ee.getId());
 		action.setActionType("ASSERTION");
 		if (contributesToGoal != null)
 			action.setContributesTo(contributesToGoal);
@@ -744,15 +746,6 @@ public class InterpretSpeechActHandler extends MessageHandler{
 			activeGoal = currentAcceptedGoal.getVariableName();
 		
 		String newId = IDHandler.getNewID();
-		KQMLList askAdoptContent;
-
-		if (activeGoal != null)
-			askAdoptContent = adoptContent(id, newId, "SUBGOAL", currentAcceptedGoal.getId());
-		else
-		{
-			//askAdoptContent = adoptContent(newId, "GOAL", null);
-			return missingActiveGoal();
-		}
 		
 		
     	KQMLList askRelnContent = new KQMLList();

@@ -66,7 +66,7 @@
 ; figure is outside a container, group or area
 (define-type ont::outside
   :parent ont::pos-as-containment-reln
-  :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj) (f::intentional -) (f::container +)
+  :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj) (f::intentional -) ;;(f::container +)  getting problems with things like "pull the plug out of the wall"
 				   )))
   )
 
@@ -450,7 +450,7 @@
  :parent ONT::predicate
  :arguments ((:ESSENTIAL ONT::FIGURE
 			 (F::Situation (f::aspect f::dynamic) (f::type ont::event-of-creation)))
-             (:REQUIRED ONT::GROUND (F::Phys-obj ))
+             (:REQUIRED ONT::GROUND (F::Phys-obj (f::type ont::material)))
              )
  )
 
@@ -543,7 +543,7 @@
 (define-type ont::dir-in-terms-of-obj
  :parent ont::direction-reln
  :arguments (;(:ESSENTIAL ONT::OF (F::situation (F::type ont::motion)))
-	     (:ESSENTIAL ONT::FIGURE (F::phys-obj (F::mobility ont::movable)))
+	     (:ESSENTIAL ONT::FIGURE (F::phys-obj (F::mobility f::movable)))
 	     )
  )
 
@@ -679,7 +679,7 @@
  :parent ONT::position-reln
  :arguments (;(:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation) (F::trajectory +) 
 		;		      (f::type (? tt ONT::MOTION ONt::APPLY-FORCE ONT::PUT))))
-	     (:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::Situation F::abstr-obj)))
+	     (:ESSENTIAL ONT::FIGURE ((? t F::Phys-obj F::abstr-obj)))
 	     (:ESSENTIAL ONT::GROUND (F::Phys-obj))
             )
  )

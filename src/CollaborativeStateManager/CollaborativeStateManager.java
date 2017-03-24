@@ -15,6 +15,7 @@ package TRIPS.CollaborativeStateManager;
 import handlers.*;
 import extractors.*;
 import plans.*;
+import utilities.OntologyRequester;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -39,6 +40,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
     private int callingProcess;
     private String hostName;
     private OntologyReader ontologyReader;
+    private OntologyRequester ontologyRequester;
     private GoalPlanner goalPlanner;
     private ReferenceHandler referenceHandler;
     private final String BASE_DIRECTORY = System.getenv("TRIPS_BASE");
@@ -95,6 +97,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	handleParameters();
 	referenceHandler = new ReferenceHandler();
 	goalPlanner = new GoalPlanner(referenceHandler);
+	ontologyRequester = new OntologyRequester(this);
 	ontologyReader = new OntologyReader();
 	ontologyReader.readEventOntologyFromFile(DATA_DIRECTORY + File.separator + "events");
 	ontologyReader.readGoalOntologyFromFile(DATA_DIRECTORY + File.separator + "goals");
@@ -267,6 +270,17 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 													referenceHandler,
 													goalPlanner, ontologyReader);
 
+//			try {
+//			KQMLList test = KQMLList.fromString("(ONT::RELN ONT::V33245 :INSTANCE-OF ONT::PUT "
+//					+ ":AGENT ONT::V33467 :AFFECTED ONT::V33279 :RESULT ONT::V33296 "
+//					+ ":TENSE W::PRES :VFORM W::BASE :FORCE ONT::TRUE :LEX W::PUT)");
+//			
+//			ontologyRequester.getOntologicalParents(test);
+//			}
+//			catch (IOException e)
+//			{
+//				e.printStackTrace();
+//			}
 			
 			KQMLList responseContent = null;
 			try {
@@ -276,7 +290,8 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			{
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
-				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				KQMLString comment = new KQMLString("Exception in CSM");
+				replyMessage.setParameter(":COMMENT", comment);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)
@@ -299,7 +314,8 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			{
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
-				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				KQMLString comment = new KQMLString("Exception in CSM");
+				replyMessage.setParameter(":COMMENT", comment);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)
@@ -320,7 +336,8 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			{
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
-				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				KQMLString comment = new KQMLString("Exception in CSM");
+				replyMessage.setParameter(":COMMENT", comment);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)
@@ -342,7 +359,8 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			{
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
-				replyMessage.setParameter(":COMMENT", "Exception in CSM");
+				KQMLString comment = new KQMLString("Exception in CSM");
+				replyMessage.setParameter(":COMMENT", comment);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)

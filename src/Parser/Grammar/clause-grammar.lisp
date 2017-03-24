@@ -1654,7 +1654,7 @@
 		      ))
      (postadvbl -)
      )
-    -vp-compositional-particle-role> 1
+    -vp-compositional-particle-role> 
     (head (v (aux -) (var ?v)
 	   (lf ?c) (sem ?sem) (sem ($ f::situation (f::type ont::event-of-change)))  (vform ?tense-pro)
 	   (subj ?subj) (subj (% ?s1 (lex ?subjlex) (var ?subjvar) (sem ?subjsem) (gap -) )) ;; note double matching required
@@ -1683,7 +1683,7 @@
 		      ))
      (postadvbl -)
      )
-    -vp-compositional-particle-manner-role> 1
+    -vp-compositional-particle-manner-role> 
     (head (v (aux -) (var ?v)
 	   (lf ?c) (sem ?sem) (sem ($ f::situation (f::type ont::event-of-change)))  (vform ?tense-pro)
 	   (subj ?subj) (subj (% ?s1 (lex ?subjlex) (var ?subjvar) (sem ?subjsem) (gap -) )) ;; note double matching required
@@ -3605,3 +3605,94 @@
     )
    ))
 
+
+;;  construction for create a CAUSE event as in "He sneezed the box off the table"
+
+(parser::augment-grammar
+ '((headfeatures
+    (vp vform agr comp3 cont postadvbl  aux modal lex headcat tma transform subj-map advbl-needed template subj subjvar))
+    
+        ;;  The dog barked the cat up the tree.
+      ((vp (lf (% prop (class ONT::CAUSE-EFFECT) (var *) 
+        (constraint (& (agent ?ag) (affected ?npvar) (method ?v) (formal ?mod)))
+        (tma ?tma) 
+        ;(transform ?transf) 
+        (sem ?newsem)
+        ))
+     (tma ?tma) (class ONT::CAUSE-EFFECT) (var *)
+         ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
+;      (advbl-needed -) (complex +) (result-present +) (GAP ?gap)
+      ;(SUBJ (% NP (Var ?npvar) (sem ?sem) (lex ?lex)))
+      ;(subjvar ?npvar)
+      (advbl-needed -) (complex +) (GAP ?gap)
+      )
+     -vp-result-advbl-intransitive-to-transitive> 0.98  ; prefer the transitive sense if there is one
+     (head (vp (VAR ?v) 
+        (seq -)  ;;  post mods to conjoined VPs is very rare
+        (DOBJVAR -)  ; cannot use (dobj -) because dobj is (% - (W::VAR -)) 
+        ;(SUBJ (% NP (Var ?npvar) (sem ?sem) (lex ?lex)))  
+        ;(subjvar ?npvar)
+        (constraint ?con) (tma ?tma) (result-present -)
+    (subjvar ?ag)
+    (subj-map ONT::AGENT)
+    (COMP3 (% -))
+        ;;(aux -) 
+        (gap ?gap)
+        (ellipsis -)
+        ))
+     (np (Var ?npvar) (sem ?sem))
+     (advbl (ARGUMENT (% NP ;; (? xxx NP S)  ;; we want to eliminate V adverbials, he move quickly  vs he moved into the dorm
+             (sem ?sem) (var ?npvar)))
+      (GAP -) 
+      ;; (subjvar ?subjvar)
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::path ont::position-reln)))) ;(F::type (? !ttt1 ont::position-as-extent-reln ont::position-w-trajectory-reln ))))
+;      (SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln ont::goal-reln ont::direction-reln))))
+      (SET-MODIFIER -)  ;; mainly eliminate numbers 
+      (ARG ?npvar) (VAR ?mod)
+      ;;(role ?advrole) 
+      )
+     (compute-sem-features (lf ONT::CAUSE-EFFECT) (sem ?newsem))
+     )
+
+        ;;  He talked me deaf.
+      ((vp (lf (% prop (class ONT::CAUSE-EFFECT) (var *) 
+        (constraint (& (agent ?ag) (affected ?npvar) (method ?v) (formal ?mod)))
+        (tma ?tma) 
+        ;(transform ?transf) 
+        (sem ?newsem)
+        ))
+     (tma ?tma) (class ONT::CAUSE-EFFECT) (var *)
+         ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
+;      (advbl-needed -) (complex +) (result-present +) (GAP ?gap)
+      ;(SUBJ (% NP (Var ?npvar) (sem ?sem) (lex ?lex)))
+      ;(subjvar ?npvar)
+      (advbl-needed -) (complex +) (GAP ?gap)
+      )
+     -vp-result-adj-intransitive-to-transitive> 0.98  ; prefer the transitive sense if there is one
+     (head (vp (VAR ?v) 
+        (seq -)  ;;  post mods to conjoined VPs is very rare
+        (DOBJVAR -)  ; cannot use (dobj -) because dobj is (% - (W::VAR -)) 
+        ;(SUBJ (% NP (Var ?npvar) (sem ?sem) (lex ?lex)))  
+        ;(subjvar ?npvar)
+        (constraint ?con) (tma ?tma) (result-present -)
+	(subjvar ?ag)
+	(subj-map ONT::AGENT)
+	(COMP3 (% -))
+        ;;(aux -) 
+        (gap ?gap)
+        (ellipsis -)
+        ))
+     (np (Var ?npvar) (sem ?sem))
+     (adjp (ARGUMENT (% NP (sem ?sem) (var ?npvar))) 
+      (SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::domain-property))))
+      (GAP -)
+      ;; (subjvar ?subjvar)
+      (SET-MODIFIER -)  ;; mainly eliminate numbers 
+      (ARG ?npvar) (VAR ?mod)
+      ;;(role ?advrole) 
+      )
+     (compute-sem-features (lf ONT::CAUSE-EFFECT) (sem ?newsem))
+     )
+
+      )     
+ )

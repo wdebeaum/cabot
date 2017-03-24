@@ -108,7 +108,7 @@
     (let* 
 	(;(target (find-arg-in-act active-goal :what))
 	 (target active-goal)
-	 (act (find-lf-in-context context target))
+	 (act (find-lf-in-context-tmp context target))
 	 (condition-id (find-arg act :content))
 	 (condition (find-lf-in-context context condition-id))
 	 (action (find-arg condition :action))
@@ -176,6 +176,12 @@
       
 (defun find-lf-in-context (context id)
   (find id context :key #'cadr))
+
+(defun find-lf-in-context-tmp (context id)  ; id not used
+  (find-if #'(lambda (x) (member (find-arg x :instance-of)
+				 '(ONT::CREATE ONT::PUT-B6-ON-THE-TABLE ONT::Please-put-B7-on-B6 ONT::PUT
+				   ONT::EXECUTE)))
+		 context))
 
 (defun restart-dummy nil
   (setq *replyCounter* 0))

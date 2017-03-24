@@ -48,6 +48,8 @@ public class GoalPlanner {
 	
 	public boolean addGoal(Goal goal, String parentVariableName)
 	{
+		System.out.println("Adding goal with id " + goal.getId() + 
+				" and varname " + goal.getVariableName());
 		if (goal == null)
 		{
 			System.out.println("Tried to add a null goal");
@@ -419,7 +421,10 @@ public class GoalPlanner {
 	public boolean setActiveGoal(String goal, KQMLList context)
 	{
 		if (hasGoal(goal))
+		{
+			System.out.println("Active goal now: " + goal);
 			return setActiveGoal(getGoal(goal));
+		}
 		else
 		{
 			KQMLList goalTerm = TermExtractor.extractTerm(goal, context);
@@ -583,8 +588,15 @@ public class GoalPlanner {
 		
 		KQMLObject asObject = act.getKeywordArg(":AS");
 		String type = "GOAL";
+		
+		// Check if it's an assertion
+		if (act.get(0).stringValue().equalsIgnoreCase("ASSERTION"))
+		{
+			type = "ASSERTION";
+			System.out.println("This is an assertion");
+		}
 		String parent = null;
-		if (asObject != null)
+		if (asObject != null && !type.equalsIgnoreCase("ASSERTION"))
 		{
 			KQMLList asList = (KQMLList)asObject;
 			type = asList.get(0).stringValue();
@@ -611,7 +623,7 @@ public class GoalPlanner {
 				newGoal.setId(goalIdObject.stringValue());
 			addGoal(newGoal);
 		}
-		else if (type.equalsIgnoreCase("SUBGOAL"))
+		else if (type.equalsIgnoreCase("SUBGOAL") || type.equalsIgnoreCase("ASSERTION"))
 		{
 			newGoal = new Goal(goalLF,getGoal(parent),context);
 			if (goalIdObject != null)
@@ -671,6 +683,17 @@ public class GoalPlanner {
 			newGoal.setAccepted();
 			setActiveGoal(newGoal);
 			System.out.println("Active goal now: " + goalName);
+		}
+		else if (cpsa.equals("PROPOSE"))
+		{
+			if (newGoal == null)
+			{
+				System.out.println("No goal proposed.");
+				return false;
+			}
+			System.out.println("Proposed goal has: ");
+			System.out.println("ID: " + newGoal.getId());
+			System.out.println("What: " + newGoal.getVariableName());
 		}
 		return true;
 	}
