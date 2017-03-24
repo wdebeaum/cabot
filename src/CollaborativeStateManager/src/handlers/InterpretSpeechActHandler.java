@@ -745,6 +745,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		if (currentAcceptedGoal != null)
 			activeGoal = currentAcceptedGoal.getVariableName();
 		
+		
 		String newId = IDHandler.getNewID();
 		
 		
@@ -760,7 +761,10 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	KQMLList queryInContext = new KQMLList();
     	queryInContext.add("QUERY-IN-CONTEXT");
     	queryInContext.add(":goal");
-    	queryInContext.add(currentAcceptedGoal.getId());
+    	if (currentAcceptedGoal != null)
+    		queryInContext.add(currentAcceptedGoal.getId());
+    	else
+    		queryInContext.add(new KQMLToken("NIL"));
     	
     	askRelnContent.add(queryInContext);
     	
