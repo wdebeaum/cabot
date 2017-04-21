@@ -510,7 +510,7 @@ sub domainSpecificInfo2trips {
 	}
       }
     } elsif (grep { $_ eq $info->{type} } qw(pitch interval chord)) {
-      for my $key (qw(root bass letter scale-degree octave scale-degree-span semitones-above-natural quality intervals-above-bass intervals-above-root)) {
+      for my $key (qw(root bass letter scale-degree octave scale-degree-span semitones-above-natural quality inversion intervals-above-bass intervals-above-root)) {
 	next unless (exists($info->{$key}));
 	my $reftype = ref($info->{$key});
 	if ($reftype eq 'HASH' or $reftype eq 'ARRAY') {
@@ -519,6 +519,9 @@ sub domainSpecificInfo2trips {
 	  push @$trips, ":$key", $info->{$key};
 	}
       }
+    } elsif (grep { $_ eq $info->{type} } qw(pitch-sequence progression)) {
+      push @$trips, ':members', domainSpecificInfo2trips($info->{members})
+        if (exists($info->{members}));
     } else {
       die "Unknown type of domain-specific-info: $info->{type}\n" . Data::Dumper->Dump([$info],['*info']);
     }

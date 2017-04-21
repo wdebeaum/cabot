@@ -100,7 +100,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 	ontologyRequester = new OntologyRequester(this);
 	ontologyReader = new OntologyReader();
 	ontologyReader.readEventOntologyFromFile(DATA_DIRECTORY + File.separator + "events");
-	ontologyReader.readGoalOntologyFromFile(DATA_DIRECTORY + File.separator + "goals");
+	ontologyReader.readGoalOntologyFromFile(DATA_DIRECTORY + File.separator + "goals-par");
 	ontologyReader.readModelOntologyFromFile(DATA_DIRECTORY + File.separator + "models");
 	
 	// Subscriptions
@@ -291,7 +291,9 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
 				KQMLString comment = new KQMLString("Exception in CSM");
+				KQMLString text = new KQMLString(re.getMessage());
 				replyMessage.setParameter(":COMMENT", comment);
+				replyMessage.setParameter(":TEXT", text);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)
@@ -315,7 +317,9 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
 				KQMLString comment = new KQMLString("Exception in CSM");
+				KQMLString text = new KQMLString(re.getMessage());
 				replyMessage.setParameter(":COMMENT", comment);
+				replyMessage.setParameter(":TEXT", text);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)
@@ -337,7 +341,9 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
 				KQMLString comment = new KQMLString("Exception in CSM");
+				KQMLString text = new KQMLString(re.getMessage());
 				replyMessage.setParameter(":COMMENT", comment);
+				replyMessage.setParameter(":TEXT", text);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)
@@ -360,7 +366,9 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 				re.printStackTrace();
 				KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
 				KQMLString comment = new KQMLString("Exception in CSM");
+				KQMLString text = new KQMLString(re.getMessage());
 				replyMessage.setParameter(":COMMENT", comment);
+				replyMessage.setParameter(":TEXT", text);
 				reply(msg, replyMessage);
 			}
 			if (responseContent != null)

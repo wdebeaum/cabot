@@ -1183,7 +1183,7 @@
 	  )
       (progn
 	(when (not *silent-failures*) 
-	  (send-reply (pick-one '("can you rephrase that" "I didn't understand. Can you rephrase" "Sorry I didn't catch that. Can you rephrase")) 
+	  (send-reply (pick-one '("Can you rephrase that?" "I didn't understand that. Can you rephrase?" "Sorry, I didn't catch that. Can you rephrase?")) 
 		      channel)
 	  (update-prior-failures user)
 	  (reask-question user channel uttnum))
@@ -1239,7 +1239,7 @@
 	     (invoke-state (transition-destination transition) nil user nil uttnum))
 	    (trace-msg 3 "Wizard choice ~S not understood for patient ~S"  choice channel))))
     (uninterpretable
-     (send-reply "I didn't understand. Can you rephrase" channel))
+     (send-reply "I didn't understand. Can you rephrase?" channel))
     (wrong-question
      (trace-msg 3 "Wizard indicated wrong question. Trying others ....")
      (try-other-questions lfs words hyps context channel state segment-id user uttnum))

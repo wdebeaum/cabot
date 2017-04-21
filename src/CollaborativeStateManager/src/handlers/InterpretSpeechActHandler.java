@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import plans.GoalPlanner;
+import states.ActType;
 import states.Action;
 import states.Elaboration;
 import states.Goal;
@@ -15,7 +16,7 @@ import extractors.TermExtractor;
 import handlers.IDHandler;
 import TRIPS.KQML.*;
 
-public class InterpretSpeechActHandler extends MessageHandler{
+public class InterpretSpeechActHandler extends MessageHandler implements Runnable{
 
 	
 	KQMLList innerContent = null;
@@ -40,6 +41,12 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		this.ontologyReader = ontologyReader;
 		this.goalPlanner = goalPlanner;
+	}
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	public KQMLList process()
@@ -93,9 +100,9 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		case "assertion":
 			return handleAssertion();
 		case "ont::ask-if":
-			return handleAskIf();
-		case "ont::ask-conditional-if":
-			return handleAskConditionalIf();
+			return handleAskIf(false);
+		case "ont::ask-conditional-if": // We check for differences in the handleAskIf function
+			return handleAskIf(true);
 		case "acceptable":
 			return handleAcceptable();
 		case "not-acceptable":
@@ -116,7 +123,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 
 		if (activeGoal == null && currentAcceptedGoal == null)
 		{
-			return missingActiveGoal();
+			return missingActiveGoal(ActType.ANSWER);
 		}
 		
 		Query queryToAnswer = null;
@@ -200,16 +207,25 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		return null;
 	}
 
-	private KQMLList missingActiveGoal(String attemptedGoalType)
+	private KQMLList missingActiveGoal(String attemptedGoalType, ActType actType)
 	{
 		KQMLList failureReason = new KQMLList();
 		failureReason.add("MISSING-ACTIVE-GOAL");
+		
+		List<String> parentActGoalTypes = ontologyReader.getParentGoalsOfActType(actType);
 		List<String> parentGoalTypes = ontologyReader.getParentGoals(attemptedGoalType);
+		List<Goal> possibleSolutionGoals = null;
 		
+		// Try act-specific goals first
+		if (parentActGoalTypes != null && !parentActGoalTypes.isEmpty())
+			possibleSolutionGoals =
+				goalPlanner.generatePossibleGoals(parentActGoalTypes);
+			
 		if (parentGoalTypes == null)
-			return missingActiveGoal();
+			return missingActiveGoal(actType);
 		
-		List<Goal> possibleSolutionGoals =
+		if (possibleSolutionGoals == null)
+			possibleSolutionGoals =
 				goalPlanner.generatePossibleGoals(parentGoalTypes);
 		
 		KQMLList newContext = new KQMLList();
@@ -234,13 +250,18 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		return failureMessage(what, newContext,failureReason, adoptContentList);
 	}
 	
-	private KQMLList missingActiveGoal()
+	private KQMLList missingActiveGoal(ActType actType)
 	{
 		KQMLList failureReason = new KQMLList();
 		failureReason.add("MISSING-ACTIVE-GOAL");
+		List<Goal> possibleSolutionGoals;
+		List<String> parentActGoalTypes = ontologyReader.getParentGoalsOfActType(actType);
 		
-
-		List<Goal> possibleSolutionGoals =
+		// See if there are act-specific goals first
+		if (parentActGoalTypes != null && !parentActGoalTypes.isEmpty())
+			possibleSolutionGoals = goalPlanner.generatePossibleGoals(parentActGoalTypes);
+		else
+			possibleSolutionGoals =
 				goalPlanner.generatePossibleGoals(ontologyReader.getRootGoals());
 		
 		KQMLList newContext = new KQMLList();
@@ -305,7 +326,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 
 		if (activeGoal == null && currentAcceptedGoal == null)
 		{
-			return missingActiveGoal();
+			return missingActiveGoal(ActType.ASSERTION);
 		}
 		
 		System.out.println("Active goal: " + activeGoal + " at time of assertion");
@@ -377,7 +398,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		
 		if (activeGoal == null && currentAcceptedGoal == null)
 		{
-			return missingActiveGoal();
+			return missingActiveGoal(ActType.EVALUATE);
 		}
 		
 		// TODO: Get test parameter
@@ -459,7 +480,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 //						proposeAdoptContent = goalPlanner.modify(replacementGoal,goalToModify.getVariableName());
 //					}
 					if (goalPlanner.getGoalUnderDiscussion() == null)
-						return missingActiveGoal();
+						return missingActiveGoal(ActType.PROPOSE);
 					proposeAdoptContent = adoptContent(IDHandler.getNewID(),what,"ELABORATION",goalPlanner.getGoalUnderDiscussion().getId());
 				}
 			}
@@ -487,7 +508,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 					if (activeGoal == null && currentAcceptedGoal == null && 
 					goalPlanner.getGoalUnderDiscussion() == null)
 					{
-						return missingActiveGoal();
+						return missingActiveGoal(ActType.PROPOSE);
 					}
 					
 					String ofSymbol = null;
@@ -537,7 +558,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 					}
 					else
 					{
-						return missingActiveGoal();
+						return missingActiveGoal(ActType.ANSWER);
 					}
 					break;
 					
@@ -549,7 +570,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 				term = TermExtractor.extractTerm(what, (KQMLList)context);
 				String goalType = term.getKeywordArg(":INSTANCE-OF").stringValue();
 				if (!goalPlanner.hasAcceptedGoal && !ontologyReader.isRootGoal(goalType))
-					return missingActiveGoal(goalType);
+					return missingActiveGoal(goalType,ActType.PROPOSE);
 				Goal newGoal = new Goal(what,(KQMLList)context);
 				proposeAdoptContent = adoptContent(newGoal.getId(),what,"GOAL",null);
 				goalPlanner.addGoal(newGoal);
@@ -739,7 +760,7 @@ public class InterpretSpeechActHandler extends MessageHandler{
 		return reportContent(askAdoptContent, contextToSend);
 	}
 	
-	private KQMLList handleAskIf()
+	private KQMLList handleAskIf(boolean conditional)
 	{
 		Goal currentAcceptedGoal = goalPlanner.getActiveGoal();
 		if (currentAcceptedGoal != null)
@@ -767,6 +788,32 @@ public class InterpretSpeechActHandler extends MessageHandler{
     		queryInContext.add(new KQMLToken("NIL"));
     	
     	askRelnContent.add(queryInContext);
+    	KQMLList conditionalContent = new KQMLList();
+    	
+    	if (conditional)
+    	{
+
+        	conditionalContent.add("ont::RELN");
+        	String newConditionalId = IDHandler.getNewID();
+        	conditionalContent.add(newConditionalId);
+        	conditionalContent.add(":instance-of");
+        	// TODO Determine if causal or conditional
+        	conditionalContent.add("ONT::COND");
+        	
+
+        	KQMLObject conditionObject = innerContent.getKeywordArg(":CONDITION");
+        	
+        	if (!KQMLUtilities.isKQMLNull(conditionObject))
+        	{
+        		conditionalContent.add(":factor");
+        		String condition = conditionObject.stringValue();
+        		conditionalContent.add(condition);
+        		
+        	}
+        	
+        	conditionalContent.add(":OUTCOME");
+        	conditionalContent.add(what);
+    	}
     	
     	KQMLList queryGoalContent = new KQMLList();
     	queryGoalContent.add("ont::RELN");
@@ -795,6 +842,8 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	KQMLList contextToSend = new KQMLList();
     	//contextToSend.add(queryGoalContent);
     	contextToSend.addAll((KQMLList)context);
+    	if (conditional)
+    		contextToSend.add(conditionalContent);
     	if (currentAcceptedGoal != null)
     		contextToSend.addAll(currentAcceptedGoal.getAdditionalContext());
 		//result.add(reportContent(askRelnContent, contextToSend));
@@ -860,4 +909,6 @@ public class InterpretSpeechActHandler extends MessageHandler{
     	
     	return answer;
     }
+
+
 }

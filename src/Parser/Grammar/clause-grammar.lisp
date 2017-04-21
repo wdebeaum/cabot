@@ -996,7 +996,8 @@
             (filled -) (adjectival +) (how ?how)
             )
       -pred-adj> 1
-      (head (adjp (lf ?lf) (var ?v) (arg ?arg) (argument ?argument) (argument (% ?argcat (var ?arg))) ;;(wh -) eliminated to allow "how red"
+      (head (adjp (lf ?lf) (sem ?sem)
+		  (var ?v) (arg ?arg) (argument ?argument) (argument (% ?argcat (var ?arg))) ;;(wh -) eliminated to allow "how red"
 	     (set-modifier -) ;; numbers are set-modifier +, and they don't behave as normal adjps in predicates
 	     (atype (? atp central predicative-only))
 	     ;; md 2008/17/07 eliminated cases with positive post-subcat, they should only happen when an adjective is looking for an argument after an np, not possible in the pred situation
@@ -2727,7 +2728,7 @@
     ((utt (lf (% speechact (var *) (class ont::sa_request) (constraint (& (content ?v))))) (var *)
           )
      -command-imp1>
-     (head (s (stype imp) (wh -) (var ?v) (sem ($ F::SITUATION (F::type ONT::EVENT-OF-ACTION)))
+     (head (s (stype imp) (wh -) (var ?v) (sem ($ F::SITUATION (F::type ONT::EVENT-OF-change)))
 	      (gap -) (advbl-needed -))))
       
     ;; test: bark.
@@ -2743,7 +2744,7 @@
 	    (sem ?sem)
 	    (sem ($ f::situation (f::aspect (? aspc f::dynamic f::stage-level)
 					    )
-		    (f::type ont::event-of-action)
+		    (f::type ont::event-of-change)
 		    ))
 	    (var ?v) (aux -) (tma ?tma)
 	    (constraint ?con)

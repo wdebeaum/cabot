@@ -216,15 +216,31 @@
 				(otherwise 
 				  `(REPORT :content (EXECUTION-STATUS :goal G5 :status ont::waiting-for-user))
 				))))
+
+			   (user::test-alarm-waiting-for-user
+			    (let ((action (find-lf-in-context-tmp context active-goal)))
+			      (case (find-arg action :instance-of)
+				(ont::create
+				 `(PROPOSE :content (ADOPT :id G5 :what A5 :as (SUBGOAL :of ,active-goal))
+					 :context ((ONT::RELN A5 :instance-of ONT::Please-put-B6-on-the-table)
+						   )
+					 ))
+				(otherwise 
+				  `(REPORT :content (EXECUTION-STATUS :goal G5 :status ont::waiting-for-user))
+				))))
+
 			   
-			   (user::test-alarm-waiting-for-system
+			   (user::test-multi-goal
 			    (let ((action (find-lf-in-context-tmp context active-goal)))
 			      (case (find-arg action :instance-of)
 				(ont::CREATE
-				 `(REPORT :content (EXECUTION-STATUS :goal ,active-goal :STATUS ONT::WAITING-FOR-USER)
-					 :context ((waiting)
+				 `(REPORT :content (ASK-WH :id dd :what ww :query qq)
+					 :context ((ONT::RELN qq :instance-of ONT::WORKING :agent we :formal ww)
+						   (ONT::THE ww :instance-of ONT::GOAL :suchthat qq)
+						   (ONT::A we :instance-of ONT::PERSON :equals ont::us)
 						   )
 					 ))
+				
 				(ont::PUT
 				 (case *replyCounter*
 				   (0

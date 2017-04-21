@@ -1341,7 +1341,8 @@
      (transform ?transform) (argument-map ont::figure) (argument ?argument)  (arg ?arg)
      )
      -more-adj-compar> 1.0
-    (ADV (compar-op +) (lf (:* ?pred ?xx)) (ground-oblig ?go) (SUBCAT ?ground-subcat) (SUBCAT-MAP ?ground-smap))
+    (ADV (lf (:* ?pred ?xx)) (comparative (? cmp + superl))
+     (ground-oblig ?go) (SUBCAT ?ground-subcat) (SUBCAT-MAP ?ground-smap))
     (head (ADJ (LF (:* ?lftype ?w)) (var ?v) 
 	       (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -)
 	       (SUBCAT ?subcat) 
@@ -1375,7 +1376,7 @@
     ;(ADV (compar-op +) (lf (:* ?pred ?xx)) (ground-oblig ?go) (SUBCAT ?ground-subcat))
      (head (ADJ (LF (:* ?lftype ?w)) (LF ?oldlf)
 		(var ?v) 
-	       (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative +)
+	       (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative (? xxx + superl))
 	       (SUBCAT ?subcat) 
 	       (subcat-map ?subcat-map)
 	       (ATYPE central)
@@ -2950,23 +2951,24 @@
     
     ;; TEST: the Ras dependent activation
     ((ADJP (VAR ?v) (arg ?arg) (class ?lf) (atype w::central) (argument ?argument)
-      (constraint ?constraint)
+      (constraint ?constraint) 
       (LF (% prop (class ?lf) (var ?v)
 	     (constraint 
 	      (& (?sc-map (% *PRO* (status ont::BARE) (var ?v-n) (class ?nc) (constraint ?nr) (sem ?sem)))
 		  (?arg-map ?arg))))))
      -adj-subcat-nohyphen> 1
      (n1 (sort ?sort) (CLASS ?nc) (RESTR ?nr) (status ?status) (complex -) (var ?v-n) 
-      (sem ?sem) (relc -) (abbrev -)
+      (sem ?sem) (relc -) (abbrev -) (gerund -)
 	 )
-;     (punc (lex w::punc-minus))
-     (head (ADJ (var ?v) (SUBCAT (% PP (var ?sc)))
-      (GAP -) 
-      (LF ?lf)
-      (SUBCAT-MAP ?sc-map)
-      (ARGUMENT-MAP ?arg-map)
-      (ARGUMENT ?argument)
-      ))
+     (head (ADJ (var ?v) 
+		(SEM ($ ?xx (f::type (? x ONT::event-of-action ONT::PREDICATE ONT::PROPERTY-VAL))))
+		(SUBCAT (% PP (var ?sc) (sem ?sem)))
+		(GAP -) 
+		(LF ?lf)
+		(SUBCAT-MAP ?sc-map)
+		(ARGUMENT-MAP ?arg-map)
+		(ARGUMENT ?argument)
+		))
      )
     
     ;;#||  This doesn't really work as the COMP3 for "hire" is the THEME, and DOBJ is the RECIPIENT
@@ -2999,6 +3001,8 @@
 	      (GAP -) (LF ?lf) (sem ?sem)
               (SUBJ-MAP ?!reln) (SUBJ ?subj)
               (VAR ?v) (transform ?transform)
+	      (SEM ($ F::situation (f::type ont::event-of-action)))
+	      (COMP3-map -)
 ;	      (prefix ?prefix)
 	      (restr ?prefix)
 	      (part (% -))
@@ -3019,7 +3023,7 @@
                   (transform ?transform)
 		  ))
            )
-     -adj-ing-opt-comp3> 0.98
+     -adj-ing-opt-comp3> 0.97
      (head (V (VFORM (? vf ING)) (COMP3 (% ?!xx (w::optional +)))
 	      (GAP -) (LF ?lf) (sem ?sem)
               (SUBJ-MAP ?!reln) (SUBJ ?subj)
@@ -3511,6 +3515,7 @@
       ;;(class ?class)
       ;;(restr ?newrestr)
       (subj ?subj)
+      (subjvar ?v1)
       ;;(subj-map -)
       ;;(dobj ?!dobj)
       ;;(dobj-map -)
@@ -3526,7 +3531,7 @@
 		;; these are dummy vars for trips-lcflex conversion, please don't delete
 		;;(subj ?subj) (comp3 ?comp3) (iobj ?iobj) (part ?part)
 		(restr ?restr)
-		(subj ?subj)
+		(subj (% NP (var ?v1)))
 		(subj-map ?!subjmap)
 		(comp3 ?comp3)
 		(comp3-map ?comp-map)

@@ -1559,10 +1559,21 @@
      W::AGR ?agr))
    (ARGUMENTS
     (LSUBJ (% W::NP (W::lex ?lsubjlex) (W::var ?lsubjvar) (W::case ?lsubjcase) (W::agr ?lsubjagr)) NOROLE)
-    (LCOMP (% W::VP- (W::vform W::passive) (W::subj (% W::NP (W::sem ?lsubjsem) (W::lex ?lsubjlex) (W::var 
-            ?lsubjvar) (W::case ?lsubjcase) (W::agr ?lsubjagr))) (W::roles ?croles) (W::subj-map ?subj-map 
-       ) (W::tranform ?transform) (W::class ?cclass) (W::constraint ?constraint) (W::tma ?tma) (W::subjvar 
-         ?subjvar) (W::dobjvar ?dobjvar)) NOROLE)
+    
+    (LCOMP (% W::VP- (W::vform W::passive) 
+	      (W::subj (% W::NP (W::sem ?lsubjsem) 
+			  (W::lex ?lsubjlex) 
+			  (W::var  ?lsubjvar) 
+			  (W::case ?lsubjcase) 
+			  (W::agr ?lsubjagr))) 
+	      (W::roles ?croles) 
+	      (W::subj-map ?subj-map)
+	      (W::tranform ?transform) 
+	      (W::class ?cclass) 
+	      (W::constraint ?constraint) 
+	      (W::tma ?tma) 
+	      (W::subjvar ?subjvar) 
+	      (W::dobjvar ?dobjvar)) NOROLE)
     ))
   
   (PERFECTIVE-TEMPL
@@ -1981,6 +1992,12 @@
     (LOBJ (:parameter xp (:default (% W::NP))) ont::scale optional)
     ))
 
+(affected-neutral-xp-TEMPL
+   (ARGUMENTS
+    (LSUBJ (% W::NP) ONT::affected)
+    (LOBJ (:parameter xp (:default (% W::NP))) ont::neutral)
+    ))
+
 (affected-neutral-optional-TEMPL
    (ARGUMENTS
     (LSUBJ (% W::NP) ONT::affected)
@@ -2008,11 +2025,12 @@
    (experiencer-theme-SUBJCONTROL-TEMPL
    (ARGUMENTS
     (LSUBJ (% W::NP (W::lex ?lsubjlex) (W::sem ?lsubjsem) (W::var ?lsubjvar)) ONT::experiencer)
-    (LCOMP (:parameter xp (:default (% W::cp (W::ctype W::s-to))) (:required(W::subj (% W::np (W::sem ?lsubjsem) 
+    (LCOMP (:parameter xp (:default (% W::cp (W::ctype W::s-to))) 
+		       (:required(W::subj (% W::np (W::sem ?lsubjsem) 
                     (W::lex ?lsubjlex) (W::var ?lsubjvar))))) ont::formal)
     ))
 
-  (affected-theme-SUBJCONTROL-TEMPL
+(affected-theme-SUBJCONTROL-TEMPL
    (ARGUMENTS
     (LSUBJ (% W::NP (W::lex ?lsubjlex) (W::sem ?lsubjsem) (W::var ?lsubjvar)) ONT::affected)
     (LCOMP (:parameter xp (:default (% W::cp (W::ctype W::s-to))) (:required(W::subj (% W::np (W::sem ?lsubjsem) 

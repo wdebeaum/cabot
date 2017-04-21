@@ -3,7 +3,7 @@
 ;;;; File: test.lisp
 ;;;; Creator: George Ferguson
 ;;;; Created: Tue Jun 19 14:35:09 2012
-;;;; Time-stamp: <Thu Feb 23 13:30:49 CST 2017 lgalescu>
+;;;; Time-stamp: <Wed Apr 19 12:12:15 EDT 2017 jallen>
 
 ;;;;
 
@@ -36,7 +36,28 @@
     ;;;;;;;;;;;; The following scripts are (or should be!) working ;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     
-
+    (test-multi-goal .
+     ((TELL :content (SET-SYSTEM-GOAL :id G1 :what A1
+				      :context ((ONT::RELN A1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::TOWER :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::THE-SET s1 :instance-of ONT::BLOCK :amount 3 :mod b)
+						(ONT::RELN b :instance-of ONT::GREEN :figure s1))))
+      ;; I need to build a tower 
+      "OK. And I need you to build a row of blocks for me"   ;; not that the acting agent was specified in this goal
+      ;; Is this an additional goal?
+      "yes"
+      ;; OK   --  tells BA new top-level goal
+      ;;    new ACTIVE-QUERY -- returns ambiguous
+      ;; What shall we do first?
+      "Let's build the row of blocks"    ;; figure out this is answer and identifies the relevant goal
+      ;; OK.  Tell me what you want
+      "put three red blocks in a row"
+      ;; OK [in simulated world: SIFT does the actions]
+      ;; Done! 
+      ;; Shall we now build the tower?
+      
+      ))
 
     (test-generic .
      ;; system asks for goal; system acts

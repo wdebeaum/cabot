@@ -71,8 +71,9 @@
 (define-type ONT::earning
  :parent ONT::acquire
  :sem (F::SITUATION (F::Aspect F::dynamic))
- :arguments ((:REQUIRED ONT::affected ((? th12 F::Phys-obj F::Abstr-obj) (f::type ONT::MONEY) (f::object-function f::currency) (f::intentional -))))
- )
+ :arguments ((:REQUIRED ONT::affected ((? th12 F::Phys-obj F::Abstr-obj) (f::type ONT::MONEY) (f::object-function f::currency) (f::intentional -)))
+	     (:REQUIRED ONT::NEUTRAL ((? th13 F::Phys-obj F::Abstr-obj) (f::type ONT::MONEY) (f::object-function f::currency) (f::intentional -)))
+ ))
 
 (define-type ONT::borrow
  :wordnet-sense-keys ("borrow%2:40:00")
@@ -89,7 +90,7 @@
  )
 
 (define-type ONT::lease-hire
- :wordnet-sense-keys ("take%2:40:03" "engage%2:40:00" "charter%2:40:00" "hire%2:40:00" "rent%2:40:00" "lease%2:40:00" "lease%2:41:01" "charter%2:41:01" "hire%2:41:01" "rent%2:41:00" "rent%2:41:01" "lease%2:41:00")
+ :wordnet-sense-keys ("take%2:40:03" "engage%2:40:00" "charter%2:40:00" "hire%2:40:00" "rent%2:40:00" "lease%2:40:00" "lease%2:41:01" "charter%2:41:01" "hire%2:41:01" "rent%2:41:00" "rent%2:41:01" "lease%2:41:00" "rent%2:40:01" "hire_out%2:40:00" )
  :parent ONT::commerce
  :sem (F::SITUATION (F::Aspect F::dynamic))
  :arguments (     (:REQUIRED ONT::affected ((? th14 F::Phys-obj F::Abstr-obj F::situation) (f::intentional -))))
@@ -195,7 +196,8 @@
 (define-type ONT::owe
  :wordnet-sense-keys ("owe%2:40:01")
  :parent ONT::state-of-being
- :arguments ((:OPTIONAL ONT::formal1 ((? rcp F::Phys-obj f::abstr-obj)))
+ :arguments ((:OPTIONAL ONT::neutral1 ((? rcp F::Phys-obj f::abstr-obj)))
+	     (:optional ont::neutral2 )
              )
   )
 
@@ -253,7 +255,7 @@
   :wordnet-sense-keys ("make%2:38:05" "take%2:38:05" "travel%2:38:00" "go%2:38:00" "move%2:38:03"  "move%2:38:01" "locomote%2:38:00" "ascend%2:38:10" "be_active%2:29:00" "draw%2:35:13" "go%2:42:06" "jaunt%2:38:00" "move%2:38:00" "move%2:38:02" "move_out%2:41:00" "wreathe%2:38:00" "mobilize%2:30:00" "go%2:33:00" "transport%1:04:01" "relocation%1:04:00")
  :parent ont::motion
  :sem (F::SITUATION (F::CONTAINER -) (F::Locative -) (F::trajectory +))
- :arguments ((:OPTIONAL ONT::agent (F::Phys-obj (:required (f::origin (? org f::human f::non-human-animal)))
+ :arguments ((:OPTIONAL ONT::agent (F::Phys-obj ;(:required (f::origin (? org f::human f::non-human-animal))) ; other things move too, for example Ras
 					       (:default (F::Mobility F::Self-Moving))))
 ;             (:OPTIONAL ONT::purpose (F::Situation (F::Cause F::Agentive) (F::Aspect F::Dynamic)))
 	     (:OPTIONAL ONT::REASON (F::Situation (F::Cause F::Agentive) (F::Aspect F::Dynamic)))
@@ -815,7 +817,7 @@
  )
 
 (define-type ONT::RUB-scrape-wipe
- :wordnet-sense-keys ("rub%2:35:00" "rub%2:39:00" "stroke%2:35:00")
+ :wordnet-sense-keys ("rub%2:35:00" "rub%2:39:00" "stroke%2:35:00" "smooth%2:40:00")
   :parent ONT::apply-force
  )
 
@@ -961,7 +963,7 @@
 (define-type ONT::change-state
  :wordnet-sense-keys ("change%1:24:00" "modification%1:11:00" "alteration%1:11:00" "change%1:11:00" "overload%2:35:01")
   :parent ONT::change
-  :arguments ((:REQUIRED ONT::affected ((? oc F::Phys-obj F::Abstr-obj f::situation)) (:implements affected))
+  :arguments ((:REQUIRED ONT::affected ((? oc F::Phys-obj F::Abstr-obj f::situation)))
 	      ;;(:OPTIONAL ONT::agent ((? ag f::abstr-obj F::phys-obj)(F::intentional +)) (:implements cause))
 	      
 	      (:required ont::agent((? cs f::phys-obj f::abstr-obj f::situation)))
@@ -1074,6 +1076,7 @@
 
 ;; 20120524 GUM change new type
 (define-type ont::cause-produce-reproduce
+    :comment "an AGENT causes a new object to be created"
   :wordnet-sense-keys ("cause%2:36:00" "induce%2:32:00" "produce%2:36:03" "yield%2:40:00" "yield%2:40:02")
     :parent ont::cause-effect
     :arguments ((:ESSENTIAL ONT::affected-result ((? agt F::phys-obj f::abstr-obj f::situation)))
@@ -1309,15 +1312,18 @@
 
 ;; kill, destroy
 (define-type ont::destroy
- :wordnet-sense-keys ("destroy%2:35:00" "destroy%2:36:00" "down%2:38:00")
-  :parent ont::change-state
-   )
+    :comment "render inoperative"
+    :wordnet-sense-keys ("destroy%2:35:00" "destroy%2:36:00" "down%2:38:00")
+    :arguments ((:REQUIRED ONT::affected ((? xx F::Phys-obj F::Abstr-obj)
+					  (F::type (? tt ONT::phys-object ont::mental-construction)))))
+    :parent ont::change-state
+    )
 
 (define-type ont::kill
     :wordnet-sense-keys ("kill%2:35:00" "kill%2:35:01" "kill%2:35:02" "destroy%2:35:01")
     :comment "killing a living being"
     ;;:definitions ((cause-effect :agent (R :agent) :formal (ont::die :affected (R :affected))))
-    :arguments ((:ESSENTIAL ONT::affected (F::phys-obj (F::origin F::living))))
+    :arguments ((:ESSENTIAL ONT::affected (F::phys-obj (F::type ont::organism) (F::origin F::living))))
     :parent ont::destroy
     )
 
@@ -1469,7 +1475,7 @@
  )
 
 (define-type ONT::evoke-joy
-    :wordnet-sense-keys ("please%2:37:00" "delight%2:37:00" "gladden%2:37:01" "gratify%2:37:00" "cheer%2:32:03")
+    :wordnet-sense-keys ("please%2:37:00" "delight%2:37:00" "gladden%2:37:01" "gratify%2:37:00" "cheer%2:32:03" "entertain%2:41:00")
     :parent ONT::evoke-emotion
     )
 
@@ -2537,7 +2543,7 @@
  :parent ONT::cause-effect
  :sem (F::Situation (F::Aspect F::Dynamic))
  :arguments ( ;; run the script/program
-	     (:essential ont::agent (F::PHYS-OBJ (f::intentional +) (F::type ont::human)))
+	     (:essential ont::agent (F::PHYS-OBJ (f::intentional +) (F::origin F::human)))
 	     (:optional ont::neutral ((? thm f::abstr-obj f::situation) (f::type (? tt ONT::PROCEDURE ONT::EVENT-OF-ACTION ))))
 	     )
  )
@@ -2575,7 +2581,9 @@
 (define-type ONT::afford
  :wordnet-sense-keys ("afford%2:34:00")
  :parent ONT::expensiveness
- )
+  :arguments ((:optional ONT::neutral1 ((? sc F::phys-obj F::abstr-obj)))
+	      )
+  )
 
 (define-type ONT::COSTS
  :wordnet-sense-keys ("cost%2:42:00" "be%2:42:09")
@@ -2757,6 +2765,7 @@
  :arguments ((:REQUIRED ONT::Agent)
              (:REQUIRED ONT::Source)
 	     (:OPTIONAL ONT::affected)
+	     (:OPTIONAL ONT::affected-result)
 	     )
  )
 
@@ -2767,6 +2776,7 @@
   :comment "the part remaining is the good part"
   :arguments ((:OPTIONAL ONT::Agent)
 	      (:OPTIONAL ONT::AFFECTED1)
+	      (:optional ont::source)
 	      )
  )
 
@@ -2862,9 +2872,9 @@
 	     ;; the process creates compression
 	     (:OPTIONAL ONT::agent ((? cs F::Phys-obj f::abstr-obj) ))
 	     (:essential ont::affected-result ((? aff  F::Phys-obj f::abstr-obj) 
-					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction))))
+					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction ont::information-function-object))))
 	     (:essential ont::affected ((? aff  F::Phys-obj f::abstr-obj) 
-					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction))))
+					       (f::type (? x ONT::PHYS-OBJECT ont::mental-construction ont::information-function-object))))
 	     (:OPTIONAL ONT::result ((? res F::Phys-obj f::abstr-obj) (F::intentional -))) ;; he made a box from paper
              )
  )
@@ -3369,7 +3379,7 @@
 
 ;; for configure, arrange X (into Y) e.g. he arranged them into groups of three
 (define-type ONT::arranging
- :wordnet-sense-keys ("set_up%2:35:00" "arrange%2:35:00" "reorient%2:30:00" "put%2:35:05" "arrangement%1:09:00" "organization%1:09:00" "organisation%1:09:00" "system%1:09:02" "put_aside%2:35:00" "address%2:32:02" "hairdressing%1:04:00" "alternate%2:30:01")
+ :wordnet-sense-keys ("set_up%2:35:00" "arrange%2:35:00" "reorient%2:30:00" "put%2:35:05" "put_aside%2:35:00" "address%2:32:02" "alternate%2:30:01")
  :parent ONT::control-manage
  :sem (F::SITUATION (F::Cause F::agentive) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::Agent  ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
@@ -3401,7 +3411,7 @@
  :parent ONT::arranging
  )
 
-;; synchronize, coordinate with X (the coformal)
+;; synchronize, coordinate with X
 (define-type ONT::coordinating
  :parent ONT::arranging
  :arguments ((:REQUIRED ONT::formal1 ((? cthm F::phys-obj f::abstr-obj f::situation)))
@@ -3814,6 +3824,8 @@
  :arguments ((:REQUIRED ONT::agent ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
 	     (:optional ont::formal)
 	     (:optional ont::formal1)
+	     (:optional ont::neutral)
+	     (:optional ont::neutral1)
              )
  )
 

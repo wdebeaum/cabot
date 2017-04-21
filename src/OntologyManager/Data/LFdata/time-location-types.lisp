@@ -624,7 +624,7 @@
  :parent ONT::goal-reln
  :arguments (;(:ESSENTIAL ONT::OF (F::situation (f::type ont::event-of-change)))
 	     ;(:ESSENTIAL ONT::VAL ((? t F::Phys-obj F::abstr-obj)))
-	     (:ESSENTIAL ONT::FIGURE); (F::situation (f::type ont::event-of-change)))   ; "I walked to the store" FIGURE should point to "I", not "walked"
+	     (:ESSENTIAL ONT::FIGURE (F::PHYS-OBJ)); (F::situation (f::type ont::event-of-change)))   ; "I walked to the store" FIGURE should point to "I", not "walked"
 	     (:ESSENTIAL ONT::GROUND ((? t F::Phys-obj F::abstr-obj) (f::spatial-abstraction ?!sa) (F::form F::geographical-object)) )  ; spatial-abstraction is not enough: many things have spatial-abstraction, e.g., a frog.  Another possibility is (F::object-function F::spatial-object)
 	     )
  )
@@ -755,10 +755,12 @@
 
 ;;; A class for temporal modifiers introduced by adjectives or adverbials
 (define-type ONT::temporal-modifier
- :parent ONT::TEMPORAL-PREDICATE
- :arguments ((:ESSENTIAL ONT::FIGURE ((? of F::Phys-obj f::situation f::abstr-obj f::time)))
-             )
- )
+    :parent ONT::TEMPORAL-PREDICATE
+    :arguments ((:ESSENTIAL ONT::FIGURE ((? of F::Phys-obj f::situation f::abstr-obj f::time)))
+		(:essential ont::scale)
+		(:essential ont::standard)
+		)
+    )
 
 ;; the delayed cargo, a scheduled meeting
 (define-type ONT::scheduled-time-modifier
@@ -780,6 +782,7 @@
  :arguments ((:ESSENTIAL ONT::FIGURE ((? of f::situation f::time)))
 ;             (:essential ont::GROUND (f::abstr-obj (F::Scale Ont::duration-scale) (F::type ont::time-unit)))
 ;             (:essential ont::GROUND ((? gd F::abstr-obj F::time) (F::time-scale f::interval)))
+	    
              (:essential ont::GROUND (F::abstr-obj (F::Scale Ont::duration-scale) (F::type ont::time-unit)))
   ))
 

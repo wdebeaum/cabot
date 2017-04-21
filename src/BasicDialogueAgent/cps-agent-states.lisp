@@ -668,6 +668,7 @@ ONT::INTERACT
 		     (RECORD PROPOSAL-ON-TABLE nil)
 		     (RECORD POSSIBLE-GOAL ?poss)
 		     (UPDATE-CSM (V REJECTED) :context ?context)
+		     (QUERY-CSM :content (ACTIVE-GOAL))
 		     ;(GENERATE :content (V UNACCEPTABLE) :context ?context)
 		     )
 	  :destination 'explore-alt-interp)
@@ -681,6 +682,7 @@ ONT::INTERACT
 		     (RECORD PROPOSAL-ON-TABLE nil)
 		     (RECORD POSSIBLE-GOAL nil)
                      (UPDATE-CSM (V REJECTED) :context ?context)
+		     (QUERY-CSM :content (ACTIVE-GOAL))
 		     )
 	  :destination 'explore-alt-interp)
 
@@ -771,15 +773,18 @@ ONT::INTERACT
 ||#
 
 (add-state 'explore-alt-interp
- (state :action '(continue)
+ (state :action nil ;'(continue)
 	:transitions
 	(list
 	 (transition
 	  :description "the CSM has a backup interpretation"
-	  :pattern '((continue :arg ?!dummy)
+	  :pattern '(;(continue :arg ?!dummy)
+		     (REPORT :content  (ACTIVE-GOAL :id ?goal :what ?what)  :context ?context) ; ?goal could be nil (no more top goal)
 		     (ont::eval (find-attr :result ?!alt :feature ALT-AS))
 		     (ont::eval (find-attr :result ?!new-akrl :feature ACTIVE-CONTEXT))
 		     -alt-found1>
+		     (record active-goal ?goal)
+		     (record active-context ?context)
 		     ;; JFA:: something wrong here ?!goal is unbound!
 		     (RECORD PROPOSAL-ON-TABLE (ONT::PROPOSE-GOAL :content (ADOPT :what ?!goal :as ?!alt)))
 		     (RECORD ALT-AS nil)
@@ -791,11 +796,14 @@ ONT::INTERACT
 	 
 	 (transition
 	  :description "no backup alt left"
-	  :pattern '((continue :arg ?!dummy)
+	  :pattern '(;(continue :arg ?!dummy)
+		     (REPORT :content  (ACTIVE-GOAL :id ?goal :what ?what)  :context ?context)
 		     (ont::eval (find-attr :result nil :feature ALT-AS))
 		     (ont::eval (find-attr :result ?failure :feature REJECTED))
 		     (ont::eval (find-attr :result ?failure-context :feature REJECTED-CONTEXT))
-		     -failure-with-no-alt>>
+		     -failure-with-no-alt>
+		     (record active-goal ?goal)
+		     (record active-context ?context)
 		     ;(GENERATE :content (ONT::TELL :content (?failure)))
 		     (clear-pending-speech-acts)
 		     (GENERATE :content ?failure :context ?failure-context)
@@ -1517,7 +1525,7 @@ ONT::INTERACT
 		     (ont::eval (find-attr :result ?active-context :feature ACTIVE-CONTEXT))
 		     -working-on-it-2>
 		     (GENERATE
-		      :content (ONT::TELL :content (ONT::WORKING-ON-IT :what ?!active))
+		      :content (ONT::TELL :content (ONT::WORKING-ON-IT :id ?!active))
 		      :context ?active-context)
 		     ;;(RECORD X Y)
 		     (SET-ALARM :delay .005 :msg (ONT::WORKING-ON-IT))
@@ -1565,7 +1573,7 @@ ONT::INTERACT
 		     (ont::eval (find-attr :result (? waiting ONT::WAITING-FOR-USER) :feature WAITING))
 		     -no-interaction-waiting>
 		     (GENERATE
-		      :content (ONT::TELL :content (ONT::WAITING :agent *SYS* :what ?!active))
+		      :content (ONT::TELL :content (ONT::WAITING :agent *SYS* :id ?!active))
 		      :context ?active-context)
 		     (SET-ALARM :delay .01 :msg (ONT::WAITING-FOR-USER))  ;; Set alarm for a longr period of time before asking again
 		     )
