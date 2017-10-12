@@ -10,10 +10,12 @@ import environment.Block;
 
 public class BlockMessageSender {
 
-	
+	public static boolean ENABLED = true;
 	// From http://stackoverflow.com/a/4206094
 	public static void sendPostRequest(Block b) throws IOException
 	{
+		if (ENABLED == false)
+			return;
 		String request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
 				"/machine-manip/action.json";
 		

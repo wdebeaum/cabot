@@ -3,9 +3,13 @@ package models;
 import features.CountFeature;
 import features.DistanceFeature;
 import features.Feature;
+import goals.Goal;
+import goals.GoalStateHandler.SystemState;
 import TRIPS.KQML.*;
 
 import java.util.*;
+
+import utilities.TextToSpeech;
 
 public class ModelBuilder {
 
@@ -29,6 +33,21 @@ public class ModelBuilder {
 		return null;
 	}
 
+	public Goal whatNext(SystemState state)
+	{
+		if (state == SystemState.LEARNING_DEMONSTRATION)
+		{
+			TextToSpeech.say("Show me an example.");
+			return new Goal("SHOW-EXAMPLE");
+		}
+		
+		if (state == SystemState.LEARNING_CONSTRAINTS)
+		{
+			return new Goal("ONT::TEACH-TRAIN");
+		}
+		
+		return null;
+	}
 	
 	public void processUtterance(String goal, KQMLList definition)
 	{
@@ -38,6 +57,11 @@ public class ModelBuilder {
 		ModelInstantiation mi = new ModelInstantiation();
 		
 		modelInstantiations.put(goal, mi);
+	}
+	
+	public void processAssertion(KQMLList content, KQMLList context)
+	{
+		
 	}
 	
 	public String processNewModel(String modelName)

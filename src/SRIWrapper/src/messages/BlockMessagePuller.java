@@ -1,6 +1,7 @@
 package messages;
 
 import java.io.*;
+import java.util.LinkedList;
 
 import org.json.simple.JSONObject;
 
@@ -8,6 +9,7 @@ import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLPerformative;
 import TRIPS.SRIWrapper.SRIWrapper;
 import environment.Scene;
+import goals.GoalStateHandler;
 import spatialreasoning.Plan;
 import utilities.JsonReader;
 import utilities.TextToSpeech;
@@ -22,16 +24,20 @@ public class BlockMessagePuller implements Runnable {
 	private int statesRecorded;
 	
 	private SRIWrapper wrapper;
+	private GoalStateHandler goalStateHandler;
+	
 	public BufferedWriter outputWriter;
 	
-	public BlockMessagePuller(SRIWrapper wrapper, Plan p)
+	public BlockMessagePuller(SRIWrapper wrapper, GoalStateHandler gsh, Plan p)
 	{
 		currentPlan = p;
 		lastScene = null;
 		recordedSession = false;
 		statesRecorded = 0;
 		lastScene = null;
+		this.goalStateHandler = gsh;
 		this.wrapper = wrapper;
+		
 		try {
 			File file = new File("block-state-log.json");
 			FileWriter fw = new FileWriter(file.getAbsoluteFile());
@@ -46,9 +52,9 @@ public class BlockMessagePuller implements Runnable {
 		
 	}
 	
-	public BlockMessagePuller(SRIWrapper wrapper, Plan p, String recordedSessionFileName)
+	public BlockMessagePuller(SRIWrapper wrapper, GoalStateHandler gsh, Plan p, String recordedSessionFileName)
 	{
-		this(wrapper, p);
+		this(wrapper, gsh, p);
 		recordedSession = true;
 	}
 	
@@ -97,10 +103,11 @@ public class BlockMessagePuller implements Runnable {
 				
 				Scene s = new Scene(blockStateInfoObject, blockMetadataInfoObject);
 				
-				if (lastScene == null || lastScene.isSimilarTo(s))
+				if (lastScene == null || !lastScene.isSimilarTo(s))
 				{
 					//System.out.println("Sending KQML Message");
 					sendKQMLMessage(s);
+					goalStateHandler.checkNewScene(s);
 				}
 				
 				lastScene = s;

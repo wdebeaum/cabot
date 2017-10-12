@@ -2,7 +2,7 @@
 # Makefile for TextTagger
 #
 # William de Beaumont <wbeaumont@ihmc.us> 2008/3/6
-# $Id: Makefile,v 1.93 2017/03/21 17:28:48 wdebeaum Exp $
+# $Id: Makefile,v 1.107 2017/10/09 18:02:51 wdebeaum Exp $
 #
 
 MODULE = TextTagger
@@ -17,12 +17,13 @@ SUBDIRS = Perl StanfordNER StanfordPOSTagger StanfordParser StanfordCoreNLP Extr
 CONFIGDIR=../config
 include $(CONFIGDIR)/perl/prog.mk
 include $(CONFIGDIR)/TextTagger/defs.mk
-export TEXTTAGGER_umls TEXTTAGGER_semgroups TEXTTAGGER_metamap TEXTTAGGER_cj_parser TEXTTAGGER_biomodel TEXTTAGGER_corenlp TEXTTAGGER_enju
+export TEXTTAGGER_umls TEXTTAGGER_semgroups TEXTTAGGER_metamap TEXTTAGGER_cj_parser TEXTTAGGER_biomodel TEXTTAGGER_corenlp TEXTTAGGER_enju TEXTTAGGER_aspell
 
 # functions for downloading data files automatically (mostly in DRUM system)
 download=mkdir -p downloads ; cd downloads ; curl -O -L $(1)
 download_compressed=mkdir -p downloads ; cd downloads ; curl --compressed -O -L $(1)
 download_sourceforge=mkdir -p downloads ; ( cd downloads ; curl --compressed -O -L $(1)"?format=raw" ) ; mv $@\?format=raw $@
+download_useragent=mkdir -p downloads ; cd downloads ; curl --user-agent 'TextTaggerMakefile/5.0' --compressed -O -L $(1)
 
 #
 # Generic rules for all TextTagger installations
@@ -42,6 +43,13 @@ ifneq (,$(wildcard CVS))
 %.pl:
 	cvs update $@
 endif
+
+#
+# This makefile creates important resources; if anything fails we prevent it
+# from creating empty or partial files which could negatively affect the
+# system's behavior
+#
+.DELETE_ON_ERROR:
 
 #
 # Rules for those using terms.c (see also several sections using this below)
@@ -127,7 +135,7 @@ downloads/names.zip:
 	$(call download_compressed,https://www.ssa.gov/oact/babynames/names.zip)
 
 personal-names.tsv: get-personal-names.sh downloads/names.zip
-	./$+ >$@
+	./$^ >$@
 
 endif
 
@@ -155,9 +163,9 @@ endif
 #
 ifneq (,$(wildcard Perl/TextTagger/Drum.pm))
 
-all:: drum-terms.tsv drum-dsl specialist.tsv drum-dbxrefs.tsv go_protmods.tsv
+all:: drum-terms.tsv drum-dsl/COMPLETE specialist.tsv drum-dbxrefs.tsv go_protmods.tsv
 
-install:: mirna-species.tsv drum-terms.tsv drum-dsl specialist.tsv drum-dbxrefs.tsv go_protmods.tsv
+install:: mirna-species.tsv drum-terms.tsv drum-dsl/COMPLETE specialist.tsv drum-dbxrefs.tsv go_protmods.tsv
 	$(INSTALL_DATA) mirna-species.tsv $(etcdir)/$(MODULE)
 	$(INSTALL_DATA) drum-terms.tsv $(etcdir)/$(MODULE)
 	$(INSTALL_DATA) specialist.tsv $(etcdir)/$(MODULE)
@@ -175,14 +183,14 @@ install:: mirna-species.tsv drum-terms.tsv drum-dsl specialist.tsv drum-dbxrefs.
 #	'$$a = $$1 if (/^ID   (\w+)-/i);  push @{$$h{$$a}}, $$1 if (/^DE   ([A-Z]\w* \w*) mir/i and  not grep { $$_ eq $$1 } @{$$h{$$a}});  END {  print map { $$_ . join("", map { "\t$$_" } @{$$h{$$_}}) . "\n" }  sort keys %h;  }' \
 #	>$@
 
-drum-terms.tsv: merge-terms-files.pl obo-terms.tsv hgnc-terms.tsv uniprot-terms.tsv uniprot-subcell-terms.tsv nextprot-family-terms.tsv pfam-terms.tsv mesh-scr-terms.tsv ncit-terms.tsv
+drum-terms.tsv: merge-terms-files.pl obo-terms.tsv hgnc-terms.tsv uniprot-terms.tsv uniprot-subcell-terms.tsv nextprot-family-terms.tsv pfam-terms.tsv mesh-scr-terms.tsv ncit-terms.tsv hlsm-terms.tsv
 	./$^ >$@
 
-drum-dbxrefs.tsv: get-uniprot-dbxrefs.pl downloads/uniprot_sprot.dat.gz
+drum-dbxrefs.tsv: get-uniprot-dbxrefs.pl downloads/uniprot_sprot.dat.gz uniprot-species.pl
 	gunzip -c downloads/uniprot_sprot.dat.gz \
 	| ./$< >$@
 
-OBO_FILES=$(foreach f,bioentities.obo BrendaTissueOBO cellosaurus.obo chebi.obo cl-basic.obo efo.obo go.obo unit.obo,downloads/$(f))
+OBO_FILES:=$(addprefix downloads/,bioentities.obo BrendaTissueOBO cellosaurus.obo chebi.obo cl-basic.obo efo.obo go.obo pr.obo unit.obo)
 # psi-mi25.obo so-xp.obo
 
 obo-terms.tsv: get-obo-terms.pl $(OBO_FILES) Makefile
@@ -192,14 +200,14 @@ go_protmods.obo: go_protmods.pl downloads/go.obo
 	./go_protmods.pl -o $@ downloads/go.obo
 
 go_protmods.tsv: get-obo-terms.pl go_protmods.obo
-	TRIPS_BASE=$(prefix) ./get-obo-terms.pl go_protmods.obo >$@
+	TRIPS_BASE=$(prefix) ./$^ >$@
 
 hgnc-terms.tsv: get-hgnc-terms.pl downloads/protein-coding_gene.txt.gz
 	gunzip -c <downloads/protein-coding_gene.txt.gz \
 	| ./get-hgnc-terms.pl \
 	>$@
 
-uniprot-terms.tsv: get-uniprot-terms.pl downloads/uniprot_sprot.dat.gz
+uniprot-terms.tsv: get-uniprot-terms.pl downloads/uniprot_sprot.dat.gz uniprot-species.pl
 	gunzip -c <downloads/uniprot_sprot.dat.gz \
 	| ./get-uniprot-terms.pl \
 	>$@
@@ -230,10 +238,51 @@ $(info NCIT_ZIPFILE=$(NCIT_ZIPFILE))
 
 # also writes drum-dsl/NCIT/*
 ncit-terms.tsv: get-ncit-terms.pl downloads/$(NCIT_ZIPFILE)
-	./$+ >$@
+	./$^ >$@
+
+hlsm-terms.tsv: get-hlsm-terms.pl downloads/small_molecule.csv
+	./$^ >$@
 
 specialist.tsv: get-specialist-tsv.pl downloads/LEXICON downloads/inflection.table $(prefix)/src/LexiconManager/Data/new
 	TRIPS_BASE=$(prefix) ./get-specialist-tsv.pl downloads/LEXICON downloads/inflection.table >$@
+
+# for BOB system
+ifneq (,$(wildcard Perl/TextTagger/Misspellings.pm))
+
+ifeq (,$(TEXTTAGGER_aspell))
+$(error aspell not configured)
+endif
+
+all:: drum.aspell
+
+install:: drum.aspell
+	$(INSTALL_DATA) $< $(etcdir)/$(MODULE)
+
+# NOTE: We give aspell back its own default setting for local-data-dir because
+# it actually doesn't work on Debian without this; it fails to find the "en"
+# language data file in that directory. (Why, Debian, why?)
+specialist.aspell: downloads/inflection.table
+	cut -d'|' -f1 <$< |perl -CSD -p -e 's/\W+/\n/g;' |sort |uniq \
+	|$(TEXTTAGGER_aspell) \
+	  --local-data-dir="`$(TEXTTAGGER_aspell) config local-data-dir`" \
+	  --encoding=utf-8 --lang=en create master ./$@ \
+	2>specialist.aspell.err
+
+drum.aspell: downloads/inflection.table drum-terms.tsv
+	( cut -d'|' -f1 <downloads/inflection.table && \
+	  cut -f1 <drum-terms.tsv \
+	) | perl -CSD -p -e 's/\W+/\n/g;' |sort |uniq \
+	| perl -n -e 'print unless (length($$_) > 100);' \
+	| $(TEXTTAGGER_aspell) \
+	  --local-data-dir="`$(TEXTTAGGER_aspell) config local-data-dir`" \
+	  --encoding=utf-8 --lang=en create master ./$@ \
+	2>drum.aspell.err
+
+clean::
+	rm -rf specialist.aspell specialist.aspell.err
+	rm -rf drum.aspell drum.aspell.err
+
+endif
 
 downloads/bioentities.obo:
 	$(call download_compressed,"https://raw.githubusercontent.com/sorgerlab/bioentities/master/export/bioentities.obo")
@@ -241,7 +290,7 @@ downloads/bioentities.obo:
 # see http://www.obofoundry.org/ for up-to-date links
 
 downloads/BrendaTissueOBO:
-	$(call download_compressed,"http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO")
+	$(call download_useragent,"http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO")
 
 downloads/chebi.obo:
 	$(call download,"ftp://ftp.ebi.ac.uk/pub/databases/chebi/ontology/chebi.obo")
@@ -260,6 +309,9 @@ downloads/cellosaurus.obo:
 
 downloads/efo.obo:
 	$(call download_sourceforge,"http://sourceforge.net/p/efo/code/HEAD/tree/trunk/src/efoinobo/efo.obo")
+
+downloads/pr.obo:
+	$(call download_compressed,"http://purl.obolibrary.org/obo/pr.obo")
 
 downloads/unit.obo:
 	$(call download_compressed,"https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo")
@@ -298,6 +350,12 @@ downloads/Pfam-A.seed.gz:
 downloads/$(NCIT_ZIPFILE):
 	$(call download,$(NCIT_WEBSITE)$(NCIT_ZIPFILE))
 
+# HMS LINCS Small Molecule database
+# see http://lincs.hms.harvard.edu/db/sm/
+downloads/small_molecule.csv:
+	mkdir -p downloads
+	curl --compressed -L "http://lincs.hms.harvard.edu/db/sm/?search=&output_type=.csv" -o $@
+
 # see http://lexsrv3.nlm.nih.gov/Specialist/Home/index.html
 
 downloads/LEXICON:
@@ -334,6 +392,10 @@ drum-dsl/MI/COMPLETE: downloads/psi-mi25.obo obo-to-dsl.pl
 	./obo-to-dsl.pl <$<
 	touch $@
 
+drum-dsl/PR/COMPLETE: downloads/pr.obo obo-to-dsl.pl
+	./obo-to-dsl.pl PR <$<
+	touch $@
+
 drum-dsl/SO/COMPLETE: downloads/so-xp.obo obo-to-dsl.pl
 	./obo-to-dsl.pl <$<
 	touch $@
@@ -342,7 +404,8 @@ drum-dsl/UO/COMPLETE: downloads/unit.obo obo-to-dsl.pl
 	./obo-to-dsl.pl <$<
 	touch $@
 
-drum-dsl: drum-dsl/BE/COMPLETE drum-dsl/BTO/COMPLETE drum-dsl/CHEBI/COMPLETE drum-dsl/CO/COMPLETE drum-dsl/EFO/COMPLETE drum-dsl/GO/COMPLETE drum-dsl/UO/COMPLETE
+drum-dsl/COMPLETE: drum-dsl/BE/COMPLETE drum-dsl/BTO/COMPLETE drum-dsl/CHEBI/COMPLETE drum-dsl/CO/COMPLETE drum-dsl/EFO/COMPLETE drum-dsl/GO/COMPLETE drum-dsl/PR/COMPLETE drum-dsl/UO/COMPLETE ncit-terms.tsv
+	touch $@
 
 # drum-dsl/MI/COMPLETE
 # drum-dsl/SO/COMPLETE 

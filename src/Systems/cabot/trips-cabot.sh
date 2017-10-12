@@ -56,7 +56,8 @@ nospeechout=t
 speechonly=''
 nochat=''
 nobeep=''
-noapparatus=''
+noapparatus=f
+sriba=f
 # dev options
 nouser=''
 nolisp=''
@@ -87,6 +88,7 @@ while test ! -z "$1"; do
 	-nobeep)	nobeep=t;;
 	-quiet)		nospeech=t; nobeep=t;;
 	-noapparatus)	noapparatus=t;;
+    -sriba)      sriba=t;;
 	-showgen)	showgen=t;;
 	-showtraffic)	showtraffic=t;;
 	-help|-h|-\?)
@@ -200,7 +202,7 @@ cat - <<_EOF_ >>/tmp/trips$$
 			  "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
 			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
 			  "$TRIPS_BASE/src/SRIWrapper/src")
-	   :argv ($port_opt $noapparatus)))
+	   :argv ($port_opt $noapparatus $sriba)))
 (request
  :receiver facilitator
  :content (start-module
@@ -305,8 +307,8 @@ fi
      $port_opt \
      -process-input-utterances yes \
      -terms-file $TRIPS_BASE/etc/$TRIPS_SYSNAME/BlockNames.tsv \
-     -init-taggers terms-from-file \
-     -default-type '(or affixes words punctuation terms-from-file)' \
+     -init-taggers terms-from-file,misspellings \
+     -default-type '(or affixes words punctuation terms-from-file misspellings)' \
  2>&1 | tee $logdir/TextTagger.err) &
 
 # set display option for facilitator

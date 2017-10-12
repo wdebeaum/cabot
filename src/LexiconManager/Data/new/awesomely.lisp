@@ -1,9 +1,12 @@
+;;;;
+;;;; w::awesomely
+;;;;
 
 (define-words :pos W::adv :templ PRED-VP-TEMPL 
  :words (
 	(W::awesomely
 	  (SENSES
-    ((lf-parent ont::acceptability-val)
+    ((lf-parent ont::degree-modifier-high)
 	    (TEMPL ADJ-OPERATOR-TEMPL)	    
 	    (example "his ankles are awesomely strong" "he is awesomely healthy")
 	    (SEM (f::gradability +) (f::orientation f::pos) (f::intensity f::hi))

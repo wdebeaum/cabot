@@ -268,7 +268,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			InterpretSpeechActHandler isah = new InterpretSpeechActHandler(msg, content, 
 													referenceHandler,
-													goalPlanner, ontologyReader);
+													goalPlanner, ontologyReader, this);
 
 //			try {
 //			KQMLList test = KQMLList.fromString("(ONT::RELN ONT::V33245 :INSTANCE-OF ONT::PUT "
@@ -298,7 +298,9 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			}
 			if (responseContent != null)
 			{
-				sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+			    // LG debug info
+			    // System.out.println("CSM response: " + responseContent);
+			    sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
 			}
 			
 		}
@@ -307,7 +309,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			
 			TakeInitiativeHandler tih = new TakeInitiativeHandler(msg, content, referenceHandler,
-															goalPlanner, ontologyReader);
+															goalPlanner, ontologyReader, this);
 			KQMLList responseContent = null;
 			try {
 				responseContent = tih.process();
@@ -331,7 +333,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		else if (content0.equalsIgnoreCase("update-csm"))
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");	
-			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, referenceHandler, goalPlanner);
+			UpdateCSMHandler uch = new UpdateCSMHandler(msg, content, referenceHandler, goalPlanner, this);
 			KQMLList responseContent = null;
 			try {
 				responseContent = uch.process();
@@ -356,7 +358,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		{
 			KQMLObject replyWith = msg.getParameter(":REPLY-WITH");
 			QueryCSMHandler qch = new QueryCSMHandler(msg, content, referenceHandler,
-														goalPlanner, ontologyReader);
+														goalPlanner, ontologyReader, this);
 			KQMLList responseContent = null;
 			try {
 				responseContent = qch.process();
@@ -385,9 +387,13 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		
     }
     
-
+    // I know this is a bad hack but ¯\_(ツ)_/¯
+    public void sendReply(KQMLPerformative msg, KQMLPerformative replyMessage)
+    {
+    	reply(msg,replyMessage);
+    }
     
-    private void sendContentViaPerformative(String performativeType, String receiver,
+    public void sendContentViaPerformative(String performativeType, String receiver,
     										KQMLObject content, KQMLObject replyWith)
     {
     	if (receiver == null)
@@ -460,7 +466,7 @@ public class CollaborativeStateManager extends StandardTripsModule  {
 		
 	}
 	
-	public void sendKQMLPerformative(KQMLPerformative performative)
+	public synchronized void sendKQMLPerformative(KQMLPerformative performative)
 	{
 		send(performative);
 	}

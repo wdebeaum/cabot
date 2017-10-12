@@ -37,11 +37,15 @@ SRCS = 	SRIWrapper.java \
 	src/features/DirectionFeature.java \
 	src/models/FeatureProjection.java \
 	src/messages/CommDataSender.java \
-
+	src/goals/Goal.java \
+	src/goals/GoalStateHandler.java \
+	src/messages/EvaluateHandler.java \
 	
 
 CLASSES = $(SRCS:.java=.class) \
-	src/spatialreasoning/Predicate$$1.class \
+	src/goals/Goal$$GoalType.class \
+	src/goals/GoalStateHandler$$GoalState.class \
+	src/goals/GoalStateHandler$$SystemState.class \
 
 CONFIGDIR=../config
 include $(CONFIGDIR)/defs.mk

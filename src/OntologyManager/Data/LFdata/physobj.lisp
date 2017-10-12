@@ -40,11 +40,6 @@
     :parent ONT::MOLECULAR-PART
     )
 
-(define-type ONT::residue
-;    :parent ONT::MOLECULE
-    :parent ONT::MOLECULAR-PART
-    )
-
 ;; DRUM
 (define-type ONT::BIOLOGICAL-ROLE
 ;    :parent ONT::MOLECULE
@@ -77,8 +72,10 @@
 (define-type ONT::macromolecular-complex
     :wordnet-sense-keys ("complex%1:27:00")
 ;    :parent ONT::MOLECULE
+    :sem (F::Phys-obj (F::container +))
     :parent ONT::MOLECULAR-PART
-    :arguments ((:required ONT::CONTENTS (F::Phys-obj (f::type ont::molecular-part))))
+    :arguments (;(:required ONT::CONTENTS (F::Phys-obj (f::type ont::molecular-part))))
+		(:required ONT::FIGURE (F::Phys-obj (f::type ont::molecular-part))))
     )
 
 (define-type ONT::RNA
@@ -154,7 +151,8 @@
 (define-type ONT::GEO-OBJECT
     :wordnet-sense-keys ("location%1:03:00")
     :parent ONT::phys-OBJECT
-    :sem (F::Phys-obj (F::form F::geographical-object) (:default (F::object-function F::spatial-object)))
+    :sem (F::Phys-obj (F::form F::geographical-object) (F::container +))
+		      ;;(:default (F::object-function F::spatial-object)))
     )
 
 ;; a place in space
@@ -163,7 +161,7 @@
     :sem (F::Phys-obj (F::origin F::non-living)
 		      (F::Form F::Geographical-Object)
 ;		   (F::Object-Function F::Place)
-		      (F::Object-Function F::Spatial-object)
+		      ;;(F::Object-Function F::Spatial-object)
 		      )
     :arguments (;(:OPTIONAL ONT::OF ((? lof F::Phys-obj)))
 ; this needs to be less restrictive as long as it's used for "where" clauses, e.g. the party where he met her
@@ -321,9 +319,9 @@
     :parent ONT::man-made-structure
     :sem (F::Phys-obj (F::spatial-abstraction (? sa F::spatial-point F::spatial-region))
 		      (F::origin F::Artifact)(F::trajectory -)
-		      (f::object-function f::building)
+		      (f::object-function f::provides-service-open-closed)
 		      (F::mobility f::fixed) (f::container +))
-    )
+   ) 
 
 (define-type ONT::TOWER
   :wordnet-sense-keys ("tower%1:06:00")
@@ -383,6 +381,12 @@
     :wordnet-sense-keys ("amino_acid%1:27:00")
     :Parent ont::chemical
     )
+
+(define-type ONT::residue
+;    :parent ONT::MOLECULE
+;    :parent ONT::MOLECULAR-PART
+    :parent ONT::CHEMICAL
+  )
 
 ;; UMLS
 (define-type ont::pharmacologic-substance
@@ -534,7 +538,6 @@
 (define-type ONT::technology
  :parent ONT::manufactured-object
  :wordnet-sense-keys ("technology%1:04:00" "technology%1:06:00")
- 
  :arguments ((:essential ONT::FIGURE)
 	     )
  )
@@ -634,7 +637,7 @@
 
 
 (define-type ONT::person
-    :wordnet-sense-keys ("person%1:03:00" "individual%1:03:00" "someone%1:03:00" "somebody%1:03:00" "mortal%1:03:00" "soul%1:03:00" "witch%1:18:01")
+    :wordnet-sense-keys ("person%1:03:00" "individual%1:03:00" "someone%1:03:00" "somebody%1:03:00" "mortal%1:03:00" "soul%1:03:00" "imaginary_being%1:18:00")
     :parent ONT::mammal ;; umls
     :sem (F::Phys-obj (F::form F::solid-object)
 		      (F::spatial-abstraction F::spatial-point)
@@ -756,7 +759,7 @@
 ;; girl
 ;; woman, lady, female
 (define-type ONT::female-child
-    :wordnet-sense-keys ("woman%1:18:00" "adult_female%1:18:00")
+    :wordnet-sense-keys ("girl%1:18:02")
     :parent ONT::female-person
     )
 
@@ -768,7 +771,7 @@
 
 ;; boy
 (define-type ONT::male-child
-    :wordnet-sense-keys ("man%1:18:00" "adult_male%1:18:00")
+    :wordnet-sense-keys ("boy%1:18:00")
     :parent ONT::male-person
     )
 
@@ -778,11 +781,40 @@
     :parent ONT::family-relation
     )
 
+;; nationality, regional identity
+(define-type ont::identity-and-origin
+ :parent ont::person-reln
+)
+
+;; american, british, chinese etc
+(define-type ont::nationality
+ :parent ont::identity-and-origin
+ :wordnet-sense-keys ("american%1:18:00" "british%1:18:00" "chinese%1:10:00" "danish%1:10:00" "dutch%1:18:00" "russian%1:18:00")
+)
+
+;; north american, south american, asian etc
+(define-type ont::regional-identity
+ :parent ont::identity-and-origin
+ :wordnet-sense-keys ("north_american%1:18:00" "asian%1:18:00" "european%1:18:00")
+)
+
+;; foreigner 
+(define-type ont::foreigner
+ :parent ont::identity-and-origin
+ :wordnet-sense-keys ("foreigner%1:18:00")
+)
+
 ;; citizen, inhabitant, resident
 (define-type ONT::inhabitant
-    :wordnet-sense-keys ("indweller%1:18:00" "denizen%1:18:00" "dweller%1:18:00" "habitant%1:18:00" "inhabitant%1:18:00" "citizen%1:18:00")
-    :parent ONT::person-reln
-    )
+    :wordnet-sense-keys ("indweller%1:18:00" "denizen%1:18:00" "dweller%1:18:00" "habitant%1:18:00" "inhabitant%1:18:00" "citizen%1:18:00" "national%1:18:00" "native%1:18:01")
+    :parent ont::identity-and-origin
+)
+
+;; hindu, buddhist, christian
+(define-type ont::religious-identity
+ :parent ont::identity-and-origin
+ :wordnet-sense-keys ("hindu%1:18:01" "buddhist%1:18:00" "christian%1:18:00")
+)
 
 ;; sender, receiver, caller
 (define-type ONT::communication-party
@@ -801,6 +833,8 @@
     :wordnet-sense-keys ("entrant%1:18:02")
     :parent ONT::person
     )
+
+
 
 ;; owner, possessor
 (define-type ONT::possessor-reln
@@ -930,42 +964,42 @@
 
 (define-type ONT::public-service-facility
     :parent ONT::facility
-    :sem (F::Phys-obj (F::object-function F::Building))
+   ;; :sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; lab, laboratory
 (define-type ONT::research-facility
     :parent ONT::facility
     :wordnet-sense-keys ("research_center%1:06:00" "lab%1:06:00" "laboratory%1:06:00" "research_lab%1:06:00" "research_laboratory%1:06:00" "science_lab%1:06:00" "science_laboratory%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; pool, gym
 (define-type ONT::athletic-facility
     :parent ONT::facility
     :wordnet-sense-keys ("athletic_facility%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; office
 (define-type ONT::business-facility
     :parent ONT::facility
     :wordnet-sense-keys ("office_building%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; store, shop
 (define-type ONT::commercial-facility
     :parent ONT::facility
     :wordnet-sense-keys ("shop%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; disco
 (define-type ONT::entertainment-establishment
     :parent ONT::commercial-facility
     :wordnet-sense-keys ("discotheque%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; cafe, etc.
@@ -990,27 +1024,27 @@
 (define-type ONT::drinking-establishment
     :parent ONT::entertainment-establishment
     :wordnet-sense-keys ("barroom%1:06:00" "bar%1:06:00" "saloon%1:06:00" "ginmill%1:06:00" "taproom%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; warehouse
 (define-type ONT::storage-facility
     :parent ONT::facility
     :wordnet-sense-keys ("warehouse%1:06:00" "storage_warehouse%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; factory, plant
 (define-type ONT::production-facility
     :parent ONT::facility
     :wordnet-sense-keys ("factory%1:06:00" "manufacturing_plant%1:06:00" "manufactory%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 (define-type ONT::transportation-facility
     :parent ONT::facility
     :wordnet-sense-keys ("terminal%1:06:00" "terminus%1:06:01" "depot%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 (define-type ont::airport
@@ -1030,32 +1064,32 @@
 (define-type ONT::lodging
     :wordnet-sense-keys ("housing%1:06:00" "lodging%1:06:00" "living_accommodations%1:06:00")
     :parent ONT::facility
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 (define-type ONT::health-care-facility
     :parent ONT::facility
     :wordnet-sense-keys ("hospital%1:06:00" "hospital%1:14:00" "fire_department%1:14:00" "police_department%1:14:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 (define-type ONT::education-facility
     :parent ONT::facility
     :wordnet-sense-keys ("school%1:06:00" "university%1:06:00" "college%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+   ;; :sem (F::Phys-obj (F::object-function F::Building))
     )
 
 (define-type ONT::religious-facility
     :parent ONT::facility
     :wordnet-sense-keys ("place_of_worship%1:06:00" "house_of_prayer%1:06:00" "house_of_god%1:06:00" "house_of_worship%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 ;; hotel, inn, guesthouse
 (define-type ONT::accommodation
     :parent ONT::lodging
     :wordnet-sense-keys ("hotel%1:06:00")
-    :sem (F::Phys-obj (F::object-function F::Building))
+    ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
 (define-type ONT::bedandbreakfast
@@ -1308,7 +1342,7 @@
 (define-type ONT::Corner
     :parent ONT::LOCATION-by-description
     :wordnet-sense-keys ("corner%1:15:02" "corner%1:06:00")
-    :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::spatial-point)))
+    :sem (F::Phys-obj (F::spatial-abstraction (? sa1 F::spatial-point)) (f::container +))
     :arguments ((:OPTIONAL ONT::FIGURE (F::PHYS-OBJ (F::FORM F::OBJECT) (F::SPATIAL-ABSTRACTION (? SA F::STRIP F::SPATIAL-REGION))))
 		)
     )
@@ -1702,7 +1736,7 @@
 (define-type ONT::body-part
     :wordnet-sense-keys ("body_part%1:08:00" "organ%1:08:00" )
     :parent ONT::anatomy
-    :sem (F::Phys-obj (F::origin F::living) (f::intentional -) (f::form f::object) (f::object-function f::body-part))
+    :sem (F::Phys-obj (F::origin F::living) (f::intentional -) (f::form f::object) (f::object-function f::body-part) (f::container +))
  ;;; too strong, but better than unconstrained
     :arguments ((:OPTIONAL ONT::FIGURE (F::Phys-obj (F::origin F::living) (f::form f::object)))
 		)
@@ -1906,7 +1940,6 @@
 ;; laptop, pc
 (define-type ONT::computer-type
     :parent ONT::computer
-    
     )
 
 ;; a physical arrangement of components, e.g. a stereo system
@@ -2228,7 +2261,7 @@
 (define-type ONT::tableware
     :wordnet-sense-keys ("tableware%1:06:00")
     :parent ONT::manufactured-object
-    :sem (F::Phys-obj (F::container +) (F::form F::solid-object) (F::origin F::artifact)(f::trajectory -) (f::object-function f::instrument))
+    :sem (F::Phys-obj (F::form F::solid-object) (F::origin F::artifact)(f::trajectory -))
     :arguments ((:OPTIONAL ONT::CONTENTS)
 		)
     )
@@ -2237,7 +2270,7 @@
 (define-type ONT::cutlery
     :wordnet-sense-keys ("cutlery%1:06:00")
     :parent ONT::tableware
-    :sem (F::Phys-obj (F::container +) (F::form F::solid-object) (F::origin F::artifact)(f::trajectory -) (f::object-function f::instrument))
+    :sem (F::Phys-obj (F::form F::solid-object) (F::origin F::artifact)(f::trajectory -) (f::object-function f::instrument))
     )
 
 
@@ -2249,16 +2282,19 @@
 
 (define-type ont::cup
     :parent ont::tableware
+    :sem (F::Phys-obj (F::container +))
     :wordnet-sense-keys ("cup%1:06:00")
     )
 
 (define-type ont::mug
     :parent ont::tableware
+    :sem (F::Phys-obj (F::container +))
     :wordnet-sense-keys ("mug%1:06:00")
     )
 
 (define-type ont::glass
     :parent ont::tableware
+    :sem (F::Phys-obj (F::container +))
     :wordnet-sense-keys ("glass%1:06:00")
     )
 
@@ -2362,7 +2398,6 @@
 (define-type ONT::DAIRY
     :parent ONT::FOOD
     :wordnet-sense-keys ("dairy_product%1:13:00")
-
     )
 
 (define-type ONT::BEVERAGES
@@ -2540,6 +2575,7 @@
 (define-type ONT::SOUP
     :wordnet-sense-keys ("soup%1:13:00")
     :parent ONT::MEALS
+    :sem (f::phys-obj (F::form F::liquid))
     )
 
 (define-type ONT::CEREALS
@@ -2626,7 +2662,7 @@
 ;;;;;;;;;;;;;;;
 
 (define-type ont::group-object
- :wordnet-sense-keys ("mathematical_group%1:09:00" "group%1:09:00" "chemical_group%1:27:00" "radical%1:27:00" "group%1:27:00" "group%1:03:00" "grouping%1:03:00")
+ :wordnet-sense-keys ("mathematical_group%1:09:00" "group%1:09:00" "chemical_group%1:27:00" "radical%1:27:00" "group%1:27:00" "group%1:03:00" "grouping%1:03:00" "union%1:14:01")
  ;:parent ont::abstract-object-nontemporal
  :parent ont::phys-object
 ;  :sem (F::Abstr-obj (f::group +)) ; group feature not defined for abstract objects
@@ -2780,8 +2816,14 @@
  )
 
 (define-type ONT::collection
- :wordnet-sense-keys ("collection%1:14:00" "aggregation%1:14:00" "accumulation%1:14:00" "assemblage%1:14:01")
+ :wordnet-sense-keys ("collection%1:14:00" "aggregation%1:14:00" "accumulation%1:14:00" "assemblage%1:14:01" "array%1:14:00" "array%1:10:00")
  :parent ONT::group-object
+ )
+
+;; surplus, excess
+(define-type ONT::surplus
+ :parent ONT::group-object
+ :wordnet-sense-keys ("surplus%1:07:00")
  )
 
 (define-type ONT::sequence

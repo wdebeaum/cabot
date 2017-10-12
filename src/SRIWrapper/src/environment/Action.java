@@ -7,12 +7,13 @@ import features.*;
 
 public class Action implements FeatureGroup {
 
+	protected HashMap<String,Feature> features;
 	public Action() {
-		HashSet<Feature> features;
+		features = new HashMap<String,Feature>();
 	}
 
 	@Override
-	public Collection<Feature> getFeatures() {
+	public Map<String,Feature> getFeatures() {
 		// TODO Auto-generated method stub
 		return null;
 	}

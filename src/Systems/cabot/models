@@ -1,0 +1,12 @@
+# Not currently implemented!
+# In the future, this is meant to provide a domain-level model of objects to aid in goal and subgoal identification.
+
+(:* ONT::STAIRS W::STAIRCASE)
+(:* ONT::STEP W::STEP)
+(:* ONT::SURFACE-LOCATION W::SURFACE)
+(:* ONT::GROUPING W::STRUCTURE)
+(:* ONT::BLOCK W::BLOCK)
+define-has[(:* ONT::STAIRS W::STAIRCASE),(:* ONT::BLOCK W::BLOCK))
+isa[(:* ONT::STAIRS W::STAIRCASE),(:* ONT::GROUPING W::STRUCTURE))
+define-has[(:* ONT::STAIRS W::STAIRCASE),(:* ONT::STEP W::STEP)]
+isa[(:* ONT::STEP W::STEP),(:* ONT::SURFACE-LOCATION W::SURFACE)]

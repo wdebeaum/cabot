@@ -32,9 +32,68 @@
 
 (define-type ONT::representation
  :parent ONT::mental-construction
+ :sem (F::Abstr-obj (f::container +))
  :arguments ((:OPTIONAL ONT::FIGURE) ;(f::situation (f::information f::mental-construct) (f::cause f::mental)))
 		)
  )
+
+; social practice
+(define-type ONT::social-practice
+ :parent ONT::mental-construction
+ :wordnet-sense-keys ("custom%1:09:00" "practice%1:09:00" "habit%1:09:00" "routine%1:04:00")
+)
+
+; perceptual-construction
+(define-type ont::perceptual-construction
+ :parent ont::mental-construction
+ :arguments ((:OPTIONAL ONT::FIGURE))
+)
+
+; ability to perceive
+(define-type ont::ability-to-perceive
+ :parent ont::perceptual-construction
+ :wordnet-sense-keys ("perception%1:09:01" "sense%1:09:02")
+)
+
+(define-type ont::ability-to-see
+ :parent ont::ability-to-perceive
+ :wordnet-sense-keys ("vision%1:09:01")
+)
+
+(define-type ont::ability-to-hear
+ :parent ont::ability-to-perceive
+ :wordnet-sense-keys ("hearing%1:09:00")
+)
+
+(define-type ont::ability-to-taste
+ :parent ont::ability-to-perceive
+ :wordnet-sense-keys ("taste%1:09:02")
+)
+
+(define-type ont::ability-to-touch
+ :parent ont::ability-to-perceive
+ :wordnet-sense-keys ("touch%1:09:01")
+)
+
+(define-type ont::ability-to-smell
+ :parent ont::ability-to-perceive
+ :wordnet-sense-keys ("smell%1:09:01")
+)
+
+; perceivable property
+(define-type ont::perceivable-property
+ :parent ont::perceptual-construction
+)
+
+(define-type ont::perceivable-smell-property
+ :parent ont::perceivable-property
+ :wordnet-sense-keys ("smell%1:09:02" "aroma%1:09:01")
+)
+
+(define-type ont::perceivable-taste-property
+ :parent ont::perceivable-property
+ :wordnet-sense-keys ("flavor%1:09:00")
+)
 
 (define-type ONT::grouping
     :comment "a  classification, category, variety of things. Not a set of objects!"
@@ -365,21 +424,10 @@
     :arguments ((:ESSENTIAL ONT::FIGURE (f::abstr-obj (F::measure-function f::term)))
 		(:ESSENTIAL ONT::GROUND (F::abstr-obj (:default (F::measure-function F::value))))))
 
-;;; A domain is a single-valued function
-(define-type ONT::DOMAIN
- :parent ONT::ABSTRACT-object
- :wordnet-sense-keys ("attribute%1:03:00")
- :comment "Nouns that name domain/scales, and can serve as relational nouns (e.g., the COLOR of the box)"
- :arguments ((:REQUIRED ONT::FIGURE)
-	     (:optional ont::GROUND)
-	     (:optional ont::EXTENT)
-             )
- )
-
-(define-type ONT::ORDERED-DOMAIN
-; :sem (F::Abstr-obj (F::Scale ?!sc))
- :parent ONT::DOMAIN
- )
+(define-type ont::data-structure
+  :parent ont::mathematical-term
+  :wordnet-sense-keys ("matrix%1:14:00")
+)
 
 (define-type ont::number
 ;  :parent ont::ordered-domain
@@ -389,57 +437,11 @@
        )
   )
 
-(define-type ONT::NON-MEASURE-ORDERED-DOMAIN
- :parent ONT::ORDERED-DOMAIN
- )
 
-(define-type ONT::range
- :parent  ONT::NON-MEASURE-ORDERED-DOMAIN
- )
-
-(define-type ont::status
-  :parent ont::non-measure-ordered-domain
-  :wordnet-sense-keys ("condition%1:26:00" "status%1:26:01" "state%1:26:02" "state_of_matter%1:26:00" "state%1:03:00")
-  )
-
-(define-type ont::sleepiness
-  :parent ont::status
-  :wordnet-sense-keys ("sleepiness%1:26:00" "drowsiness%1:26:00")
-  )
-
-;; comfort, discomfort
-(define-type ONT::comfortableness
- :parent ONT::non-measure-ordered-domain
- :wordnet-sense-keys ("discomfort%1:26:00" "discomfort%1:12:00")
- )
-
-;; security, privacy
-(define-type ONT::confidentiality
-    :wordnet-sense-keys ("privacy%1:07:00" "privacy%1:26:02")
-    :parent  ONT::NON-MEASURE-ORDERED-DOMAIN
- )
-
-;; protection, insurance
-(define-type ONT::protection
- :parent  ONT::NON-MEASURE-ORDERED-DOMAIN
- )
-
-;; severity, intensity
-(define-type ONT::intensity
-    :wordnet-sense-keys ("intensity%1:07:00" "intensity%1:07:03")
-    :parent  ONT::NON-MEASURE-ORDERED-DOMAIN
- )
-
-;; priority
-(define-type ONT::importance
-    :wordnet-sense-keys ("importance%1:26:00" "importance%1:07:00")
-    :parent  ONT::NON-MEASURE-ORDERED-DOMAIN
-    )
-
-;; custom, habit, practice, tradition
-(define-type ONT::practice
- :parent  ONT::NON-MEASURE-ORDERED-DOMAIN
- )
+(define-type ont::number-result
+ :parent ont::number
+ :wordnet-sense-keys("sum%1:09:01" "quotient%1:23:00" "product%1:09:00")
+)
 
 ;; layer (of ozone, chocolate), sheet (of ice, paper), slice
 (define-type ont::sheet-abstr
@@ -524,10 +526,6 @@
     :sem (F::abstr-obj (F::SCALE ONT::luminosity-scale))
     :arguments ((:essential ont::FIGURE (f::phys-obj)))
     )
-
-(define-type ONT::DISCRETE-DOMAIN
- :parent ONT::DOMAIN
- )
 
 ;; dozen, hundred, thousand...
 (define-type ONT::NUMBER-UNIT
@@ -638,45 +636,10 @@
              )
  )
 
-(define-type ONT::measure-domain
- :parent ONT::ORDERED-DOMAIN
- :sem (F::Abstr-obj (F::Measure-function F::term))
- :arguments ((:REQUIRED ONT::FIGURE)
-             (:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Measure-function F::Value)))
-             )
- )
-
-;; cheap, (in)expensive, pricy
-(define-type ONT::cost-val
- :parent  ONT::measure-domain
- :sem (F::Abstr-obj (F::Scale Ont::Money-scale))
- )
-
-(define-type ONT::phys-measure-domain
- :parent ONT::MEASURE-DOMAIN
- :arguments ((:REQUIRED ONT::FIGURE (F::phys-obj (:default (f::form f::object) (f::container +))))
-	     (:optional ont::extent))
- )
-
 (define-type ONT::number-measure-domain
  ;; :parent ONT::MEASURE-DOMAIN
  :parent ONT::MATHEMATICAL-TERM
  :arguments ((:REQUIRED ONT::FIGURE (F::Abstr-obj (F::Measure-function F::Term)))
-             )
- )
-
-(define-type ONT::WEIGHT
- :wordnet-sense-keys ("weight%1:07:00" "heaviness%1:07:00" "weightiness%1:07:00")
- :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj (F::Scale Ont::Weight-scale))
- :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::Weight-scale)))
-             )
- )
-
-(define-type ONT::area
- :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj (F::Scale Ont::area-scale))
- :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::area-scale)))
              )
  )
 
@@ -687,7 +650,19 @@
 ; :parent ONT::ordered-DOMAIN
  :parent ONT::ABSTRACT-OBJECT
  :arguments ((:ESSENTIAL ONT::FIGURE ((? of f::phys-obj F::Abstr-obj))) ;; noise, water
-	     (:essential ont::GROUND (f::abstr-obj   (F::INFORMATION F::INFORMATION-CONTENT)))
+	     (:essential ont::GROUND (f::abstr-obj   (F::INFORMATION F::INFORMATION-CONTENT))) ; a level of 5
+             )
+ )
+
+(define-type ONT::range
+ :wordnet-sense-keys ("range%1:07:00" "bracket%1:14:00")
+ :parent ont::level
+)
+
+(define-type ONT::dynamics
+ :wordnet-sense-keys ("dynamics%1:09:00")
+ :parent ONT::ABSTRACT-OBJECT
+ :arguments ((:ESSENTIAL ONT::FIGURE )
              )
  )
 
@@ -721,139 +696,8 @@
  :sem (F::Abstr-obj (F::Scale Ont::ratio-scale))
  )
 
-;; what is linear-s and linear-d?
-(define-type ONT::LINEAR-D
- :wordnet-sense-keys ("dimension%1:07:00")
-  :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj (F::Scale Ont::Linear-scale))
- :arguments (;;(:ESSENTIAL ONT::val (F::Abstr-obj (F::Scale Ont::Linear-scale) (F::measure-function F::value)))
-             (:ESSENTIAL ONT::EXTENT (F::abstr-obj (F::scale ont::linear-scale) (F::measure-function F::value))))
- )
-
-;; length
-(define-type ONT::length
-;; :sem (F::Abstr-obj (F::Scale Ont::length))
- :parent ONT::linear-d
- )
-
-;; width
-(define-type ONT::width-scale
- :wordnet-sense-keys ("width%1:07:00" "diameter%1:07:00")
- :sem (F::Abstr-obj (F::Scale Ont::width-scale))
- :parent ONT::linear-d
- )
-
-;; height
-(define-type ONT::height-scale
-    :sem (F::Abstr-obj (F::Scale Ont::height-scale))
- :parent ONT::linear-d
- )
-
-;; depth
-(define-type ONT::depth-scale
-    :sem (F::Abstr-obj (F::Scale Ont::depth-scale))
- :parent ONT::linear-d
- )
-
-;; thickness
-(define-type ONT::thickness
- :sem (F::Abstr-obj (F::Scale Ont::thickness))
- :parent ONT::linear-d
- )
-
-;; why isn't this a phys-measure-domain, like ont::weight?
-;; Myrosia: because there are many more arguments, distance from A to B is ...
-;; 2009 -- moving this under ont::linear-d
-(define-type ONT::DISTANCE
- :parent ONT::linear-d
- ;; need this sem specification to get "a short/long distance"
-;; :sem (f::abstr-obj (F::Scale Ont::distance))
- :arguments ((:REQUIRED ONT::neutral (F::phys-obj))
-             (:OPTIONAL ONT::neutral1 (F::phys-obj))
-	     (:OPTIONAL ONT::FIGURE (F::phys-obj))
-             )
- )
-
-;; bright(ness)
-(define-type ONT::luminosity-val
- :wordnet-sense-keys ("brightness%1:07:00")
- :parent ONT::PHYS-MEASURE-DOMAIN
- :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::luminosity-scale)))
-             )
- )
-
-(define-type ONT::TEMPERATURE
- :wordnet-sense-keys ("temperature%1:07:00" "temperature%1:09:00")
- :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj (F::Scale ONT::Temperature-scale))
- :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::Temperature-scale)))
-             )
- )
-
-(define-type ONT::VOLUME
- :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj (F::Scale Ont::Volume-scale))
- :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::Volume-scale)))
-             )
- )
-
-(define-type ONT::humidity-scale
- :parent ONT::PHYS-MEASURE-DOMAIN
- :sem (F::Abstr-obj) ;;(F::Scale Ont::humidity-scale))
- :arguments ((:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::humidity-scale)))
-             )
- )
-
-;; beginning, end, threshhold
-(define-type ONT::BOUND
-     :wordnet-sense-keys ("extremity%1:15:00" "extreme%1:07:00" "extreme%1:15:00")
-     :parent ONT::ORDERED-DOMAIN
-     :arguments ((:REQUIRED ONT::FIGURE ((? fot F::phys-obj F::abstr-obj f::situation)))
-		 (:ESSENTIAL ONT::GROUND)
-		 )
-     )
-
-#|
-(define-type ONT::END
- :parent ONT::BOUND
-  :wordnet-sense-keys ("end%1:28:00" "end%1:15:01")
- )
-|#
-
-#|
-(define-type ONT::BEGINNING
- :parent ONT::BOUND
-  :wordnet-sense-keys ("beginning%1:28:00")
- )
-|#
-
-;; the resolution of an image
-(define-type ONT::RESOLUTION
- :parent ONT::phys-measure-domain
- :arguments ((:ESSENTIAL ONT::GROUND (f::abstr-obj (f::scale ont::other-scale)))
-             )
- )
-
-; complex scales
-(define-type ONT::RATE
-; :parent ONT::MEASURE-DOMAIN
- :parent ONT::ORDERED-DOMAIN
-  :sem (F::Abstr-obj (F::Scale Ont::Rate-scale))
- :arguments ((:REQUIRED ONT::FIGURE ((? fot F::phys-obj F::situation)))
-             (:ESSENTIAL ONT::EXTENT (F::abstr-obj (F::measure-function F::value) (F::scale ont::rate-scale)))
-;	     (:essential ont::FORMAL (F::SITUATION (f::type ont::event-of-change)))
-             )
- )
-
-(define-type ONT::DENSITY
- :wordnet-sense-keys ("density%1:07:00" "concentration%1:07:02" "concentration%1:07:03")
- :parent ONT::RATE
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-             )
- )
-
 (define-type ONT::ASSETS
- :wordnet-sense-keys ("assets%1:21:00")
+ :wordnet-sense-keys ("assets%1:21:00" "resource%1:21:00")
 ; :parent ONT::MEASURE-DOMAIN
  :parent ONT::FUNCTION-OBJECT
  :sem (F::Abstr-obj (F::Scale Ont::money-scale))
@@ -861,22 +705,6 @@
              (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::measure-function F::value) (F::scale ont::money-scale)))
              )
  )
-
-(define-type ONT::TIME-RATE
- :parent ONT::RATE
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-             )
- )
-
-(define-type ONT::CLOCK-SPEED
- :parent ONT::TIME-RATE
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj (F::origin F::artifact)))
-             )
- )
-
-(define-type ONT::SPEED-SCALE
-    :parent ONT::TIME-RATE
-    )
 
 ;; dollars -- need a unit definition for '5 dollars'
 (define-type ONT::MONEY-UNIT
@@ -889,50 +717,6 @@
 (define-type ONT::currency
  :parent ONT::FUNCTION-OBJECT
  :sem (F::Abstr-obj (f::scale ont::money-scale))
- )
-
-(define-type ONT::Physical-discrete-domain
- :wordnet-sense-keys ("form%1:07:01" "shape%1:03:00" "form%1:03:00")
- :parent ONT::DISCRETE-DOMAIN
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-             )
- )
-
-;; flavor, scent
-(define-type ONT::sensory-property
- :parent ONT::PHYSICAL-DISCRETE-DOMAIN
- :sem (F::abstr-obj (F::scale ont::other-scale)) ;; why scale?
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-             )
- )
-
-(define-type ONT::size
- :parent ONT::PHYSICAL-DISCRETE-DOMAIN
- ;; making it f::size, to match w/ small & large
- :sem (F::abstr-obj (F::scale ont::size-scale)) ; what scale should this be? weight? length? does it need a scale?
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-	     (:OPTIONAL ONT::EXTENT)
-             )
- )
-
-(define-type ONT::texture
- :parent ONT::PHYSICAL-DISCRETE-DOMAIN
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-             )
- )
-
-(define-type ONT::gender
- :parent ONT::PHYSICAL-DISCRETE-DOMAIN
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj))
-             )
- )
-
-(define-type ONT::Color-scale
- :wordnet-sense-keys ("colouring%1:07:00" "coloring%1:07:00" "colour%1:07:00" "color%1:07:00" "color%1:09:01" "colour%1:09:01")
- :parent ONT::physical-discrete-domain
-  :sem (F::abstr-obj (F::scale ont::color-scale))
- :arguments ((:REQUIRED ONT::GROUND (F::abstr-obj (F::scale ont::color-scale))) ;?? what's this? the car's color of red?
-             )
  )
 
 (define-type ONT::source
@@ -970,8 +754,7 @@
      :wordnet-sense-keys ("message%1:10:01")
      :parent ont::information-function-object
      :arguments ((:optional ONT::formal (F::prop)))
-	     
-    )
+)
 
 (define-type ONT::composition
   :comment "composition, e.g., result of event-of-creation"
@@ -983,6 +766,7 @@
 (define-type ONT::information
  :wordnet-sense-keys ("information%1:10:00" "info%1:10:00" "indication%1:10:00")
  :parent ONT::information-function-object
+ :arguments ((:optional ONT::formal (F::prop))) ; copied from ONT::MESSAGE
  )
 
 ;; create an ont::communication-object
@@ -1053,23 +837,6 @@
   :parent ont::location-id
   )
 
-;; baseline, guideline
-(define-type ont::standard
- :parent ont::information-function-object
- )
-
-;; confidence, authority, trust
-(define-type ont::assurance
-    :wordnet-sense-keys ("trust%1:26:00")
-    :parent ont::non-measure-ordered-domain
-  )
-
-;; gist, essence, substance
-(define-type ont::gist
- :wordnet-sense-keys ("kernel%1:09:00" "substance%1:09:01" "core%1:09:00" "center%1:09:00" "centre%1:09:00" "essence%1:09:00" "gist%1:09:00" "heart%1:09:01" "heart_and_soul%1:09:00" "inwardness%1:09:02" "marrow%1:09:00" "meat%1:09:00" "nub%1:09:00" "pith%1:09:00" "sum%1:09:00" "nitty-gritty%1:09:00")
-  :parent ont::non-measure-ordered-domain
-  )
-
 (define-type  ONT::event-defined-by-activity
  :wordnet-sense-keys ("event%1:03:00" "time_period%1:28:00" "period_of_time%1:28:00" "period%1:28:00")
  :parent ONT::EVENT-TYPE
@@ -1103,19 +870,6 @@
  :wordnet-sense-keys ("phenomenon%1:03:00")
  :parent ONT::EVENT-TYPE
  :sem (F::Situation)
- )
-
-(define-type ONT::attribute
- :wordnet-sense-keys ("dimension%1:09:00" "attribute%1:09:00" "property%1:09:00" "property%1:07:00" "holding%1:21:00" "belongings%1:21:00" "property%1:21:00")
- :parent ont::abstract-object-nontemporal
- :arguments ((:OPTIONAL ONT::FIGURE ((? lo f::phys-obj f::abstr-obj)))
-             )
- )
-
-(define-type ONT::body-property
- :parent ont::attribute
- :arguments ((:OPTIONAL ONT::FIGURE (f::phys-obj (f::origin f::living)))
-             )
  )
 
 (define-type ONT::trouble
@@ -1235,17 +989,49 @@
              )
  )
 
+(define-type ont::mental-atttitude
+ :wordnet-sense-keys("mentality%1:09:01")
+ :parent ONT::mental-construction
+)
+
 (define-type ONT::knowledge-belief
     :wordnet-sense-keys ("knowledge%1:03:00")
     :parent ONT::mental-construction
     :arguments ((:OPTIONAL ONT::FIGURE) ;(f::situation (f::information f::mental-construct) (f::cause f::mental)))
 		))
 
+(define-type ONT::understanding
+ :wordnet-sense-keys("understanding%1:09:01" "comprehension%1:09:00")
+ :parent ONT::knowledge-belief
+)
+
+(define-type ont::opinion
+ :parent ONT::knowledge-belief
+ :wordnet-sense-keys ("opinion%1:10:01" "viewpoint%1:09:00" "belief%1:09:00" "opinion%1:09:00")
+)
+
+(define-type ont::concept-notion
+    :wordnet-sense-keys ("thought%1:09:01" "notion%1:09:00" "concept%1:09:00" "conceptualization%1:09:00")
+    :parent ONT::mental-construction
+    :arguments ((:OPTIONAL ONT::FIGURE)
+                )
+)
+
+(define-type ONT::gist
+ ; :wordnet-sense-keys ("kernel%1:09:00" "substance%1:09:01" "core%1:09:00" "center%1:09:00" "centre%1:09:00" 
+ ;		       "essence%1:09:00" "gist%1:09:00" "heart%1:09:01" "heart_and_soul%1:09:00" "inwardness%1:09:02" 
+ ;		       "marrow%1:09:00" "meat%1:09:00" "nub%1:09:00" "pith%1:09:00" "sum%1:09:00" "nitty-gritty%1:09:00")
+ :wordnet-sense-keys ("gist%1:09:00")
+ :parent ONT::concept-notion
+)
+
 (define-type ONT::FEELING
     :wordnet-sense-keys ("feeling%1:03:00" "bother%1:09:00" "worry%1:09:00" "sorrow%1:09:00" "distress%1:12:02" "restlessness%1:12:00")
     :parent ONT::mental-construction
     :arguments ((:OPTIONAL ONT::FIGURE) ;(f::situation (f::information f::mental-construct) (f::cause f::mental)))
-		))
+		)
+)
+
 
 ;; reason, motivation
 (define-type ONT::motive
@@ -1262,17 +1048,44 @@
 ;; high-level for problem solving objects
 (define-type ONT::ps-object
  :parent ONT::mental-construction
- ;;:sem (F::Abstr-obj (F::information F::information-content))
+ :sem (F::Abstr-obj (F::container +))
  :arguments ((:optional ont::FIGURE)
 	     (:optional ont::formal)
 	     (:optional ont::GROUND)
 	     )
 )
 
+(define-type ONT::requirements
+ :parent ont::ps-object
+ :wordnet-sense-keys ("term%1:10:02" "provision%1:10:00" "condition%1:10:01" "requirement%1:09:00" "standard%1:09:00" "criterion%1:09:00")
+ :comment "reference or rules that must be met to satisfy evaluation"
+)
+
+(define-type ont::mental-plan
+ :parent ont::ps-object
+ :wordnet-sense-keys("plan%1:09:01")
+)
+
+(define-type ont::budget
+ :parent ont::mental-plan
+ :wordnet-sense-keys("budget%1:21:03")
+)
+
+;; baseline, guideline
+;(define-type ont::standard
+; :parent ont::information-function-object
+; )
+(define-type ONT::standard
+ :parent ont::ps-object
+ :wordnet-sense-keys ("criterion%1:10:00" "standard%1:10:00")
+ :comment "the ideal in terms of which something can be judged"
+)
+
 ;; ways of doing things, accomplishing tasks
 (define-type ONT::procedure
  :parent ONT::ps-object
  ;; CERNL hack:: adding verb roles for verbs tagged as ont::procedure
+ :sem (F::Abstr-obj (F::intentional -) (F::container +))
  )
 
 (define-type ONT::method
@@ -1402,8 +1215,9 @@
   )
 
 (define-type ONT::computer-software
-  :parent ONT::ps-object
-  :sem (F::Abstr-obj (F::information F::information-content))
+  :parent ONT::representation
+;  :sem (F::Abstr-obj (F::information F::information-content))
+  :sem (F::Abstr-obj (f::origin f::artifact) (F::information F::mental-construct))
   )
 
 ;; autofill, autocomplete, colorsync, etc.
@@ -1416,7 +1230,6 @@
 (define-type ONT::computer-program
  :wordnet-sense-keys ("applications_programme%1:10:00" "application_program%1:10:00" "application%1:10:01" "program%1:10:02" "programme%1:10:02" "computer_program%1:10:00" "computer_programme%1:10:00")
   :parent ONT::computer-software
-   :sem (F::Abstr-obj (F::information F::information-content) (f::origin f::artifact))
   )
 
 (define-type ONT::web-browser
@@ -1479,13 +1292,6 @@
  :parent ONT::letter-symbol
  )
 
-(define-type ONT::POPULATION
- :parent ONT::ORDERED-DOMAIN
- :sem (F::Abstr-obj (F::Measure-function F::term))
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj (F::form F::geographical-object)))
-             )
- )
-
 (define-type ONT::COST-RELATION
  :parent ONT::predicate
  :sem (F::Abstr-obj (f::scale ont::money-scale) (f::information f::information-content))
@@ -1503,11 +1309,21 @@
              )
  )
 
-;;  
+
+(define-type ont::value
+ :wordnet-sense-keys ("value%1:07:00")
+ :parent ONT::abstract-object-nontemporal
+  :arguments ((:REQUIRED ONT::FIGURE (F::Abstr-obj (F::Scale Ont::money-scale) (f::object-function f::currency)))
+              (:REQUIRED ONT::GROUND (F::Abstr-obj (F::Scale Ont::money-scale) (f::object-function f::currency)))
+              )
+)
+
+
+;;
 (define-type ONT::VALUE-COST
  :wordnet-sense-keys ("change%1:21:02" "return%1:21:00" "issue%1:21:00" "take%1:21:00" "takings%1:21:00" "proceeds%1:21:00" "yield%1:21:00" "payoff%1:21:02")
  :wordnet-sense-keys ("change%1:21:02" "return%1:21:00" "issue%1:21:00" "take%1:21:00" "takings%1:21:00" "proceeds%1:21:00" "yield%1:21:00" "payoff%1:21:02")
- :parent ONT::abstract-object-nontemporal
+ :parent ONT::value
   :arguments ((:REQUIRED ONT::FIGURE (F::Abstr-obj (F::Scale Ont::money-scale) (f::object-function f::currency)))
 	      (:REQUIRED ONT::GROUND (F::Abstr-obj (F::Scale Ont::money-scale) (f::object-function f::currency)))
 	      )
@@ -1526,20 +1342,11 @@
   :parent ont::value-cost
   )
 
-(define-type ONT::BUDGET
- :parent ONT::MEASURE-DOMAIN
- :sem (F::Abstr-obj (f::scale ont::money-scale))
- :arguments (;; only projects have budgets -- the budgets for people and objects are more general relations (JFA 9/1)
-	     (:essential ONT::FIGURE (f::abstr-obj (f::information f::information-content)))
-             ;;; a project's budget of 5 dollars
-             (:ESSENTIAL ONT::GROUND (F::Abstr-obj (F::Scale Ont::money-scale)))
-             )
- )
-
 ;; for account, grant, credit card
 ;; can we find a way to distinguish between bill (put it on my bill) and grant (put it on my grant)?
 (define-type ONT::ACCOUNT
- :parent ONT::ABSTRACT-OBJECT-nontemporal
+ :parent ont::value-cost
+; :parent ONT::ABSTRACT-OBJECT-nontemporal
  :sem (F::Abstr-obj (F::Measure-function F::term)  (f::object-function f::currency) (f::scale ont::money-scale))
   :arguments (
  ;; accounts can belong to individuals, organizations or projects
@@ -1559,25 +1366,6 @@
   :parent ont::situation
  :arguments ((:REQUIRED ONT::FIGURE)
              )
- )
-
-;; surplus, excess
-(define-type ONT::surplus
- :parent ONT::ORDERED-DOMAIN
- :arguments ((:REQUIRED ONT::FIGURE)
-             )
- )
-
-;; spec, requirement
-(define-type ONT::REQUIREMENTS
- :parent ONT::ORDERED-DOMAIN
- :arguments ((:REQUIRED ONT::FIGURE)
-             )
- )
-
-;; resource
-(define-type ONT::resource
- :parent ONT::requirements
  )
 
 #|
@@ -1662,14 +1450,6 @@
  )
 
 #|
-(define-type ONT::RESPONSIBILITY
- :parent ONT::ORDERED-DOMAIN
- :arguments ((:OPTIONAL ONT::FIGURE)
-             )
- )
-|#
-
-#|
 ;;; LF type for movie, theater
 (define-type ONT::ENTERTAINMENT
  :parent ONT::ABSTRACT-OBJECT
@@ -1679,14 +1459,10 @@
 
 ;; song, rhapsody
 (define-type ONT::music
- :wordnet-sense-keys ("music%1:10:00" "musical_genre%1:10:00")
+ :wordnet-sense-keys ("music%1:10:00")
  :parent ONT::composition
  )
 ;; For epa and bee
-
-(define-type ont::voltage
- :wordnet-sense-keys ("voltage%1:19:02" "electromotive_force%1:19:00" "emf%1:19:00")
-    :parent ont::phys-measure-domain)
 
 (define-type ont::definition
     :parent ont::information-function-object
@@ -1705,30 +1481,13 @@
  :parent ONT::process
  )
 
-(define-type ONT::age
-    :parent ONT::PHYS-MEASURE-DOMAIN
-    :sem (F::Abstr-obj (F::measure-function F::term))
- )
-
-(define-type ONT::likelihood
- :parent ONT::ORDERED-DOMAIN
- :sem (F::Abstr-obj (F::measure-function F::term))
- :arguments ((:REQUIRED ONT::FIGURE (f::situation))
-             )
- )
-
 (define-type ONT::eating-plan
  :parent ONT::RECIPE
  )
 
-;; hearing, sight, vision
-(define-type ONT::physical-sense
- :parent ONT::non-measure-ordered-domain
- :arguments ((:REQUIRED ONT::FIGURE (F::Phys-obj (F::container -) (F::form F::solid-object) (F::origin F::human)))
-             )
- )
-
 ;; abnormality, irregularity, anomaly
+;; moved under domain. jena Aug 2017 see not-typical-scale
+#|
 (define-type ONT::abnormality
  :wordnet-sense-keys ("abnormality%1:04:00" "irregularity%1:04:00")
  :parent ONT::event-type
@@ -1736,6 +1495,7 @@
  :arguments ((:OPTIONAL ONT::FIGURE)
              )
  )
+|#
 
 ;; We need f::situation counterparts for medical words classified as ont::treatment or ont::diagnostic for i2b2 because we don't have multiple inheritance
 ;; surgery
@@ -1789,20 +1549,6 @@
  :wordnet-sense-keys ("other%3:00:00" "another%3:00:00")
  )
 
-(define-type ONT::inexpensive
- :parent ONT::COST-VAL
- ; Words: (W::CHEAP W::INEXPENSIVE)
-:wordnet-sense-keys ("cheap%3:00:00" "cheap%3:00:00")
- ; Antonym: ONT::expensive (W::EXPENSIVE W::PRICEY W::PRICY)
- )
-
-(define-type ONT::expensive
- :parent ONT::COST-VAL
- ; Words: (W::EXPENSIVE W::PRICEY W::PRICY)
- :wordnet-sense-keys ("costly%5:00:01:expensive:00" "expensive%3:00:00" "expensive%3:00:00")
- ; Antonym: ONT::inexpensive (W::CHEAP W::INEXPENSIVE)
- )
-
 (define-type ont::scale
   :sem (F::Abstr-obj (F::Scale ?!sc))
   :parent ont::abstract-object
@@ -1854,18 +1600,6 @@
 ;  :parent ont::size-scale
   :parent ont::scale
   )
-
-(define-type ont::rate-scale
-  :parent ont::measure-domain
-  )
-
-(define-type ont::ratio-scale
-  :parent ont::measure-domain
-  )
-
-(define-type ont::percent-scale
-    :wordnet-sense-keys ("percentage%1:24:00" )
-    :parent ont::measure-domain)
 
 (define-type ont::luminosity-scale
   :parent ont::scale

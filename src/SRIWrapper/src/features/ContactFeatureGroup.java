@@ -1,5 +1,6 @@
 package features;
 
+import java.util.HashMap;
 import java.util.List;
 
 import models.FeatureConstraint;
@@ -20,7 +21,7 @@ public class ContactFeatureGroup implements FeatureGroup{
 	}
 
 	@Override
-	public List<Feature> getFeatures() {
+	public HashMap<String,Feature> getFeatures() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -25,9 +25,11 @@ import messages.BlockMessagePuller;
 import messages.BlockMessageReader;
 import messages.BlockMessageSender;
 import messages.CommDataReader;
+import messages.EvaluateHandler;
 import models.*;
 import environment.*;
 import features.*;
+import goals.*;
 
 import org.json.simple.JSONObject;
 
@@ -43,15 +45,19 @@ public class SRIWrapper extends StandardTripsModule  {
 	private String hostName = "localhost";
 	private boolean localFeatureExtraction = true;
     private boolean speechEnabled;
+    private boolean listenForMessages = false;
     private int callingProcess;
     private BlockMessagePuller blockMessagePuller;
     private CommDataReader commDataReader;
     private BlockMessageReader blockMessageReader;
+    private EvaluateHandler evaluateHandler;
+    private GoalStateHandler goalStateHandler;
     private Thread blockMessagePullerThread;
     private Thread commDataReaderThread;
     private Thread blockMessageReaderThread;
     private Plan plan;
     private ModelBuilder modelBuilder;
+    
     private boolean connectToApparatus = true;
 	
 	
@@ -68,12 +74,26 @@ public class SRIWrapper extends StandardTripsModule  {
      */
     public SRIWrapper(String argv[], boolean isApplication) {
     	super(argv, isApplication);
+    	BlockMessageSender.ENABLED = false;
+    	TextToSpeech.APPARATUS_ENABLED = false;
     	if (argv.length > 2)
     	{
     		if (argv[2].contains("t"))
     		{
     			System.out.println("Apparatus disabled");
     			connectToApparatus = false;
+    			BlockMessageSender.ENABLED = false;
+    			TextToSpeech.APPARATUS_ENABLED = false;
+    		}
+    	}
+    	if (argv.length > 3)
+    	{
+    		if (argv[3].contains("t"))
+    		{
+    			System.out.println("Messages enabled");
+    	    	BlockMessageSender.ENABLED = true;
+    	    	TextToSpeech.APPARATUS_ENABLED = true;
+    			listenForMessages = true;
     		}
     	}
     }
@@ -121,6 +141,9 @@ public class SRIWrapper extends StandardTripsModule  {
 //	
 	//LatticeDemo.test(new String[0]);
 	modelBuilder = new ModelBuilder();
+	goalStateHandler = new GoalStateHandler(modelBuilder, this);
+	evaluateHandler = new EvaluateHandler(goalStateHandler,modelBuilder);
+	
 	plan = new Plan(modelBuilder);
 	plan.steps.add(new Step("getresponse",""));
 	plan.steps.add(new Step("say", "Hello. Can you show me what a row is?"));
@@ -166,18 +189,11 @@ public class SRIWrapper extends StandardTripsModule  {
 	}
 	try {
 	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (mentioned . *)))");
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (component-status . *) ))");
 	    send(perf);
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
-	}
-	try {
-	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (demonstrated . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
+	}	
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (relate . *)))");
@@ -306,7 +322,7 @@ public class SRIWrapper extends StandardTripsModule  {
 	    error("Yow! Subscription failed: " + ex);
 	}
 	
-	blockMessagePuller = new BlockMessagePuller(this, plan);
+	blockMessagePuller = new BlockMessagePuller(this, goalStateHandler, plan);
 	blockMessagePullerThread = new Thread(blockMessagePuller);
 
 	if (connectToApparatus)
@@ -349,6 +365,10 @@ public class SRIWrapper extends StandardTripsModule  {
 		    errorReply(msg, "content was not a list");
 		    return;
 		}
+		
+		if (!listenForMessages)
+			return;
+		
 		KQMLList content = (KQMLList)contentobj;
 		String content0 = content.get(0).toString();
 
@@ -361,6 +381,24 @@ public class SRIWrapper extends StandardTripsModule  {
 				return;
 			}
 			callingProcess = Integer.parseInt(pid);
+		}
+		else if (content0.equalsIgnoreCase("component-status"))
+		{
+			KQMLObject whatObj = content.getKeywordArg(":what");
+			if (whatObj != null)
+			{
+				if (whatObj instanceof KQMLList)
+				{
+					KQMLList whatList = (KQMLList)whatObj;
+					if (!whatList.isEmpty() && 
+							whatList.get(0).toString().equalsIgnoreCase("TESTING"))
+					{
+						listenForMessages = false;
+						System.out.println("Disabled message receiving for SRIWrapper"
+								+ " because of testing.");
+					}
+				}
+			}
 		}
 		else if (content0.equalsIgnoreCase("started-speaking") && speechEnabled)
 		{
@@ -436,8 +474,15 @@ public class SRIWrapper extends StandardTripsModule  {
 		    return;
 		}
 		
+		if (!listenForMessages)
+			return;
+		
 		KQMLList content = (KQMLList)contentobj;
 		String content0 = content.get(0).toString();
+		String replyWith = "NIL";
+		KQMLObject replyWithObject = msg.getParameter(":REPLY-WITH");
+		if (replyWithObject != null)
+			replyWith = replyWithObject.stringValue();
 		
 		if (content0.equalsIgnoreCase("quit"))
 		{
@@ -446,114 +491,81 @@ public class SRIWrapper extends StandardTripsModule  {
 		}
 		else if (content0.equalsIgnoreCase("what-next"))
 		{
+			
 			KQMLObject goalName = content.getKeywordArg(":active-goal");
-			KQMLList context = (KQMLList)(content.getKeywordArg(":context"));
-			//TODO: Add in step generation here
+			KQMLObject contextObj = content.getKeywordArg(":context");
+			KQMLList context = new KQMLList();
+			if (contextObj != null && contextObj instanceof KQMLList)
+				context = (KQMLList)contextObj;
+			System.out.println("Received what-next");
+			goalStateHandler.lastReplyWith = replyWith;
+			KQMLList responseContent = goalStateHandler.whatNext(context,goalName.stringValue());
+			if (responseContent == null)
+			{
+				System.out.println("Null response content for what-next");
+				return;
+			}
+			else
+			{
+				System.out.println("Sending " + responseContent.stringValue());
+			}
+			KQMLPerformative performativeToSend = new KQMLPerformative("REPLY");
+			performativeToSend.setParameter(":RECEIVER", "DAGENT");
+			System.out.println("Response content: " + responseContent);
+			performativeToSend.setParameter(":CONTENT",responseContent);
+			performativeToSend.setParameter(":IN-REPLY-TO", replyWith);
+			System.out.println("Reply-with: " + replyWith);
+			sendKQMLPerformative(performativeToSend);
 			
 		}
 		else if (content0.equalsIgnoreCase("evaluate"))
 		{
-
+			System.out.println("Received evaluate");
 			KQMLList innerContent = (KQMLList)content.getKeywordArg(":CONTENT");
 			KQMLList context = (KQMLList)(content.getKeywordArg(":context"));
 			//plan.processKQML(innerContent, context);
 			
 			String speechAct = innerContent.get(0).stringValue();
-			String goal = innerContent.getKeywordArg(":WHAT").stringValue();
-			KQMLList goalLF = KQMLUtilities.findTermInKQMLList(goal, context);
-			String goalType = goalLF.getKeywordArg(":INSTANCE-OF").stringValue();
+			System.out.println("Speech Act: " + speechAct);
+			KQMLList responseContent = null;
 			
-			if (speechAct.equalsIgnoreCase("ADOPT") )
+			
+			if (speechAct.equalsIgnoreCase("ADOPT"))
 			{
-				System.out.println("ADOPT");
-				if ( goalType.equalsIgnoreCase("ONT::CREATE"))
-				{
-					String objectToMakeID = goalLF.getKeywordArg(":AFFECTED-RESULT").stringValue();
-					KQMLList objectToMakeLF = KQMLUtilities.findTermInKQMLList(objectToMakeID, context);
-					String objectToMake = objectToMakeLF.getKeywordArg(":INSTANCE-OF").stringValue();
-					String cleanObjectToMake = objectToMake.split("::")[1];
-					
-					if (modelBuilder.currentModel == null || !modelBuilder.currentModel.name.equals(cleanObjectToMake))
-					{
-						TextToSpeech.say("What is a " + cleanObjectToMake + "?");
-						//steps.add(new Step("querymodeldefinition", cleanObjectToMake));
-						modelBuilder.processNewModel(cleanObjectToMake);
-					}
-				}
-				else if (goalType.equalsIgnoreCase("ONT::PUT"))
-				{
-					System.out.println("Putting object");
-					FeatureProjection fp = new FeatureProjection(null);
-					fp.extractProjectionFromKQML(context);
-					String affected = goalLF.getKeywordArg(":AFFECTED").stringValue();
-					String result = goalLF.getKeywordArg(":RESULT").stringValue();
-					System.out.println("AFFECTED:");
-					TemporalSequenceFeature tsfAffected = (TemporalSequenceFeature)fp.variableFGBindings.get(affected);
-					tsfAffected.straighten();
-					System.out.println(tsfAffected);
-					List<BlockFeatureGroup> bfgList = tsfAffected.getBlockFeatureGroups();
-					System.out.println("BFG List");
-					for (BlockFeatureGroup bfg : bfgList)
-					{
-						System.out.println("Sending: " + bfg.getPointFeature().getValue());
-						
-						try {
-							BlockMessageSender.sendPostRequest(bfg.getPointFeature().getValue());
-						}
-						catch (IOException e)
-						{
-							e.printStackTrace();
-						}
-					
-					}
-					//System.out.println("RESULT:");
-					//System.out.println(fp.variableFGBindings.get(result));
-					
-				}
-				else if (goalType.equalsIgnoreCase("ONT::QUERY-MODEL"))
-				{
-					String eventToQueryID = goalLF.getKeywordArg(":NEUTRAL").stringValue();
-					KQMLList eventToQuery = KQMLUtilities.findTermInKQMLList(eventToQueryID, context);
-					String modelTermID = eventToQuery.getKeywordArg(":NEUTRAL1").stringValue();
-					KQMLList modelTerm = KQMLUtilities.findTermInKQMLList(modelTermID, context);
-					String modelName = modelTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-					String cleanModelName = modelName.split("::")[1]; 
-					//steps.add(new Step("checkmodel", cleanObjectToMake));
-					boolean satisfied = modelBuilder.getModelInstantiation(cleanModelName)
-								.testModelOnStructureInstance(Scene.currentScene.integerBlockMapping.values());
-					
-					StringBuilder response = new StringBuilder();
-					
-					if (satisfied)
-						response.append("Yes because ");
-					else
-						response.append("No because ");
-						
-					for (FeatureConstraint fc : modelBuilder.getModelInstantiation(cleanModelName).constraints)
-					{
-						response.append("the ");
-						response.append(fc.reason());
-					}
-					response.append(".");
-					TextToSpeech.say(response.toString());
-
-				}
-				else if ( goalType.equalsIgnoreCase("ONT::TEACH-TRAIN"))
-				{
-					TextToSpeech.say("Ok.");
-				}
+				System.out.println("Handling adopt message");
+				responseContent = evaluateHandler.handleAdoptMessage(innerContent, context);
 			}
 			else if(speechAct.equalsIgnoreCase("ASSERTION"))
 			{
-				KQMLList assertions = (KQMLList)goalLF.getKeywordArg(":EVENTS");
-				modelBuilder.getModelInstantiation(modelBuilder.currentModel.name)
-									.getConstraintsFromKQML(context);
-				TextToSpeech.say("Ok.");
-				
+				responseContent = evaluateHandler.handleAssertionMessage(innerContent, context);
 			}
-		}
-		else if (content0.equalsIgnoreCase("INTERPRET-SPEECH-ACT"))
-		{
+			else if (speechAct.equalsIgnoreCase("ASK-WH"))
+			{
+				responseContent = evaluateHandler.handleAskWhMessage(innerContent, context);
+			}
+			else if (speechAct.equalsIgnoreCase("ASK-IF"))
+			{
+				responseContent = evaluateHandler.handleAskIfMessage(innerContent, context);
+			}
+			else if (speechAct.equalsIgnoreCase("ANSWER"))
+			{
+				responseContent = evaluateHandler.handleAnswerMessage(innerContent, context);
+			}
+			
+			if (responseContent == null)
+			{
+				System.out.println("Null response content for evaluate");
+				return;
+			}
+			
+			KQMLPerformative performativeToSend = new KQMLPerformative("REPLY");
+			performativeToSend.setParameter(":RECEIVER", "DAGENT");
+			System.out.println("Response content: " + responseContent);
+			performativeToSend.setParameter(":CONTENT",responseContent);
+			performativeToSend.setParameter(":IN-REPLY-TO", replyWith);
+			System.out.println("Reply-with: " + replyWith);
+			
+			sendKQMLPerformative(performativeToSend);
 			
 		}
 		else if (content0.equalsIgnoreCase("set-parameters"))
@@ -579,7 +591,7 @@ public class SRIWrapper extends StandardTripsModule  {
 			double speedMultiplier = 1;
 			if (content.getKeywordArg(":speedmultiplier") != null)
 				speedMultiplier = Double.parseDouble(content.getKeywordArg(":speedmultiplier").stringValue());
-			blockMessageReader = new BlockMessageReader(this, plan, metaFilename, blockDataFilename);
+			blockMessageReader = new BlockMessageReader(this, goalStateHandler, plan, metaFilename, blockDataFilename);
 			blockMessageReader.setSpeedMultiplier(speedMultiplier);
 			blockMessageReaderThread = new Thread(blockMessageReader);
 			blockMessageReaderThread.start();
@@ -661,6 +673,7 @@ public class SRIWrapper extends StandardTripsModule  {
 	
 	public void sendKQMLPerformative(KQMLPerformative performative)
 	{
+		//System.out.println("Sending performative: " + performative);
 		send(performative);
 	}
     

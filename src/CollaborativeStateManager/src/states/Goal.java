@@ -7,13 +7,15 @@ import java.util.*;
 
 import extractors.TermExtractor;
 import TRIPS.KQML.KQMLList;
+import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLString;
 import TRIPS.KQML.KQMLToken;
 
 public class Goal {
 
 	Goal parent;
-	List<Goal> childGoals;
+	LinkedList<Goal> childGoals;
+	Goal nextSibling;
 	KQMLList term;
 	String id;
 	boolean accepted;
@@ -24,6 +26,7 @@ public class Goal {
 	List<KQMLList> failureMessages;
 	boolean initiativeSpecified;
 	boolean specifiedSystemInitiative;
+	boolean systemOwnedGoal;
 	KQMLList additionalContext;
 	KQMLList originalContext;
 	
@@ -54,6 +57,7 @@ public class Goal {
 			id = IDHandler.getNewID();
 		else
 			id = term.getKeywordArg(":ID").stringValue();
+		nextSibling = null;
 	}
 	
 	public Goal(Goal toCopy)
@@ -172,6 +176,44 @@ public class Goal {
 		this.parent = newParent;
 	}
 	
+	private void addChild(Goal newChild)
+	{
+		Goal previousSibling = null;
+		if (!childGoals.isEmpty())
+			previousSibling = childGoals.getLast();
+		childGoals.add(newChild);
+		
+	}
+	
+	private Goal getNextSibling()
+	{
+		// Yes, I know this isn't optimized. You can do it.
+		if (parent != null)
+		{
+			int nextIndex = parent.childGoals.indexOf(this) + 1;
+			if (nextIndex < parent.childGoals.size())
+				return parent.childGoals.get(nextIndex);
+		}
+		return null;
+	}
+	
+	private Goal getPreviousSibling()
+	{
+		// Yes, I know this isn't optimized. You can do it.
+		if (parent != null)
+		{
+			int previousIndex = parent.childGoals.indexOf(this) - 1;
+			if (previousIndex > 0)
+				return parent.childGoals.get(previousIndex);
+		}
+		return null;
+	}
+	
+	public void removeChild(Goal childToRemove)
+	{
+		childGoals.remove(childToRemove);
+	}
+	
 	public void setArgument(String argument, String value)
 	{
 		term.removeKeywordArg(argument);
@@ -209,13 +251,22 @@ public class Goal {
 	
 	public String toString()
 	{
+	    // LG: added more information in a compact form
+	    if (false) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Goal:" + getVariableName());
 		if (parent != null)
-		{
+		    {
 			sb.append("\nParent: " + parent.getVariableName());
-		}
-		return sb.toString(); 
+		    }
+		return sb.toString();
+	    }
+	    return "Goal:" + getVariableName()
+		+ "[" + ( "A:" + accepted +
+			  ",R:" + rejected +
+			  ",C:" + completed +
+			  ",F:" + failed ) + "]"
+		+ ( (parent != null) ? ("->" + parent.getVariableName()) : "" );
 	}
 
 	public boolean isAccepted() {
@@ -233,6 +284,15 @@ public class Goal {
 	public KQMLList getAdditionalContext()
 	{
 		return additionalContext;
+	}
+	
+	public String getArgumentAsString(String argument)
+	{
+		KQMLObject resultObject = term.getKeywordArg(argument);
+		if (resultObject == null)
+			return null;
+		
+		return resultObject.stringValue();
 	}
 	
 }

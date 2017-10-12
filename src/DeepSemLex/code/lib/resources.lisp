@@ -311,6 +311,8 @@
 	    (lambda (s)
 	      (make-pathname :defaults bd :name s :type "lisp"))
 	    '("abstract-types"
+	      "domain-and-attribute-types"
+	      "music-terminology"
 	      "physobj"
 	      "predicates"
 	      "property-val"

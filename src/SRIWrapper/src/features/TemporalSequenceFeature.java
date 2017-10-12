@@ -7,21 +7,18 @@ import org.jblas.DoubleMatrix;
 import features.*;
 import environment.Block;
 
-public class TemporalSequenceFeature extends Feature<List> implements FeatureGroup{
+public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 
-	private List<FeatureGroup> sequence;
 	private DirectionFeature direction;
-	private CountFeature count;
 	private PointFeature origin;
 	
 	public TemporalSequenceFeature(String name) {
 		super(name);
-		sequence = new ArrayList<FeatureGroup>();
 		direction = new DirectionFeature("direction");
 		direction.setValue(new DoubleMatrix(new double[]{1,0,0}));
 		origin = new PointFeature("origin");
 		origin.setValue(new DoubleMatrix(new double[]{0,0,Block.BLOCK_WIDTH/2}));
-		count = new CountFeature("count");
+		
 	}
 	
 	public TemporalSequenceFeature projectOnto(DirectionFeature original, DirectionFeature newDirection)
@@ -57,18 +54,21 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 		
 	}
 	
+	/*
+	 * Sets sequences to start at their origins
+	 */
 	public void straighten()
 	{
-		if (!sequence.isEmpty() && sequence.get(0) instanceof BlockFeatureGroup)
+		if (!elements.isEmpty() && elements.get(0) instanceof BlockFeatureGroup)
 		{
-			System.out.println("Old block value: " + ((BlockFeatureGroup)sequence.get(0)).getPointFeature()); 
-			((BlockFeatureGroup)sequence.get(0)).setPointFeature(origin);
-			System.out.println("New block value: " + ((BlockFeatureGroup)sequence.get(0)).getPointFeature());
+			System.out.println("Old block value: " + ((BlockFeatureGroup)elements.get(0)).getPointFeature()); 
+			((BlockFeatureGroup)elements.get(0)).setPointFeature(origin);
+			System.out.println("New block value: " + ((BlockFeatureGroup)elements.get(0)).getPointFeature());
 		}
 		else
 		{
 			System.out.println("Straightening sub feature groups");
-			for (FeatureGroup fg : sequence)
+			for (FeatureGroup fg : elements)
 			{
 				if (fg instanceof TemporalSequenceFeature)
 					((TemporalSequenceFeature)fg).straighten();
@@ -85,20 +85,26 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 		System.out.println(" onto ");
 		System.out.println(onto);
 		int index = 0;
-		for (FeatureGroup fg : sequence)
+		for (FeatureGroup fg : elements)
 		{
+			// TODO: This is kind of a hack - it assumes the count is the height
 			if (fg instanceof CountFeature)
 			{
 				System.out.println("Projecting counts");
 				CountFeature cf = (CountFeature)fg;
-				if (index == onto.sequence.size())
+				if (index == onto.elements.size())
 					break;
-				FeatureGroup ontoFg = onto.sequence.get(index);
+				FeatureGroup ontoFg = onto.elements.get(index);
 				
 				if (ontoFg instanceof TemporalSequenceFeature)
 				{
 					System.out.println("Extending to: " + cf.getValue());
 					((TemporalSequenceFeature) ontoFg).extendToSize(cf.getValue(), Block.BLOCK_WIDTH);
+				}
+				else if (ontoFg instanceof CountFeature)
+				{
+					System.out.println("Cloning count to " + cf.getValue());
+					((CountFeature)ontoFg).setValue(cf.getValue());
 				}
 				
 			}
@@ -109,23 +115,23 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 
 				PointFeature nextPosition = onto.getNextInDirection(Block.BLOCK_WIDTH);
 				System.out.println("Next position: " + nextPosition.getValue());
-				if (index < onto.sequence.size())
+				if (index < onto.elements.size())
 				{
-					if (onto.sequence.get(index) instanceof TemporalSequenceFeature)
+					if (onto.elements.get(index) instanceof TemporalSequenceFeature)
 					{
-						System.out.println("Old element:" + onto.sequence.get(index));
-						PointFeature pf = ((TemporalSequenceFeature)onto.sequence.get(index)).getOrigin();
+						System.out.println("Old element:" + onto.elements.get(index));
+						PointFeature pf = ((TemporalSequenceFeature)onto.elements.get(index)).getOrigin();
 						
-						onto.sequence.set(index, sequence.get(index));
-						((TemporalSequenceFeature)sequence.get(index)).getOrigin().setValue(pf.getValue());
-						System.out.println("New element:" + onto.sequence.get(index));
+						onto.elements.set(index, elements.get(index));
+						((TemporalSequenceFeature)elements.get(index)).getOrigin().setValue(pf.getValue());
+						System.out.println("New element:" + onto.elements.get(index));
 						
 					}
 				}
 				else
 				{
-					((TemporalSequenceFeature)sequence.get(index)).getOrigin().setValue(nextPosition.getValue());
-					onto.addToSequence(sequence.get(index));
+					((TemporalSequenceFeature)elements.get(index)).getOrigin().setValue(nextPosition.getValue());
+					onto.addToSequence(elements.get(index));
 					
 					
 				}
@@ -143,7 +149,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 		int maxAxis = direction.getMaxAxis();
 
 		TreeMap<Double,FeatureGroup> toSort = new TreeMap<Double,FeatureGroup>();
-		for (FeatureGroup fg : sequence)
+		for (FeatureGroup fg : elements)
 		{
 			if (fg instanceof BlockFeatureGroup)
 			{
@@ -169,15 +175,16 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	
 	public void setSequence(List<FeatureGroup> sequence)
 	{
-		this.sequence = sequence;
+		this.elements = sequence;
 		this.count.setValue(sequence.size());
 	}
 	
 	public PointFeature getNextInDirection(double interval)
 	{
 		System.out.println("Calling getNextInDirection");
-		if (sequence.isEmpty())
+		if (elements.isEmpty())
 		{
+			System.out.println("Returning origin");
 			return origin;
 		}
 		
@@ -211,7 +218,8 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 			DoubleMatrix lastValue = ((BlockFeatureGroup)lastFg).getPointFeature().getValue();
 			PointFeature newPF = new PointFeature("origin");
 			DoubleMatrix newValue = lastValue.add(direction.getValue()
-									.mul(new DoubleMatrix(new double[]{interval,interval,interval})));
+									.mul(new DoubleMatrix(new double[]{interval,interval,interval})))
+									.add(origin.getValue());
 			newPF.setValue(newValue);
 			return newPF;
 		}
@@ -222,7 +230,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	
 	public void addToSequence(FeatureGroup fg)
 	{
-		sequence.add(fg);
+		elements.add(fg);
 	}
 	
 	public FeatureGroup getLastFeatureGroupInDirection()
@@ -240,7 +248,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	
 	public boolean extendToSize(int newSize, double interval)
 	{
-		int difference = newSize - sequence.size();
+		int difference = newSize - elements.size();
 		
 		FeatureGroup lastFg = getLastFeatureGroupInDirection();
 		System.out.println("Extending TSF by " + difference);
@@ -275,7 +283,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	{
 		List<Double> intervals = new ArrayList<Double>();
 		BlockFeatureGroup lastBfg = null;
-		for (FeatureGroup fg : sequence)
+		for (FeatureGroup fg : elements)
 		{
 
 			System.out.println("Sequence element");
@@ -300,7 +308,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 		}
 		DoubleMatrix lastPosition;
 		BlockFeatureGroup newBfg;
-		if (sequence.size() == 0)
+		if (elements.size() == 0)
 		{
 			lastPosition = new DoubleMatrix(new double[]{0,0,Block.BLOCK_WIDTH/2});
 			Block newBlock = new Block(lastPosition);
@@ -309,7 +317,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 		}
 		else
 		{
-			lastPosition = ((BlockFeatureGroup)(sequence.get(sequence.size()-1))).getPointFeature().getValue();
+			lastPosition = ((BlockFeatureGroup)(elements.get(elements.size()-1))).getPointFeature().getValue();
 			DoubleMatrix interval = DoubleMatrix.zeros(3);
 			interval.put(direction.getMaxAxis(), intervals.get(0));
 			Block newBlock = new Block(lastPosition.add(interval));
@@ -323,7 +331,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	@Override
 	public List getValue() {
 		// TODO Auto-generated method stub
-		return sequence;
+		return elements;
 	}
 	
 	public PointFeature getOrigin()
@@ -334,14 +342,8 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 
 	@Override
 	public void setValue(List newValue) {
-		this.sequence = newValue;
+		this.elements = newValue;
 		
-	}
-	
-	public CountFeature getCountFeature()
-	{
-		count.setValue(sequence.size());
-		return count;
 	}
 	
 	public DirectionFeature getDirectionFeature()
@@ -350,9 +352,12 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	}
 
 	@Override
-	public List<Feature> getFeatures() {
-		// TODO Auto-generated method stub
-		return null;
+	public Map<String,Feature> getFeatures() {
+		HashMap<String,Feature> result = new HashMap<String,Feature>();
+		result.putAll(super.getFeatures());
+		result.put(origin.name,origin);
+		result.put(direction.name, direction);
+		return result;
 	}
 	
 	public String toString()
@@ -362,7 +367,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 		sb.append("Temporal Sequence: " + name + "\n");
 		sb.append("Direction: " + direction.getValue() + "\n");
 		sb.append("Origin: " + origin + "\n");
-		for (FeatureGroup fg : sequence)
+		for (FeatureGroup fg : elements)
 		{
 			sb.append("\t" + fg.toString() + "\n");
 		}
@@ -373,7 +378,7 @@ public class TemporalSequenceFeature extends Feature<List> implements FeatureGro
 	public List<BlockFeatureGroup> getBlockFeatureGroups()
 	{
 		List<BlockFeatureGroup> result = new ArrayList<BlockFeatureGroup>();
-		for (FeatureGroup fg : sequence)
+		for (FeatureGroup fg : elements)
 		{
 			if (fg instanceof BlockFeatureGroup)
 				result.add((BlockFeatureGroup)fg);

@@ -9,25 +9,52 @@ import states.Elaboration;
 import states.Goal;
 import states.Query;
 import utilities.KQMLUtilities;
+import TRIPS.CollaborativeStateManager.CollaborativeStateManager;
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLPerformative;
 import TRIPS.KQML.KQMLString;
 
-public class UpdateCSMHandler extends MessageHandler {
+
+public class UpdateCSMHandler extends MessageHandler implements Runnable {
 
 	KQMLList innerContent = null;
 	KQMLObject context;
 	String updateType;
 	String activeGoal = null;
 	GoalPlanner goalPlanner;
+	KQMLObject replyWith;
 	
 	public UpdateCSMHandler(KQMLPerformative msg, KQMLList content, 
 			ReferenceHandler referenceHandler,
-			GoalPlanner goalPlanner) {
-		super(msg, content, referenceHandler);
+			GoalPlanner goalPlanner, CollaborativeStateManager csm) {
+		super(msg, content, referenceHandler, csm);
 		this.goalPlanner = goalPlanner;
 		// TODO Auto-generated constructor stub
+	}
+	
+	public void run()
+	{
+		
+		KQMLList responseContent = null;
+		try {
+			responseContent = process();
+		}
+		catch (RuntimeException re)
+		{
+			re.printStackTrace();
+			KQMLPerformative replyMessage = new KQMLPerformative("SORRY");
+			KQMLString comment = new KQMLString("Exception in CSM");
+			KQMLString text = new KQMLString(re.getMessage());
+			replyMessage.setParameter(":COMMENT", comment);
+			replyMessage.setParameter(":TEXT", text);
+			csm.sendReply(msg, replyMessage);
+		}
+		if (responseContent != null)
+		{
+			csm.sendContentViaPerformative("TELL", "DAGENT", responseContent, replyWith);
+		}
+		
 	}
 
 	@Override
@@ -224,7 +251,7 @@ public class UpdateCSMHandler extends MessageHandler {
 		if (goalPlanner.createGoalFromAct("PROPOSE",proposeContent, (KQMLList)context))
 			System.out.println("Goal successfully created from act");
 		else
-			System.out.println("Failed to create goal from act");
+			System.out.println("Failed to create goal from act or not valid goal");
 		
 		return null;
 	}
@@ -446,10 +473,13 @@ public class UpdateCSMHandler extends MessageHandler {
 			if (g instanceof Action)
 			{
 				g.setAccepted();
-				goalPlanner.setActiveGoal(g);
-				System.out.println("G id: " + g.getId());
-				System.out.println("Action " + goalName + " accepted.");
-				System.out.println("Active goal now: " + goalName);
+				if (!goalPlanner.hasAmbiguousActiveGoal())
+				{
+					goalPlanner.setActiveGoal(g);
+					System.out.println("G id: " + g.getId());
+					System.out.println("Action " + goalName + " accepted.");
+					System.out.println("Active goal now: " + goalName);
+				}
 			}
 			else if (g instanceof Elaboration)
 			{
@@ -458,8 +488,13 @@ public class UpdateCSMHandler extends MessageHandler {
 			}
 			else
 			{
-				goalPlanner.setActiveGoal(g);
-				System.out.println("Active goal now: " + goalName);
+				g.setAccepted();
+				if (!goalPlanner.hasAmbiguousActiveGoal())
+				{
+					goalPlanner.setActiveGoal(g);
+					System.out.println("Active goal now: " + goalName);
+				}
+				
 			}			
 		}
 		else if (acceptContent.get(0).stringValue().toUpperCase().contains("ASK"))

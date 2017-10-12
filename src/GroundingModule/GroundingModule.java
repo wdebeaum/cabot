@@ -338,7 +338,13 @@ public class GroundingModule extends StandardTripsModule  {
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
-	
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (new-named-structure . *)))");
+	    send(perf);
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (request &key :content (load-properties-file . *)))");

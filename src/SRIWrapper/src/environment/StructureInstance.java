@@ -2,9 +2,11 @@ package environment;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jblas.DoubleMatrix;
@@ -63,6 +65,19 @@ public class StructureInstance implements FeatureGroup {
 		DecimalFeature ratioFeature = new DecimalFeature("shaperatio");
 		ratioFeature.setValue(ratio);
 		setFeature(ratioFeature);
+		
+		double horizontalityValue = (ratio > 1) ? 0.0 : 1.0;
+		double verticalityValue = (ratio > 1) ? 1.0 : 0.0;
+		DecimalFeature horizontality = new DecimalFeature("ONT::HORIZONTAL");
+		horizontality.setValue(horizontalityValue);
+		horizontality.setPrettyName("horizontality");
+		setFeature(horizontality);
+		
+		DecimalFeature verticality = new DecimalFeature("ONT::VERTICAL");
+		horizontality.setValue(verticalityValue);
+		horizontality.setPrettyName("verticality");
+		setFeature(verticality);
+		
 	}
 	
 	private void generateBlockNumberFeature()
@@ -110,6 +125,22 @@ public class StructureInstance implements FeatureGroup {
 		DecimalFeature zLinearity = new DecimalFeature("zlinearity");
 		zLinearity.setValue(1.0 / Math.min(varianceX, varianceY));
 		setFeature(zLinearity);
+		
+		List<Double> sortedLinearity = new ArrayList<Double>();
+		sortedLinearity.add(xLinearity.getValue());
+		sortedLinearity.add(yLinearity.getValue());
+		sortedLinearity.add(zLinearity.getValue());
+		Collections.sort(sortedLinearity);
+		
+		DecimalFeature linearity = new DecimalFeature("ONT::LINEAR-GROUPING");
+		// Last value (largest) will be the principal axis, second value 
+		// will be the largest deviation from the axis
+		if (blocks.size() < 3)
+			linearity.setValue(0.0);
+		else
+			linearity.setValue(sortedLinearity.get(1));
+		linearity.setPrettyName("linearity");
+		setFeature(linearity);
 		
 	}
 	
@@ -191,15 +222,20 @@ public class StructureInstance implements FeatureGroup {
 		return features.get(featureName);
 	}
 	
+	public boolean hasFeature(String featureName)
+	{
+		return features.containsKey(featureName);
+	}
+	
 	public void setBlocks(Set<Block> newBlocks)
 	{
 		this.blocks = newBlocks;
 	}
 
 	@Override
-	public Collection<Feature> getFeatures() {
+	public Map<String,Feature> getFeatures() {
 		// TODO Auto-generated method stub
-		return features.values();
+		return features;
 	}
 
 	public String getName() {

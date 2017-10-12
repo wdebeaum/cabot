@@ -5,5 +5,5 @@ import TRIPS.KQML.*;
 
 public interface FeatureGroup{
 
-	public Collection<Feature> getFeatures();
+	public Map<String,Feature> getFeatures();
 }

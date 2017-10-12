@@ -17,5 +17,17 @@ public class KQMLUtilities {
 		}
 		return null;
 	}
+	
+	public static String cleanLex(String lex)
+	{
+		return lex.substring(3);
+	}
+	
+	public static String cleanConcept(String concept)
+	{
+		String result = concept.substring(5);
+		result.replace("-SCALE", "");
+		return result;
+	}
 
 }

@@ -3,7 +3,11 @@ package environment;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
@@ -141,6 +145,45 @@ public class Scene {
 		return false;
 	}
 	
+	public List<HashSet<Block>> bucketOrderedBlocks(int index, double bucketWidth)
+	{
+		if (index > 2)
+			throw new RuntimeException("Invalid sorting index");
+		
+		TreeMap<Double,Block> sortingMap = new TreeMap<Double,Block>();
+		for (Block b : integerBlockMapping.values())
+		{
+			sortingMap.put(b.position.get(index), b);
+		}
+		
+		double beginningBucketLocation = Double.NEGATIVE_INFINITY;
+		List<HashSet<Block>> result = new ArrayList<HashSet<Block>>();
+		int currentBucket = 0;
+		for (Entry<Double,Block> entry : sortingMap.entrySet())
+		{
+			double location = entry.getKey();
+			if (beginningBucketLocation == Double.NEGATIVE_INFINITY)
+			{
+				result.add(new HashSet<Block>());
+				result.get(0).add(entry.getValue());
+				beginningBucketLocation = location;
+				continue;
+			}
+			
+			if (location - beginningBucketLocation > bucketWidth)
+			{
+				currentBucket++;
+				beginningBucketLocation = location;
+				result.add(new HashSet<Block>());
+			}
+			
+			result.get(currentBucket).add(entry.getValue());
+			
+		}
+		
+		return result;
+	}
+	
 	public boolean isSimilarTo(Scene s)
 	{
 		if (!s.integerBlockMapping.keySet().equals(integerBlockMapping.keySet()))
@@ -192,6 +235,15 @@ public class Scene {
 
 	public void setProxyBlock(Block proxyBlock) {
 		this.proxyBlock = proxyBlock;
+	}
+	
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		for (Block b : integerBlockMapping.values())
+			sb.append(b.getJSONRepresentation() + "\n");
+		
+		return sb.toString();
 	}
 	
 	

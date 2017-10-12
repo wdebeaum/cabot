@@ -913,7 +913,7 @@
       (propositional-equal-templ
        (ARGUMENTS
       	(LSUBJ (% W::NP (W::agr ?agr) (sem ?sem) (w::gerund -) (w::subcat-map ont::formal)) ONT::neutral)
-	(LOBJ (% W::CP) ONT::neutral1)
+	(LOBJ (% W::CP (w::ctype w::s-that)) ONT::neutral1)
 	))
 
       (neutral-neutral-equal-templ
@@ -972,19 +972,21 @@
 	(LOBJ (% W::PRED) ONT::FORMAL)
 	))
       
-        (THEME-PLURAL-TEMPL
+      (THEME-PLURAL-TEMPL
+       (syntax (w::agr (? a W::1p W::2p W::3p)))
        (ARGUMENTS
-
 	(LSUBJ (% W::NP (W::agr (? a W::1p W::2p W::3p))) ONT::FORMAL)
 	))
 
       (AGENT-PLURAL-TEMPL
+       (syntax (w::agr (? a W::1p W::2p W::3p)))
        (ARGUMENTS
 	(LSUBJ (% W::NP (W::agr (? a W::1p W::2p W::3p))) ONT::AGENT)
 	))
       
     ;;;;; to be used when there is a plural "affected"
       (AFFECTED-PLURAL-TEMPL
+       (syntax (w::agr (? a W::1p W::2p W::3p)))
        (ARGUMENTS
 	(LSUBJ (% W::NP (W::agr (? a W::1p W::2p W::3p))) ONT::AFFECTED)
 	))
@@ -2137,6 +2139,7 @@
   ))
 
 (neutral-plural-templ
+ (syntax (w::agr (? a W::1p W::2p W::3p)))
  (ARGUMENTS
   (LSUBJ (% W::NP (W::agr (? a W::1p W::2p W::3p))) ONT::neutral)
   ))
@@ -2629,7 +2632,8 @@
     ))
   
   (binary-constraint-S-OR-NP-templ
-   (SYNTAX(W::SORT W::BINARY-CONSTRAINT) (W::ATYPE (? ATYPE W::PRE W::POST)))
+   ;(SYNTAX(W::SORT W::BINARY-CONSTRAINT) (W::ATYPE (? ATYPE W::PRE W::POST)))
+   (SYNTAX(W::SORT W::BINARY-CONSTRAINT) (W::ATYPE (? ATYPE W::PRE W::POST w::pre-vp)))
    (ARGUMENTS
     (ARGUMENT (% (? W::x W::S W::NP)) ONT::figure)
     (SUBCAT (:parameter xp (:default (% W::NP (W::case (? cas W::obj -))))) ONT::ground)
@@ -2807,7 +2811,8 @@
     ))
   
   (binary-constraint-NP-templ
-   (SYNTAX(W::SORT W::BINARY-CONSTRAINT) (W::ATYPE (? atype W::POST w::pre)))
+   ;(SYNTAX(W::SORT W::BINARY-CONSTRAINT) (W::ATYPE (? atype W::POST w::pre)))
+   (SYNTAX(W::SORT W::BINARY-CONSTRAINT) (W::ATYPE (? atype W::POST w::pre w::pre-vp)))
    (ARGUMENTS
     (ARGUMENT (% W::NP) ONT::figure)
     (SUBCAT (:parameter xp (:default (% W::NP (W::case (? cas W::obj -))))) ONT::ground)
@@ -3083,7 +3088,7 @@
     ))
 
   (superl-templ
-   (SYNTAX (W::SORT W::PRED) (W::ATYPE W::CENTRAL) (W::ARG ?arg))
+   (SYNTAX (W::SORT W::PRED) (W::ATYPE W::CENTRAL) (W::COMPARATIVE W::SUPERL) (W::ARG ?arg))
    (ARGUMENTS
     (ARGUMENT (% W::NP) ONT::FIGURE)
     (subcat (:parameter xp (:default (% W::pp (W::ptype W::than)))) ONT::GROUND)
@@ -3752,7 +3757,7 @@
      ))
   
   (compar-than-templ 
-   (SYNTAX (w::compar-op +) (w::ground-oblig -))
+   (SYNTAX (w::comparative +) (w::ground-oblig -))
    (arguments
     (ARGUMENT (% W::NUMBER) ONT::FIGURE) 
     (subcat (% w::PP (w::ptype w::than)) ont::ground)))

@@ -9,10 +9,12 @@ import TRIPS.KQML.*;
 public abstract class Feature<T> implements FeatureGroup{
 
 	protected String name;
+	protected String prettyName;
 	
 	public Feature(String name)
 	{
 		this.name = name;
+		prettyName = name;
 	}
 	
 	public abstract T getValue();
@@ -53,11 +55,26 @@ public abstract class Feature<T> implements FeatureGroup{
 		return name;
 	}
 	
-	public Collection<Feature> getFeatures()
+	public String getPrettyName()
 	{
-		List<Feature> result = new ArrayList<Feature>();
-		result.add(this);
+		return prettyName;
+	}
+	
+	public void setPrettyName(String prettyName)
+	{
+		this.prettyName = prettyName;
+	}
+	
+	public Map<String,Feature> getFeatures()
+	{
+		HashMap<String,Feature> result = new HashMap<String,Feature>();
+		result.put(name,this);
 		return result;
+	}
+	
+	public String toString()
+	{
+		return "" + getValue().toString();
 	}
 	
 }

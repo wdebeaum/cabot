@@ -13,11 +13,13 @@ public class ModelInstantiation {
 	private StructureInstance currentStructureInstance;
 	private HashMap<String,FeatureGroup> components;
 	public List<FeatureConstraint> constraints;
+	private List<StructureInstance> positiveExamples;
 	
 	public ModelInstantiation() {
 		currentStructureInstance = new StructureInstance("placeholder", new ArrayList<Block>());
 		components = new HashMap<String,FeatureGroup>();
 		constraints = new ArrayList<FeatureConstraint>();
+		positiveExamples = new ArrayList<StructureInstance>();
 	}
 
 	public void addKQMLTerm(KQMLList term, KQMLList context)
@@ -62,12 +64,17 @@ public class ModelInstantiation {
 		Feature groundFeature = null;
 		String ground = null;
 		String operatorString = null;
+		String descriptorFeatureString = null;
 		KQMLList groundTerm = null;
 
 		// Get the scale for naming the feature
 		if (term.getKeywordArg(":SCALE") != null)
 		{
 			scale = term.getKeywordArg(":SCALE").stringValue();
+			if (scale.equalsIgnoreCase("ONT::LINEAR-SCALE"))
+			{
+				scale = term.getKeywordArg(":INSTANCE-OF").stringValue();
+			}
 			extractedFeature = currentStructureInstance.getFeature(scale);
 			System.out.println("Scale: " + scale);
 		}
@@ -87,6 +94,19 @@ public class ModelInstantiation {
 			return false;
 		
 		FeatureConstraint.Operator operator = FeatureConstraint.operatorFromTRIPS(operatorString);
+		
+		// The instance-of is not actually an operator, but a descriptor
+		if (operator == null && (operatorString.equalsIgnoreCase("ONT::HORIZONTAL") ||
+								operatorString.equalsIgnoreCase("ONT::VERTICAL") ||
+								operatorString.equalsIgnoreCase("ONT::LINEAR-GROUPING")))
+		{
+			descriptorFeatureString = operatorString;
+			if (currentStructureInstance.hasFeature(descriptorFeatureString))
+				extractedFeature = currentStructureInstance.
+											getFeature(descriptorFeatureString);
+			operator = FeatureConstraint.Operator.GREATER;
+			groundFeature = DecimalFeature.getDefaultDecimalMinimum();
+		}
 		
 		if (groundTerm != null)
 		{
@@ -162,5 +182,16 @@ public class ModelInstantiation {
 		}
 		return true;
 	}
+	
+	public void addPositiveExample(StructureInstance positiveExample)
+	{
+		positiveExamples.add(positiveExample);
+	}
+
+	public List<StructureInstance> getPositiveExamples() {
+		return positiveExamples;
+	}
+	
+	
 	
 }

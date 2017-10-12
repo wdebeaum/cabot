@@ -45,20 +45,47 @@
 						(ONT::RELN b :instance-of ONT::GREEN :figure s1))))
       ;; I need to build a tower 
       "OK. And I need you to build a row of blocks for me"   ;; not that the acting agent was specified in this goal
-      ;; Is this an additional goal?
+	;; CPSA -> CSM: (UPDATE-CSM :CONTENT (ACCEPTED :CONTENT (ADOPT :ID G1 :WHAT A1 :AS (GOAL)))
+ 	;; CPSA -> CSM: (INTERPRET-SPEECH-ACT :CONTENT (PROPOSE :CONTENT ONT::V33384 ...
+	;; CSM -> CPSA: (FAILURE :WHAT (PROPOSE :CONTENT ONT::V33384) :REASON (UNKNOWN-GOAL-RELATION :EXISTING-GOAL G1 :NEW-GOAL C00004))
+      ;; "Is this an additional goal?"
       "yes"
+	;; CPSA -> CSM (UPDATE-CSM :CONTENT (ACCEPTED :CONTENT (ADOPT :ID C00004 :WHAT ONT::V33384 :AS (GOAL)))
       ;; OK   --  tells BA new top-level goal
       ;;    new ACTIVE-QUERY -- returns ambiguous
+	;; CPSA -> CSM: (QUERY-CSM ACTIVE-GOAL)
+	;; CSM -> CPSA: (AMBIGUOUS-ACTIVE-GOAL :WHATS (A1 ONT::V33384) :IDS (G1 C0004))
       ;; What shall we do first?
       "Let's build the row of blocks"    ;; figure out this is answer and identifies the relevant goal
+	;; CPSA -> CSM: (INTERPRET-SPEECH-ACT :CONTENT (PROPOSE :CONTENT ONT::V33415 ...
+	;; [CSM figures out that this is a reference to the previously mentioned goal]
+	;; CSM -> CPSA: (REPORT :content (SELECT :ID C00004 :what ONT::V33384))
       ;; OK.  Tell me what you want
       "put three red blocks in a row"
       ;; OK [in simulated world: SIFT does the actions]
       ;; Done! 
+	;; CPSA -> CSM: (QUERY-CSM ACTIVE-GOAL)
+	;; CSM -> CPSA: (ACTIVE-GOAL :ID G1 :WHAT A1)
       ;; Shall we now build the tower?
       
       ))
 
+    (test-system-askif .
+     ;; system asks an ask-if question
+     ( ;;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
+			;;	       :context ((ONT::RELN ONT::PERFORM :what WH-TERM))))
+      (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
+				      :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+
+      ;; > INITIATE-CPS-GOAL
+      ;; S: What do you want to do?
+      ;; > NIL
+      "Let's build a 3 step staircase."
+      ;; Is the block red?  ; all right, it's not a very good question.  Make a better one if you like!
+      "yes."
+      ))
+      
     (test-generic .
      ;; system asks for goal; system acts
      ( ;;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))

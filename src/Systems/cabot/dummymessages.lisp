@@ -101,6 +101,21 @@
 				))
 
 			    )
+
+			   (user::test-system-askif
+				 (case *replyCounter*
+				   (0
+				    (setq *replyCounter* (+ *replyCounter* 1))
+				    (setq *last-active-goal* active-goal)
+				    `(PROPOSE :content (ASK-IF :id G0 :query A1 :as (QUERY-IN-CONTEXT :goal ,active-goal))
+					    :context ((ONT::RELN A1 :instance-of ONT::HAVE-PROPERTY :NEUTRAL A0 :FORMAL A2)
+						      (ONT::THE A0 :instance-of ONT::BLOCK)
+						      (ONT::RELN A2 :INSTANCE-OF ONT::RED :FIGURE AO :SCALE ONT::COLOR-SCALE)
+						   )
+					    )
+				    )
+				   ))
+			   
 			   (user::test-who-move
 			    (case *replyCounter*
 				   (0
@@ -234,14 +249,14 @@
 			    (let ((action (find-lf-in-context-tmp context active-goal)))
 			      (case (find-arg action :instance-of)
 				(ont::CREATE
-				 `(REPORT :content (ASK-WH :id dd :what ww :query qq)
-					 :context ((ONT::RELN qq :instance-of ONT::WORKING :agent we :formal ww)
-						   (ONT::THE ww :instance-of ONT::GOAL :suchthat qq)
-						   (ONT::A we :instance-of ONT::PERSON :equals ont::us)
-						   )
+				 `(PROPOSE :content (ASK-WH :id dd :what ww :query qq)
+					   :context ((ONT::RELN qq :instance-of ONT::WORKING :agent we :formal ww)
+						    (ONT::THE ww :instance-of ONT::GOAL :suchthat qq)
+						    (ONT::A we :instance-of ONT::PERSON :equals ont::us)
+						    )
 					 ))
 				
-				(ont::PUT
+				((ont::PUT ont::Move)
 				 (case *replyCounter*
 				   (0
 				    (setq *replyCounter* (+ *replyCounter* 1))

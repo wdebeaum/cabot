@@ -1,9 +1,12 @@
+;;;;
+;;;; w::routine
+;;;;
 
 (define-words :pos W::n
  :words (
   (w::routine
   (senses
-   ((LF-PARENT ONT::practice)
+   ((LF-PARENT ONT::social-practice)
     (meta-data :origin cardiac :entry-date 20090129 :change-date nil :comments nil)
     (TEMPL count-PRED-TEMPL)
     )

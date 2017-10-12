@@ -4,8 +4,11 @@ public class CountFeature extends Feature<Integer> {
 
 	public static String[] indicatorGlosses = {"NUMBER"};
 	public static String[] indicatorClasses = {};
+	
 	private int value;
 
+	
+	
 	public CountFeature(String name) {
 		super(name);
 		value = 0;

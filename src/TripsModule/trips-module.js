@@ -10,6 +10,7 @@ var MaxPortTries = 100;
 
 function TripsModule(argv) {
   this.argv = argv;
+  this.autoConnect = true;
 }
 TripsModule.prototype = {
   constructor: TripsModule,
@@ -127,7 +128,7 @@ TripsModule.prototype = {
   sendWithContinuation: function(msg, cont) {
     var replyId;
     do {
-      replyId = this.name + Math.rand(1000000);
+      replyId = this.name + Math.floor(Math.random() * 1000000);
     } while (replyId in this.continuations);
     this.continuations[replyId] = cont;
     var msgWithReplyId = { replyWith: replyId };

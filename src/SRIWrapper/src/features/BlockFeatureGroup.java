@@ -19,6 +19,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 	{
 		generatePointFeature();
 		generateWidthFeature();
+		generateHeightFeature();
 	}
 	
 	private void generatePointFeature()
@@ -28,22 +29,32 @@ public class BlockFeatureGroup implements FeatureGroup {
 		setFeature(result);	
 	}
 	
-	public void generateWidthFeature()
+	private void generateWidthFeature()
 	{
-		DistanceFeature result = new DistanceFeature("width");
+		DistanceFeature result = new DistanceFeature("ONT::WIDTH");
+		DistanceFeature resultScale = new DistanceFeature("ONT::WIDTH-SCALE");
+		result.setValue(Block.BLOCK_WIDTH);
+		resultScale.setValue(Block.BLOCK_WIDTH);
+		setFeature(result);
+		setFeature(resultScale);
+	}
+	
+	private void generateHeightFeature()
+	{
+		DistanceFeature result = new DistanceFeature("ONT::HEIGHT-SCALE");
 		result.setValue(Block.BLOCK_WIDTH);
 		setFeature(result);	
 	}
 	
 	public PointFeature getPointFeature()
 	{
-		return (PointFeature)features.get("position");
+		return (PointFeature)features.get("ONT::LOCATION");
 	}
 
 	@Override
-	public Collection<Feature> getFeatures() {
+	public Map<String,Feature> getFeatures() {
 		// TODO Auto-generated method stub
-		return null;
+		return features;
 	}
 	
 	private void setFeature(Feature feature)
@@ -53,7 +64,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 	
 	public void setPointFeature(PointFeature pf)
 	{
-		features.put("position", pf);
+		features.put("ONT::LOCATION", pf);
 		block.position = pf.getValue();
 	}
 	

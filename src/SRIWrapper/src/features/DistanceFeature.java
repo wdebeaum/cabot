@@ -1,5 +1,7 @@
 package features;
 
+import java.text.DecimalFormat;
+
 import TRIPS.KQML.*;
 import models.FeatureConstraint;
 import environment.*;
@@ -16,6 +18,11 @@ public class DistanceFeature extends DecimalFeature {
 		// TODO Auto-generated constructor stub
 	}
 	
+	public String toString()
+	{
+		DecimalFormat decimalFormattter = new DecimalFormat("###.#");
+		return "" + decimalFormattter.format((value / Block.BLOCK_WIDTH) * 2);
+	}
 	// Moved to ModelInstantiation, leaving old version just in case
 	
 //	public static FeatureConstraint generateConstraintFromKQML(StructureInstance instance,

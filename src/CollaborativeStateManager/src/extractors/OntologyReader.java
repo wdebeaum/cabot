@@ -10,6 +10,7 @@ public class OntologyReader {
 
 	private HashMap<String,String> events; // Event type -> parent
 	private HashMap<String,ArrayList<String>> goals;
+	private ArrayList<String> goalOrdering;
 	private HashMap<String,ArrayList<String>> actGoalSuggestionMapping;
 	private HashSet<String> models;
 	
@@ -18,6 +19,7 @@ public class OntologyReader {
 		events = new HashMap<String, String>();
 		goals = new HashMap<String, ArrayList<String>>();
 		actGoalSuggestionMapping = new HashMap<String, ArrayList<String>>();
+		goalOrdering = new ArrayList<String>();
 		models = new HashSet<String>();
 	}
 	
@@ -37,6 +39,11 @@ public class OntologyReader {
 				System.out.println("Reading goals...");
 				
 			    while ((line = reader.readLine()) != null) {
+			    	if (line.trim().startsWith("#") || line.trim().startsWith(";"))
+			    		continue;
+			    	
+			    	if (line.trim().length() < 2)
+			    		continue;
 			    	String[] isaSplit = line.split("=>");
 			    	String goal = isaSplit[0].trim();
 			    	if (isaSplit.length > 1)
@@ -108,6 +115,12 @@ public class OntologyReader {
 				System.out.println("Reading models...");
 				
 			    while ((line = reader.readLine()) != null) {
+			    	if (line.trim().startsWith("#") || line.trim().startsWith(";"))
+			    		continue;
+			    	
+			    	if (line.trim().length() < 2)
+			    		continue;
+			    	
 			    	String model = line;
 			    	if (model.trim().length() > 0)
 			    		models.add(model);
@@ -179,6 +192,10 @@ public class OntologyReader {
 				System.out.println("Reading events...");
 				
 			    while ((line = reader.readLine()) != null) {
+			    	if (line.trim().startsWith("#") || line.trim().startsWith(";"))
+			    		continue;
+			    	if (line.trim().length() < 2)
+			    		continue;
 			    	String[] isaSplit = line.split("=>");
 			    	String event = isaSplit[0].trim();
 			    	String parent = isaSplit[1].trim();

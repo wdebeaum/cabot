@@ -6,7 +6,16 @@
  :words (
   (w::smell
   (senses
-   ((LF-PARENT ONT::physical-sense)
+   ((LF-PARENT ONT::olfactory-property-scale)
+    (example "this is far worse than the smell(iness) of dirty socks")
+    (TEMPL MASS-PRED-TEMPL)
+    )
+   ((LF-PARENT ONT::ability-to-smell)
+    (example "my sense of smell is shot from congestion")
+    (TEMPL MASS-PRED-TEMPL)
+    )
+   ((LF-PARENT ONT::perceivable-smell-property)
+    (example "this fish has a strong smell (odor)")
     (TEMPL MASS-PRED-TEMPL)
     )
    )

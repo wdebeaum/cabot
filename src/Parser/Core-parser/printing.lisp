@@ -3,8 +3,7 @@
 ;;;
 ;;; Author:  James Allen <james@cs.rochester.edu>
 ;;;
-
-;;; Time-stamp: <Wed Apr 19 10:39:18 EDT 2017 jallen>
+;;; Time-stamp: <Mon Jun 26 13:22:23 EDT 2017 jallen>
 
 (in-package "PARSER")
 
@@ -1958,7 +1957,7 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	 ((ont::source-reln) :source)
 	 )
 	((ont::change :mod)
-	  ((ont::to-loc ont::goal-reln ont::direction-reln) :result)
+	  ((ont::to-loc ont::goal-reln ont::direction-reln ont::resulting-object) :result) ; resulting-state is in goal-reln
 	  ((ont::source-reln) :source))
 	((ont::phys-object :mod)
 	 ((ont::position-reln ) :location))
@@ -1971,7 +1970,6 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	((ont::situation-root :mod)
 	 ((ont::goal-reln) :result)
 	 ((ont::reason ont::purpose) :reason)
-	 ((ont::therefore) :result)
 	 ((ont::extent-predicate) :extent)
 	 ((ont::frequency ont::frequency-val) :frequency)
 	 ((ont::degree-modifier) :degree)
@@ -1984,10 +1982,10 @@ usually not be 0 for speech. Also it finds one path quickly in order to set the 
 	 ;;((ont::goal-reln) :goal)
 	 ((ont::position-reln ) :location)
 	 ((ont::accompaniment) :agent1)
-	 ((ont::by-means-of) :method)
+	 ((ont::by-means-of ont::with-instrument) :method)
 	 ((ont::beneficiary) :beneficiary)
 	 ((ont::source-reln) :source)
-	 ((ont::manner ont::abstract-object-property ) :manner)
+	 ((ont::manner ont::abstract-object-property ont::pivot) :manner)
 	 ((ont::likelihood ont::qualification) :qualification)
 	 )
 	)

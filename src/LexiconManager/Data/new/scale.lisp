@@ -7,8 +7,13 @@
   (W::SCALE
    (SENSES
     ((meta-data :origin trips :entry-date 20060803 :change-date nil :comments nil)
-     (LF-PARENT ONT::measure-domain)
+     (LF-PARENT ONT::ratio-scale)
      (TEMPL OTHER-RELN-TEMPL)
+     )
+    ((meta-data :wn ("scale%1:10:00"))
+     (LF-PARENT ONT::MUSIC-SCALE)
+     ; any set of musical notes ordered by fundamental frequency or pitch
+     (EXAMPLE "Scales are typically listed from low to high pitch.")
      )
     )
    )

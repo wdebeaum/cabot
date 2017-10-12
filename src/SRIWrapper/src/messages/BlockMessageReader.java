@@ -17,6 +17,7 @@ import org.json.simple.parser.ParseException;
 
 import TRIPS.SRIWrapper.SRIWrapper;
 import environment.Scene;
+import goals.GoalStateHandler;
 import spatialreasoning.Plan;
 import utilities.JsonReader;
 import TRIPS.KQML.*;
@@ -35,9 +36,11 @@ public class BlockMessageReader implements Runnable {
 	private long millisecondsToWait;
 	private double speedMultiplier;
 	private int currentStep = 0;
+	private GoalStateHandler goalStateHandler;
 	private SRIWrapper wrapper;
+	private static boolean MESSAGES_ENABLED = false;
 	
-	public BlockMessageReader(SRIWrapper wrapper, Plan p, String metaDataFile, String blockDataFile)
+	public BlockMessageReader(SRIWrapper wrapper, GoalStateHandler gsh, Plan p, String metaDataFile, String blockDataFile)
 	{
 		currentPlan = p;
 		lastScene = null;
@@ -45,6 +48,7 @@ public class BlockMessageReader implements Runnable {
 		millisecondsToWait = 0;
 		speedMultiplier = 1;
 		this.wrapper = wrapper;
+		this.goalStateHandler = gsh;
 
 		JSONParser parser = new JSONParser();
 		try {
@@ -92,8 +96,15 @@ public class BlockMessageReader implements Runnable {
 			currentStep++;
 			Scene s = new Scene(currentBlockState, currentLoadedMetaData);
 			
-			if (lastScene == null || lastScene.isSimilarTo(s))
-				sendKQMLMessage(s);
+			if (lastScene == null || !lastScene.isSimilarTo(s))
+			{
+				//System.out.println(currentBlockState);
+				if (MESSAGES_ENABLED)
+					sendKQMLMessage(s);
+				goalStateHandler.checkNewScene(s);
+			}
+			
+			
 			
 			lastScene = s;
 			currentPlan.executeNextStep();

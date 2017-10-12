@@ -28,6 +28,8 @@ public class LFTerm implements Serializable{
 	protected String variableName;
 	protected String ontologicalClass;
 	protected String concept;
+	protected KQMLList conceptList;
+	protected boolean validLF;
 	
 	protected HashMap<String,KQMLObject> properties; // Note that properties includes roles
 	protected Turn turn; // The turn this LFTerm belongs to
@@ -48,6 +50,26 @@ public class LFTerm implements Serializable{
 		if (turn == null)
 			throw new NullPointerException("Null turn");
 		this.turn = turn;
+		validLF = true;
+	}
+	
+	// Used for AKRL compatible LFs from DAGENT in :context
+	public LFTerm(KQMLObject lfTerm)
+	{
+		if (!(lfTerm instanceof KQMLList))
+		{
+			validLF = false;
+			this.ontologicalClass = lfTerm.stringValue();
+			
+		}
+		else
+		{
+			logicalForm = (KQMLList)lfTerm;
+			this.ontologicalClass = logicalForm.get(0).stringValue();
+			this.variableName = logicalForm.get(1).stringValue();
+			this.concept = null;
+			
+		}
 	}
 	
 	public void addProperty(String parameterName, KQMLObject value)
@@ -67,7 +89,16 @@ public class LFTerm implements Serializable{
 		return concept;
 	}
 	
+	public boolean isValidLF()
+	{
+		return validLF;
+	}
+	
 	public String getConceptParent() {
+		
+		if (concept == null)
+			return null;
+		
 		if (concept.contains("ONT::"))
 		{
 			String[] ontSplit = concept.split("ONT::");
@@ -91,6 +122,9 @@ public class LFTerm implements Serializable{
 	 */
 	public boolean isVerb()
 	{
+		if (concept == null)
+			return false;
+		
 		if (concept.equalsIgnoreCase("(:* ONT::ELLIPSIS)"))
 			return false;
 		

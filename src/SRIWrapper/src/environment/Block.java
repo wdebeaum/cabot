@@ -1,5 +1,7 @@
 package environment;
 
+import geometry.BoundedVolume;
+
 import org.jblas.DoubleMatrix;
 import org.json.simple.JSONObject;
 
@@ -8,11 +10,14 @@ import TRIPS.KQML.KQMLList;
 
 
 
-public class Block {
+public class Block implements BoundedVolume{
 
 	public final static double MAX_GROUND_HEIGHT = .09;
 	public final static double BLOCK_WIDTH = 0.171;
+	public final static double BLOCK_DIAMETER = .242; // BLOCK_WIDTH * sqrt(2)
 	int id;
+
+
 	public DoubleMatrix position;
 	public DoubleMatrix rotation;
 	double confidence;
@@ -73,6 +78,10 @@ public class Block {
 		rotation.put(3,1);
 		proxyInstructed = false;
 		userOwned = false;
+	}
+	
+	public int getId() {
+		return id;
 	}
 	
 	public boolean onGround()
@@ -226,6 +235,39 @@ public class Block {
 
 	public void setMoved(boolean moved) {
 		this.moved = moved;
+	}
+
+	@Override
+	public boolean intersects(BoundedVolume other) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	// AXIS ALIGNED ONLY
+	public boolean intersectsBlock(Block b)
+	{
+		if (b.position.distance2(position) > BLOCK_DIAMETER)
+			return false;
+		
+		if (b.position.distance2(position) < BLOCK_WIDTH)
+			return true;
+		
+		
+		return false;
+	}
+	
+	// AXIS ALIGNED ONLY
+	public boolean containsPoint(DoubleMatrix point)
+	{
+		if (point.distance2(position) > BLOCK_DIAMETER)
+			return false;
+		
+		return ((point.get(0) < position.get(0) + BLOCK_WIDTH/2) &&
+				(point.get(0) > position.get(0) - BLOCK_WIDTH/2) &&
+				(point.get(1) < position.get(1) + BLOCK_WIDTH/2) &&
+				(point.get(1) > position.get(1) - BLOCK_WIDTH/2) &&
+				(point.get(2) < position.get(2) + BLOCK_WIDTH/2) &&
+				(point.get(2) > position.get(2) - BLOCK_WIDTH/2));
 	}
 	
 	
