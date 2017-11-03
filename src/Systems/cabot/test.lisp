@@ -70,6 +70,34 @@
       
       ))
 
+    (test-multi-goal-no .
+     ((TELL :content (SET-SYSTEM-GOAL :id G1 :what A1
+				      :context ((ONT::RELN A1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::TOWER :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::THE-SET s1 :instance-of ONT::BLOCK :amount 3 :mod b)
+						(ONT::RELN b :instance-of ONT::GREEN :figure s1))))
+      ;; I need to build a tower 
+      "OK. And I need you to build a row of blocks for me"   ;; not that the acting agent was specified in this goal
+	;; CPSA -> CSM: (UPDATE-CSM :CONTENT (ACCEPTED :CONTENT (ADOPT :ID G1 :WHAT A1 :AS (GOAL)))
+ 	;; CPSA -> CSM: (INTERPRET-SPEECH-ACT :CONTENT (PROPOSE :CONTENT ONT::V33384 ...
+	;; CSM -> CPSA: (FAILURE :WHAT (PROPOSE :CONTENT ONT::V33384) :REASON (UNKNOWN-GOAL-RELATION :EXISTING-GOAL G1 :NEW-GOAL C00004))
+      ;; "Is this an additional goal?"
+      "no"
+	;; CPSA -> CSM (UPDATE-CSM :CONTENT (ACCEPTED :CONTENT (ADOPT :ID C00004 :WHAT ONT::V33384 :AS (SUBGOAL :OF G1)))
+      ;; OK   --  tells BA new top-level goal
+      ;;    new ACTIVE-QUERY -- returns ambiguous
+	;; CPSA -> CSM: (QUERY-CSM ACTIVE-GOAL)
+	;; CSM -> CPSA: (ACTIVE-GOAL :WHAT V33384 :ID C0004)
+      ;; OK.  Tell me what you want
+      "put three red blocks in a row"
+      ;; OK [in simulated world: SIFT does the actions]
+      ;; Done! 
+	;; CPSA -> CSM: (QUERY-CSM ACTIVE-GOAL)
+	;; CSM -> CPSA: (ACTIVE-GOAL :ID G1 :WHAT A1)
+      
+      ))
+
     (test-system-askif .
      ;; system asks an ask-if question
      ( ;;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
@@ -139,6 +167,48 @@
       "ok."
       ;; S: Put block 6 on the table.
       "ok."
+      ))
+
+    (test-abandon .
+     ;; system initiates goal; user acts
+     (
+      (TELL :content (SET-SYSTEM-GOAL :id G1 :what A1
+				      :context ((ONT::RELN A1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::STAIRS :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::KIND s1 :instance-of ONT::STEP :amount 3))))
+      ;; S: Let's build a three step staircase.
+      "ok."
+      ;; S: Put block 6 on the table.
+      "Cancel that."
+      ))
+
+    (test-abandon-top .
+     ;; system initiates goal; user acts
+     (
+      (TELL :content (SET-SYSTEM-GOAL :id G1 :what A1
+				      :context ((ONT::RELN A1 :instance-of ONT::CREATE :affected-result st1)
+						(ONT::A st1 :instance-of ONT::STAIRS :mod r1)
+						(ONT::RELN r1 :instance-of ONT::ASSOC-WITH :figure st1 :ground s1)
+						(ONT::KIND s1 :instance-of ONT::STEP :amount 3))))
+      ;; S: Let's build a three step staircase.
+      "Cancel that."
+      ))
+
+    (test-abandon-askif .
+     ;; system asks an ask-if question
+     ( ;;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
+			;;	       :context ((ONT::RELN ONT::PERFORM :what WH-TERM))))
+      (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
+				      :context NIL))
+      ;(REQUEST :content (UPDATE-CSM :content (SET-OVERRIDE-INITIATIVE :OVERRIDE T :VALUE T)))
+
+      ;; > INITIATE-CPS-GOAL
+      ;; S: What do you want to do?
+      ;; > NIL
+      "Let's build a 3 step staircase."
+      ;; Is the block red?  ; all right, it's not a very good question.  Make a better one if you like!
+      "Forget it."
       ))
 
     (test-who-move .

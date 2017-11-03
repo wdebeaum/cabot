@@ -79,5 +79,62 @@
             )
            )	  
 
+	  ; undo/cancel (remap the roles to match drumrule extractions)
+	  ((?!spec ?ev (:* (? type ONT::UNDO ONT::CANCEL) ?w) :AGENT ?!ag :AFFECTED ?!obj :OPERATOR - )
+           (?spec2 ?!ag ?t1)
+           (?spec3 ?!obj ?t2)
+           -rule_undo>
+           60
+           (ONT::CC ?ev ?type
+            :rule -rule_undo
+            :TYPE ?type
+	    :AGENT -
+	    :AFFECTED -
+	    :FACTOR ?!ag
+	    :OUTCOME ?!obj
+	    :LEX ?w
+            )
+	   (ONT::TERM ?!ag ?t1)
+	   (ONT::TERM ?!obj ?t2)
+           )	  
+
+	  ; undo/cancel (remap the roles to match drumrule extractions)
+	  ((?!spec ?ev (:* (? type ONT::UNDO ONT::CANCEL) ?w) :AGENT ?!ag :AFFECTED - :OPERATOR - )
+           (?spec2 ?!ag ?t1)
+           ;(?spec3 ?!obj ?t2)
+           -rule_undo2>
+           60
+           (ONT::CC ?ev ?type
+            :rule -rule_undo2
+            :TYPE ?type
+	    :AGENT -
+	    :AFFECTED -
+	    :FACTOR ?!ag
+	    ;:OUTCOME ?!obj
+	    :LEX ?w
+            )
+	   (ONT::TERM ?!ag ?t1)
+	   ;(ONT::TERM ?!obj ?t2)  ; need this rule because otherwise when ?obj is missing we get (ONT::TERM - -)
+           )	  
+	  
+	  ; forget it/forget about it (remap the roles to match drumrule extractions)
+	  ((?!spec ?ev (:* (? type ONT::FORGET) ?w) :AGENT ?!ag :NEUTRAL ?!obj :OPERATOR - )
+           (?spec2 ?!ag ?t1)
+           (?spec3 ?!obj ?t2)
+           -rule_undo3>
+           60
+           (ONT::CC ?ev ?type
+            :rule -rule_undo3
+            :TYPE ?type
+	    :AGENT -
+	    :NEUTRAL -
+	    :FACTOR ?!ag
+	    :OUTCOME ?!obj
+	    :LEX ?w
+            )
+	   (ONT::TERM ?!ag ?t1)
+	   (ONT::TERM ?!obj ?t2)
+           )	  
+	  
 	  )
 	)
