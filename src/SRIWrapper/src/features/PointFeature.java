@@ -1,6 +1,7 @@
 package features;
 
 import org.jblas.DoubleMatrix;
+import geometry.Line;
 
 public class PointFeature extends Feature<DoubleMatrix> {
 

@@ -8,7 +8,7 @@
 ;;; ===========ONT::DOMAIN
 ;;; A domain is a single-valued function                                                                            
 (define-type ONT::DOMAIN
- :parent ONT::ABSTRACT-object
+ :parent ONT::TANGIBLE-ABSTRACT-object
  :wordnet-sense-keys ("attribute%1:03:00")
  :comment "Nouns that name domain/scales, and can serve as relational nouns (e.g., the COLOR of the box)"
  :arguments ((:REQUIRED ONT::FIGURE)
@@ -398,6 +398,21 @@
  ;; WORDS: reliability
 )
 
+(define-type ont::safety-scale
+ :parent ont::evaluation-scale 
+)
+
+(define-type ont::safe-scale
+ :parent ont::safety-scale 
+ :wordnet-sense-keys ("safety%1:26:00")
+ ;; WORDS: safety, security
+)
+
+(define-type ont::unsafe-scale
+ :parent ont::safety-scale 
+ :wordnet-sense-keys ("insecurity%1:26:00") ; danger?
+)
+
 (define-type ont::suitability-scale
  :parent ont::evaluation-scale 
  :wordnet-sense-keys ("suitability%1:07:00" "fitness%1:07:00")
@@ -718,6 +733,7 @@
 (define-type ont::temperature-alt-scale
  :wordnet-sense-keys ("temperature%1:07:00" "temperature%1:09:00")
  :parent ont::measure-scale 
+ :sem (F::abstr-obj (F::Scale Ont::temperature-scale))
  ;; WORDS: temperature
 )
 
@@ -888,8 +904,8 @@
 
 (define-type ont::confidentiality-scale
  :parent ont::status-property-scale 
-:wordnet-sense-keys ("privacy%1:07:00" "privacy%1:26:02" "security%1:26:00")
- ;; WORDS: privacy, security
+:wordnet-sense-keys ("privacy%1:07:00" "privacy%1:26:02")
+ ;; WORDS: privacy
 )
 
 
@@ -1179,7 +1195,17 @@
 
 (define-type ont::cleanliness-scale
  :parent ont::state-of-affairs-scale 
+)
+
+(define-type ont::clean-scale
+ :parent ont::cleanliness-scale 
  :wordnet-sense-keys ("cleanliness%1:26:00" "cleanliness%1:07:00")
+ ;; WORDS: cleanliness
+)
+
+(define-type ont::unclean-scale
+ :parent ont::cleanliness-scale 
+ :wordnet-sense-keys ("dirtiness%1:26:00")
  ;; WORDS: cleanliness
 )
 
@@ -1293,7 +1319,8 @@
 
 (define-type ONT::medical-disorders-and-conditions
  :wordnet-sense-keys ("disorder%1:26:03")
- :parent ONT::attribute
+ :parent ONT::event-type
+ :sem (F::situation ) ;;(F::container +))
  :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj (F::origin (? og2 f::human f::non-human-animal))))
              )
  )
@@ -1736,7 +1763,7 @@
 ;; mental illness, mental disorder, psychological disorder                                                          
 (define-type ONT::mental-psychological-illness-or-disorder
  :wordnet-sense-keys ("mental_illness%1:26:00" "mental_disorder%1:26:00")
- :parent ONT::attribute
+ :parent ONT::event-type
  )
 
 ;; addiction                                                                                                        

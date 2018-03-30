@@ -34,6 +34,7 @@ public class StructureInstance implements FeatureGroup {
 		generateLinearityFeature();
 		generateTemporalSequenceFeature();
 		generateDimensionFeatures();
+		generateUnorderedGroupingFeature();
 	}
 	
 	// Return height / width
@@ -68,12 +69,12 @@ public class StructureInstance implements FeatureGroup {
 		
 		double horizontalityValue = (ratio > 1) ? 0.0 : 1.0;
 		double verticalityValue = (ratio > 1) ? 1.0 : 0.0;
-		DecimalFeature horizontality = new DecimalFeature("ONT::HORIZONTAL");
+		DecimalFeature horizontality = new DecimalFeature(FeatureConstants.HORIZONTAL);
 		horizontality.setValue(horizontalityValue);
 		horizontality.setPrettyName("horizontality");
 		setFeature(horizontality);
 		
-		DecimalFeature verticality = new DecimalFeature("ONT::VERTICAL");
+		DecimalFeature verticality = new DecimalFeature(FeatureConstants.VERTICAL);
 		horizontality.setValue(verticalityValue);
 		horizontality.setPrettyName("verticality");
 		setFeature(verticality);
@@ -82,14 +83,13 @@ public class StructureInstance implements FeatureGroup {
 	
 	private void generateBlockNumberFeature()
 	{
-		CountFeature countFeature = new CountFeature("number");
+		CountFeature countFeature = new CountFeature(FeatureConstants.NUMBER);
 		countFeature.setValue(blocks.size());
 		setFeature(countFeature);
 	}
 	
 	private void generateLinearityFeature()
 	{
-		double Z = 0;
 		double averageX = 0;
 		double averageY = 0;
 		double averageZ = 0;
@@ -132,7 +132,7 @@ public class StructureInstance implements FeatureGroup {
 		sortedLinearity.add(zLinearity.getValue());
 		Collections.sort(sortedLinearity);
 		
-		DecimalFeature linearity = new DecimalFeature("ONT::LINEAR-GROUPING");
+		DecimalFeature linearity = new DecimalFeature(FeatureConstants.LINE);
 		// Last value (largest) will be the principal axis, second value 
 		// will be the largest deviation from the axis
 		if (blocks.size() < 3)
@@ -155,8 +155,8 @@ public class StructureInstance implements FeatureGroup {
 	
 	private void generateDimensionFeatures()
 	{
-		DistanceFeature heightFeature = new DistanceFeature("ONT::HEIGHT-SCALE");
-		DistanceFeature widthScaleFeature = new DistanceFeature("ONT::WIDTH-SCALE");
+		DistanceFeature heightFeature = new DistanceFeature(FeatureConstants.HEIGHT);
+		DistanceFeature widthScaleFeature = new DistanceFeature(FeatureConstants.WIDTH);
 		DistanceFeature widthFeature = new DistanceFeature("ONT::WIDTH");
 		DistanceFeature radiusFeature = new DistanceFeature("W::RADIUS");
 		DistanceFeature diameterFeature = new DistanceFeature("W::DIAMETER");
@@ -204,7 +204,8 @@ public class StructureInstance implements FeatureGroup {
 	
 	public void generateTemporalSequenceFeature()
 	{
-		TemporalSequenceFeature sequenceFeature = new TemporalSequenceFeature("sequence");
+		TemporalSequenceFeature sequenceFeature = 
+					new TemporalSequenceFeature(FeatureConstants.SEQUENCE);
 		List<FeatureGroup> featureGroupSequence = new ArrayList<FeatureGroup>();
 		
 		for (Block b : blocks)
@@ -217,6 +218,22 @@ public class StructureInstance implements FeatureGroup {
 		setFeature(sequenceFeature);
 	}
 	
+	public void generateUnorderedGroupingFeature()
+	{
+		UnorderedGroupingFeature groupingFeature = 
+				new UnorderedGroupingFeature(FeatureConstants.GROUPING);
+		List<FeatureGroup> featureGroupSequence = new ArrayList<FeatureGroup>();
+		
+		for (Block b : blocks)
+		{
+			featureGroupSequence.add(new BlockFeatureGroup(b));
+		}
+	
+		groupingFeature.setValue(featureGroupSequence);
+	
+		setFeature(groupingFeature);		
+	}
+	
 	public Feature getFeature(String featureName)
 	{
 		return features.get(featureName);
@@ -227,9 +244,11 @@ public class StructureInstance implements FeatureGroup {
 		return features.containsKey(featureName);
 	}
 	
-	public void setBlocks(Set<Block> newBlocks)
+	public void setBlocks(Collection<Block> newBlocks)
 	{
-		this.blocks = newBlocks;
+		this.blocks.clear();
+		this.blocks.addAll(newBlocks);
+		generateFeatures();
 	}
 
 	@Override

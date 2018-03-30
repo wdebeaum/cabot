@@ -25,7 +25,7 @@ public class FeatureProjection {
 		this.variableFGBindings = new HashMap<String,FeatureGroup>();
 		if (origin == null)
 		{
-			origin = new PointFeature("origin");
+			origin = new PointFeature(FeatureConstants.ORIGIN);
 			origin.setValue(new DoubleMatrix(new double[]{0,0,Block.BLOCK_WIDTH / 2.0}));
 		}
 		if (nextLocation == null)
@@ -41,7 +41,7 @@ public class FeatureProjection {
 	{
 		if (origin == null)
 		{
-			origin = new PointFeature("origin");	
+			origin = new PointFeature(FeatureConstants.ORIGIN);	
 		}
 		origin.setValue(point);
 	}
@@ -507,7 +507,7 @@ public class FeatureProjection {
 				{
 					CountFeature cf2 = new CountFeature("count");
 					cf2.setValue(i);
-					increase.addToSequence(cf2);
+					increase.add(cf2);
 				}
 				System.out.println("Built increase feature: " + increase);
 				variableFGBindings.put(variable,increase);
@@ -518,7 +518,7 @@ public class FeatureProjection {
 				{
 					CountFeature cf2 = new CountFeature("count");
 					cf2.setValue(i);
-					decrease.addToSequence(cf2);
+					decrease.add(cf2);
 				}
 				System.out.println("Built increase feature: " + decrease);
 				variableFGBindings.put(variable,decrease);
@@ -529,18 +529,18 @@ public class FeatureProjection {
 				{
 					CountFeature cf2 = new CountFeature("height");
 					cf2.setValue(1); // Just set to default of 1
-					height.addToSequence(cf2);
+					height.add(cf2);
 				}
 				System.out.println("Built height feature:" + height);
 				variableFGBindings.put(variable, height);
 				return true;
 			case "ONT::WIDTH-SCALE":
-				TemporalSequenceFeature width = new TemporalSequenceFeature("ONT::HEIGHT-SCALE");
+				TemporalSequenceFeature width = new TemporalSequenceFeature("ONT::WIDTH-SCALE");
 				for (int i = 1; i < 11; i++)
 				{
-					CountFeature cf2 = new CountFeature("height");
+					CountFeature cf2 = new CountFeature("width");
 					cf2.setValue(1); // Just set to default of 1
-					width.addToSequence(cf2);
+					width.add(cf2);
 				}
 				System.out.println("Built width feature:" + width);
 				variableFGBindings.put(variable, width);
@@ -563,12 +563,12 @@ public class FeatureProjection {
 			if (elementType.equalsIgnoreCase("ONT::TOWER"))
 			{
 				PointFeature nextOrigin = row.getNextInDirection(Block.BLOCK_WIDTH);
-				row.addToSequence(buildTower(nextOrigin,1));
+				row.add(buildTower(nextOrigin,1));
 			}
 			else if (elementType.equalsIgnoreCase("ONT::BLOCK"))
 			{
 				PointFeature nextOrigin = row.getNextInDirection(Block.BLOCK_WIDTH);
-				row.addToSequence(buildTower(nextOrigin,1));
+				row.add(buildTower(nextOrigin,1));
 			}
 		}
 		nextLocation = row.getNextInDirection(Block.BLOCK_WIDTH);
@@ -588,12 +588,12 @@ public class FeatureProjection {
 			if (elementType.equalsIgnoreCase("ONT::TOWER"))
 			{
 				PointFeature nextOrigin = row.getNextInDirection(Block.BLOCK_WIDTH);
-				row.addToSequence(buildTower(nextOrigin,1));
+				row.add(buildTower(nextOrigin,1));
 			}
 			else if (elementType.equalsIgnoreCase("ONT::BLOCK"))
 			{
 				PointFeature nextOrigin = row.getNextInDirection(Block.BLOCK_WIDTH);
-				row.addToSequence(buildTower(nextOrigin,1));
+				row.add(buildTower(nextOrigin,1));
 			}
 		}
 		nextLocation = row.getNextInDirection(Block.BLOCK_WIDTH);
@@ -615,7 +615,7 @@ public class FeatureProjection {
 			Block b = new Block(pf.getValue());
 			BlockFeatureGroup bfg = new BlockFeatureGroup(b);
 			bfg.setPointFeature(pf);
-			tower.addToSequence(bfg);
+			tower.add(bfg);
 		}
 		
 		nextLocation = tower.getNextInDirection(Block.BLOCK_WIDTH);

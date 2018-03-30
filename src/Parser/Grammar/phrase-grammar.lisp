@@ -227,8 +227,8 @@
 	((possessor (LF ONT::DEFINITE) (AGR ?agr) (ARG ?arg) (MASS ?m)
 	  (RESTR (& (assoc-poss
 		     (% *PRO* (VAR ?v) (SEM ?sem)
-			(STATUS ont::PRO) (class ?lf) (constraint (& (proform ?lex)))))))
-	  (NObareSpec +) (WH (? wh Q -)) (wh-var ?v))	 
+			(STATUS *WH-TERM*) (class ?lf) (constraint (& (proform ?lex)))))))
+	  (NObareSpec +) (WH Q) (wh-var ?v))	 
 	 -possessive3-Q> 1
 	 (head (PRO (CASE POSS) (WH Q)
 		    (STATUS ont::PRO-DET) (SEM ?sem) (VAR ?v) (LF ?lf) (lex ?lex) (input ?i))))
@@ -397,9 +397,9 @@
 (parser::augment-grammar
  '((headfeatures
     ;; (N1 VAR arg AGR MASS CASE SEM Changeagr lex quantity subcat transform)
-    (N1 var arg lex headcat transform agr mass case sem quantity argument indef-only subcat-map refl abbrev gerund nomsubjpreps nomobjpreps dobj-map dobj subj-map generated rate-activity-nom)
+    (N1 var arg lex headcat transform agr mass case sem quantity argument indef-only subcat-map refl abbrev gerund nomsubjpreps nomobjpreps dobj-map dobj subj-map generated rate-activity-nom agent-nom)
     ;;(N1 var arg lex headcat transform agr mass case sem quantity argument argument-map indef-only subcat-map refl abbrev gerund nomsubjpreps nomobjpreps dobj-map dobj subj-map generated)
-    (N var arg lex headcat transform agr mass case sem quantity argument indef-only subcat-map refl abbrev gerund nomsubjpreps nomobjpreps dobj-map dobj subj-map generated)  ; this is a copy of N1 so -N-prefix> would pass on the features
+    (N var arg lex headcat transform agr mass case sem quantity argument indef-only subcat-map refl abbrev gerund nomsubjpreps nomobjpreps dobj-map dobj subj-map generated rate-activity-nom agent-nom)  ; this is a copy of N1 so -N-prefix> would pass on the features
     (NAME var arg lex headcat transform agr mass case sem quantity argument indef-only subcat-map refl abbrev gerund nomsubjpreps nomobjpreps dobj-map dobj subj-map generated name)  ; this is a copy of N1 so -NAME-prefix> would pass on the features (added name)
     (UNITMOD var arg lex headcat transform agr mass case sem quantity subcat argument indef-only)
     (QUAL var arg lex headcat transform ARGUMENT COMPLEX)
@@ -886,11 +886,11 @@
       )
      -N1-subcat1>
      (Head (N (VAR ?v) (lf ?LF)
-	    (SORT ?sort) (ARGUMENT-MAP ?am)
+	    ;(SORT ?sort) (ARGUMENT-MAP ?am)
+	    (SORT (? !sort reln)) (ARGUMENT-MAP ?am) ; reln should go through n1-reln3
 	    (SUBCAT ?!subcat) 
 	    (subcat-map ?!subcatmap)
 	    (SUBCAT (% ?xx (var ?v1) (gap ?gap) (sem ?subcatsem) (postadvbl -)))
-	    	    
 	    ))
      ?!subcat
      (compute-complex (arg0 ?v1) (arg1 ?complex))
@@ -1126,6 +1126,7 @@
 	     (CONSTRAINT ?newc)
 	     (transform ?transform)
 	     ))
+      (sem ?sem)
       (gap -) (wh -) (argument ?argument)
       )
      -adv-compar-object-deleted>
@@ -1359,6 +1360,41 @@
 	       ))
     )
 
+   ; most beautifully
+   ((ADV (LF (:* ?pred ?lftype))
+     (VAR ?v) (comparative +)
+     (allow-deleted-comp +) ;(allow-post-n1-subcat +) ;(ALLOW-POST-N1-SUBCAT ?xx)
+     ;(SUBCAT-MAP ?subcat-map)
+     ;(subcat  ?subcat)
+     (SUBCAT-MAP ?ground-smap)
+     (subcat  ?ground-subcat)
+     ;(comp-ptype ?pt)
+     (ground-oblig ?go)
+     (ground-subcat ?ground-subcat)
+     ;(ATYPE CENTRAL)
+     (ATYPE ?atype)
+     (SORT PRED)
+     ;(sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+     (sem ?sem)
+     (transform ?transform) (argument-map ont::figure) (argument ?argument)  (arg ?arg)
+     )
+     -more-adv-compar> 1.0
+    (ADV (lf (:* ?pred ?xx)) (comparative (? cmp + superl))
+     (ground-oblig ?go) (SUBCAT ?ground-subcat) (SUBCAT-MAP ?ground-smap))
+    (head (ADV (LF (:* ?lftype ?w)) (var ?v) 
+	       (SUBCAT2 -) (post-subcat -)(VAR ?v) (comparative -)
+	       (SUBCAT ?subcat) 
+	       (subcat-map ?subcat-map)
+	       ;(ATYPE central)
+	       (ATYPE ?atype)
+	       (argument ?argument) (arg ?arg)
+	       (SORT PRED)
+	       ;;(sem ($ F::ABSTR-OBJ (f::scale ?scale)))
+	       (sem ?sem)
+	       (transform ?transform)
+	       ))
+    )
+   
    ; get FUNCTN into SCALE
    ((ADJ (LF (:* ?lftype ?w)) ;(LF (:* ?pred ?lftype))
      (VAR ?v) (comparative +)
@@ -1579,7 +1615,7 @@
 	    (SEM ?sem) ;;(subcat -) 
 	    (post-subcat -) (gap -) ;;(derived-from-name -) 
 	    (no-postmodifiers -) ;; exclude "the same path as the battery I saw" and cp attaching to "path"
-	    (agr ?agr) (rate-activity-nom -)
+	    (agr ?agr) (rate-activity-nom -) (agent-nom -)
 	    ))
 ;     (cp (ctype relc) (VAR ?relv) (ARG ?v) (ARGSEM ?argsem) (agr ?agr)
      (cp (ctype relc) (VAR ?relv) (ARG ?v) (ARGSEM ?sem) (agr ?agr)
@@ -1674,7 +1710,9 @@
     ;; the LF built in the same way as in n1-qual1
     ;; postpositive adjps alowed to parse "something like a dog"
     ((NP (SORT PRED)
-         (VAR ?v) (SEM ?sem) (lex ?hl) (headcat ?hc) (Class ?c) (AGR ?agr) (WH ?wh) (PRO INDEF)(case ?case)
+      (VAR ?v) (SEM ?sem) (lex ?hl) (headcat ?hc) (Class ?c) (AGR ?agr)
+      ;;(WH ?wh)
+      (PRO INDEF)(case ?case)
          (LF (% Description (status ?status) (var ?v) (Class ?c) (SORT individual)
                 (Lex ?lex)
                 (sem ?sem) 
@@ -1685,7 +1723,9 @@
      -np-anything-adj> .96 ; only use when needed
      (head (pro (SEM ?sem) (AGR ?agr) (VAR ?v) (headcat ?hc) (lex ?hl)
 	        (PRO INDEF) (status ?status) (case ?case)
-	        (VAR ?v) (WH ?wh) (LF ?c)
+	        (VAR ?v)
+		(WH -) ;;  (WH ?wh)   I can't think of a WH pro in this context
+		(LF ?c)
 	        (transform ?transform)
 	    ))
      (ADJP (atype (? at attributive-only central postpositive)) (LF ?qual) (ARG ?v) (VAR ?adjv)
@@ -1727,7 +1767,7 @@
 	    )))
     -np-pro-cp> .96
     (head (np (var ?npvar) (sem ?npsem) 
-	   (PRO (? prp INDEF +))
+	   (PRO INDEF) ;; (? prp INDEF +))  can't allow definite pros here!
 	   (WH -)
 	   (agr ?a) (case ?case)
 	   ;; Myrosia 2009/04/10 Cases like "anything you saw" are handled by indef-pro-desc
@@ -2014,7 +2054,7 @@
 	  (QCOMP (% ?!cat (VAR ?psvar)))
 	  (QCOMP ?qcomp))
          (head (N1 (VAR ?v) (SORT PRED) (CLASS ?c) (MASS ?m) 
-		   (KIND -) (agr 3p) (RESTR ?r) (sem ?sem) (rate-activity-nom -)
+		   (KIND -) (agr 3p) (RESTR ?r) (sem ?sem) (rate-activity-nom -) (agent-nom -)
 		   (transform ?transform)
 		))
 	 ?qcomp ;;(PP (ptype W::THAN) (var ?psvar) (gap -))
@@ -2058,7 +2098,7 @@
          -np-another> 1.0   
 	 (word (lex w::another))
          (head (N1 (VAR ?v) (SORT PRED) (CLASS ?c) (MASS count)
-		   (KIND -) (agr ?agr) (RESTR ?r) (rate-activity-nom -)
+		   (KIND -) (agr ?agr) (RESTR ?r) (rate-activity-nom -) (agent-nom -)
 		   (sem ?sem) (transform ?transform)
 		   ))
 	 ;;(add-to-conjunct (val (SIZE ?card)) (old ?setr) (new ?setr1))
@@ -2089,7 +2129,7 @@
 	       )
 	   (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
 		     (KIND -) (agr ?agr) (sem ?sem) (sem ($ f::abstr-obj (f::scale ?sc)))
-		     (argument ?argument) (RESTR ?restr) (transform ?transform) (post-subcat -) (rate-activity-nom -)
+		     (argument ?argument) (RESTR ?restr) (transform ?transform) (post-subcat -) (rate-activity-nom -) (agent-nom -)
 		     ))
 	   (add-to-conjunct (val (& (unit ?c) (scale ?sc))) (old ?restr) (new ?constr))
 	   )
@@ -2240,7 +2280,7 @@
              (SORT AGGREGATE-UNIT) (SPEC ont::INDEFINITE) (VAR ?v))
          -bare-measure-count> .98
          (head (N1 (SORT AGGREGATE-UNIT) (mass count) (mass ?m)
-		(AGR 3p) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -)
+		(AGR 3p) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -) (agent-nom -)
 		(sem ?sem)  (sem ($ f::abstr-obj (f::scale ?sc)))
 		(post-subcat -)
 		))
@@ -2256,7 +2296,7 @@
              (SORT UNIT-MEASURE) (SPEC ont::INDEFINITE) (BARE +) (VAR ?v))
 	    -bare-measure-attribute> .98
 	    (head (N1 (SORT ATTRIBUTE-UNIT) (mass count) (mass ?m) (abbrev -) ;; don't allow bare form with abbreviations
-		      (AGR 3p) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -)
+		      (AGR 3p) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -) (agent-nom -)
 		      (sem ?sem)  (sem ($ f::abstr-obj (f::scale ?sc)))
 		      (post-subcat -) (abbrev -)
 		      ))
@@ -2287,16 +2327,18 @@
          (head (N1 (SORT PRED) (MASS  count) (gerund -) ;;(complex -) 
 		   (name-or-bare ?nob) 
 		   (derived-from-name -)  ;; names already can become NPs by simpler derivations
-		(AGR 3s) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -)
+		(AGR 3s) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -) (agent-nom -)
 		(sem ?sem) (transform ?transform)
 		)))
 
+	#|
         ;;  COMMAS
         ;;  e.g., the train ,
         ((NP (LF ?r) (SORT ?sort) (VAR ?v) (comma +))
          -np-comma>
          (head (NP (LF ?r) (SORT ?sort) (VAR ?v) (COMPLEX -))) (punc (Lex w::punc-comma)))
-
+	|#
+	
 	;; reference/citations
 	((NP (LF (% description (STATUS ?spec) (VAR ?v) 
 		    (CLASS ?c) (CONSTRAINT ?newc)
@@ -2398,6 +2440,7 @@
 				  (scale ?sc))) (old ?restr) (new ?constr))
 	 )
 
+  
    ;;  special case: "a mile"
 
 	((NP (LF (% description (STATUS ONT::INDEFINITE)
@@ -2440,12 +2483,13 @@
 		   (post-subcat -)
 		))
 	 (pp (ptype in) (gap -)
-	  (sem ($ f::abstr-obj (F::type (? xx ont::domain)))))
+	  (sem ($ f::abstr-obj (F::type (? xx ont::domain)) (f::scale ?unit-sc))))
 	 ;;(class-greatest-lower-bound (in1 ?unit-sc) (in2 ?explicit-sc) (out ?sc))
          (add-to-conjunct (val (& (value ?num))) (old ?r) (new ?newr))
 	 (add-to-conjunct (val (& (amount (% *PRO* (status ont::indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
 				  (unit ?c)
-				  (scale (? xx ont::domain)))) (old ?restr) (new ?constr))
+				  (scale ?unit-sc)))
+	  (old ?restr) (new ?constr))
 	 )
 
    ;;  NP with SPECS that subcategorize for "of" PP's that are count and definite
@@ -2557,7 +2601,7 @@
 	       ))
      (case ?case)
      (SORT PRED)
-     (MASS mass)
+     (MASS mass) (AGR ?agr)
      (VAR *) (WH ?w));; must move WH feature up by hand here as it is explicitly specified in a daughter.
     -np-spec-of-mass-indef-pp>
     (SPEC (LF ?spec) (ARG ?v) (VAR ?specvar) (name-spec -) (mass mass) 
@@ -3560,6 +3604,7 @@
 		(restr ?restr)
 		(subj (% NP (var ?v1)))
 		(subj-map ?!subjmap)
+		(dobj-map -)
 		(comp3 ?comp3)
 		(comp3-map ?comp-map)
 		(agent-nom -)
@@ -3897,17 +3942,9 @@
     ))
 
 
-;; NAMES and complex WH-DESC NPs
-;; allows changing of SEM and VAR features
-
-;;(cl:setq *grammar-CONJ*
 (parser::augment-grammar	 
   '((headfeatures
-     (NP NAME PRO Changeagr lex headcat transform refl)
-     (NPSEQ CASE MASS NAME PRO lex headcat transform)
-     (NSEQ CASE MASS NAME lex headcat transform)
-     (N1 sem lf lex headcat transform set-restr refl abbrev rate-activity-nom)
-     (N sem lf mass sort lex headcat transform refl  rate-activity-nom)
+     (N1 sem lf lex headcat transform set-restr refl abbrev rate-activity-nom); agent-nom)
      )
 
     ;; this rule handles agentive nominalizations, wraps an "agent" around the event nominalization
@@ -3926,13 +3963,25 @@
 		(var ?v) (gap -) (aux -) (agr ?agr) (sort pred)
 		(sem ?sem)  (sem ($ F::SITUATION)) ; (f::type ont::event-of-change)))
 		(class ?class) (transform ?transform)
-		(restr ?restr) (agent-nom +)
+		(restr ?restr) 
 		(subj (% NP (var *) (sem ?subjsem)))
 		))
      )
+))
+    
+    
+;; NAMES and complex WH-DESC NPs
+;; allows changing of SEM and VAR features
 
-    
-    
+;;(cl:setq *grammar-CONJ*
+(parser::augment-grammar	 
+  '((headfeatures
+     (NP NAME PRO Changeagr lex headcat transform refl)
+     (NPSEQ CASE MASS NAME PRO lex headcat transform)
+     (NSEQ CASE MASS NAME lex headcat transform)
+     (N1 sem lf lex headcat transform set-restr refl abbrev rate-activity-nom); agent-nom)
+     (N sem lf mass sort lex headcat transform refl  rate-activity-nom agent-nom)
+     )
     
   ;;  ing forms can serve as nominalizations e.g., The loading  note: it goes here as nomobjpreps can't be a head feature!
     ((N1 (SORT PRED)
@@ -3963,7 +4012,9 @@
 	    (comp3-map ?comp-map)
 	    (nomobjpreps ?nop)
 	    (nomsubjpreps ?nsp)
+	    (part ?part)
 	    ))
+     ?part
      )
     ;; swift 11/28/2007 there is no more gname status
     ;; Myrosia 2/12/99: changed the rule so that class in LF comes from class
@@ -4010,9 +4061,10 @@
 
 	;;   Headless adjective phrases
 	;;  The green, the largest
-	((NP (SORT PRED) (CLASS ?c) (VAR *) (sem ?s) (case (? case SUB OBJ))  (headless +)
-	     (lf (% description (status ?spec) (var *) (sort SET) 
-		    (Class ont::Any-sem) 
+	((NP (SORT PRED) (CLASS ?c) (VAR *) (sem ?s) (case (? case SUB OBJ))  (headless +) (agr (? agr 3s 3p))
+	     (lf (% description (status (? st definite definite-plural)) ;(status ?spec)
+		    (var *) ;(sort SET) 
+		    (Class ont::Any-sem) (agr (? agr 3s 3p))
 		    (constraint ?con)
 		    (sem ?s)
 		    ))
@@ -4020,7 +4072,8 @@
 	  )
 	 -NP-adj-missing-head> .97 ; .96
 	 (head (spec  (poss -) (restr ?restr)
-                      (lf ?spec) (arg *) (agr |3P|) (var ?v)))
+                      (lf ?spec) (arg *) (agr (? agr 3s 3p)) ;(agr |3P|)
+		      (var ?v)))
 	 (ADJP (LF ?l1) (ARG *) (set-modifier -)
 	  (var ?advvar) (ARGUMENT (% NP (sem ?s))))
 	 ;;(cardinality (var ?card))
@@ -4115,24 +4168,25 @@
     ;;  e.g., (show me) who/what arrived, I know who else arrived
    
     ((np (sort wh-desc)  (gap -)  (mass bare) (agr ?a)
-      (sem ?s-sem) ;;(sem ?npsem)
+      (sem ?npsem) ;(sem ?s-sem) ;;(sem ?npsem)  ; should be npsem: e.g., I know *which dog* ate the pizza
       (var ?npvar) (case (? case SUB OBJ))  ;; I think SUB is also OK? isn't it? JFA 3/03
       (lf (% description (status ?status) (VAR ?npvar) (class ?npclass) 
              (constraint ?constraint) (sort ?sort) (WH -)
              (sem ?npsem) (transform ?transform)
              )))
-     -wh-desc2> .7
+     -wh-desc2>
      (head (np (var ?npvar) (sem ?npsem) (wh Q) (agr ?a) ;;(PRO INDEF)
-            (lf (% definite  (class ?npclass) (status ?status)
+            (lf (% description  (class ?npclass) (status ?status)
                    (constraint ?cons) (sort ?sort) (transform ?transform)
                    ))))
      (vp (var ?vpvar) (lf ?lf-s) (subjvar ?npvar) 
-      (gap -) (CLASS (? !class ont::IN-RELATION ont::HAVE-PROPERTY) )     ;;  "what is aspirin" is not a good NP
-      (advbl-needed -) 
-      (subj (% np (sem ?npsem) (var ?npvar)))
+      (gap -) (CLASS (? !class ont::IN-RELATION)) ; ont::HAVE-PROPERTY) )     ;;  "what is aspirin" is not a good NP
+      (advbl-needed -) (agr ?a)
+      (subj (% np (sem ?npsem) (var ?npvar) (agr ?a)))
       (sem ?s-sem)
       )
-     (add-to-conjunct (val (suchthat ?vpvar)) (old ?cons) (new ?constraint))
+     (add-to-conjunct (val (mod ?vpvar)) ;(suchthat ?vpvar))
+		      (old ?cons) (new ?constraint))
      )
     
     ;; wh-term as gap
@@ -4415,13 +4469,13 @@
 	     (Lex ?lex)
 	     (constraint (& (proform ?lex)))
 	     (sem ?sem)))
-      (mass ?m)
+      (mass ?m) (expletive ?exp)
       )
      -np-pro-noagr>
      (head (pro (SEM ?sem) (AGR ?agr) (VAR ?v) (case ?case)
 	    (LEX ?lex) (VAR ?v) (WH -) (lf ?c)
-	    (mass ?m) (sing-lf-only +)
-	    (status ?status) 
+	    (mass ?m) ;(sing-lf-only +) 
+	    (status ?status) (expletive ?exp)
 	    (poss -) ;; Added by myrosia 2003/11/02 to avoid "our" as NP
 	    )))
     
@@ -4993,9 +5047,10 @@
 		    (nomobjpreps ?nop)
 		    (nomsubjpreps ?nsp)
 		    ))
-	 (n (lf ?ratelf) (sem ($ (? t F::ABSTR-OBJ F::SITUATION)
+	 (n (lf ?ratelf) (sem ($ (? t F::ABSTR-OBJ F::SITUATION F::TIME)  ; (planting) date
 				 ;(f::type (? x ONT::DOMAIN ONT::ACTING))))) ; ACTING: activity
-				 (f::type (? x ONT::DOMAIN ONT::ACTIVITY-EVENT ONT::ABILITY-EVENT ONT::LEVEL ONT::QUANTITY))))) ; rate, height, activity, level, amount
+				 (f::type (? x ONT::DOMAIN ONT::ACTIVITY-EVENT ONT::ABILITY-EVENT ONT::LEVEL ONT::QUANTITY
+					     ONT::time-object))))) ; rate, height, activity, level, amount, (planting) date
 	 )
 
     ;; this rule then inserts the rate/activity predicate once the arguments have been attached
@@ -5055,14 +5110,14 @@
    
    ;; numbers (only -- number sequences use np-sequenc1e>
    ((NP (SORT PRED)
-     (var ?v) (Class ONT::ANY-SEM) 
-     (sem ($ (? ft f::abstr-obj) (f::container -))) ;;(sem ($ (? ft f::phys-obj f::abstr-obj))) 
+     (var ?v) (class ONT::NUMBER) ;(Class ONT::ANY-SEM) 
+     (sem ($ (? ft f::abstr-obj) (f::container -) (F::scale ont::number) (F::tangible -))) ;;(sem ($ (? ft f::phys-obj f::abstr-obj))) 
      (case (? cas sub obj -))
      (LF (% Description (status ont::number) (var ?v) (Sort Individual) ;(lex ?lf)
 	    (CLASS ONT::NUMBER) ;;(Class ONT::REFERENTIAL-SEM) 
 	    (constraint ?restr) 
-	    (lex ?l) (val ?val) 
-	    (sem ($ (? ft f::abstr-obj) (f::container -))) ; "container -" to discourage it from being used by IN-LOC for "in 2019"
+	    (lex ?l) (val ?val)
+	    (sem ($ (? ft f::abstr-obj) (f::container -) (F::scale ont::number) (F::tangible -))) ; "container -" to discourage it from being used by IN-LOC for "in 2019"
 	    ;; (sem ($ (? ft f::phys-obj f::abstr-obj))) 
 	    (transform ?transform)
 	    ))
@@ -5072,7 +5127,7 @@
      (mass ?mass)
      (constraint ?restr) 
      (nobarespec +) ;; bare numbers can't be specifiers     
-     (agr (? a 3s 3p))
+     (agr 3s)  ; The answer *is* 5.
      )
     -np-number> 0.98
     (head (number (val ?lf) (lex ?l) (val ?val) (range -) (agr (? a 3s 3p));(number-only +)

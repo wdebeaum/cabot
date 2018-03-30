@@ -198,7 +198,7 @@ public class Goal {
 		
 	}
 	
-	void updateTerm()
+	public void updateTerm()
 	{
 		term.set(1, new KQMLToken(what));
 	}

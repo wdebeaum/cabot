@@ -1,23 +1,28 @@
 package features;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import features.BlockFeatureGroup;
 
 import org.jblas.DoubleMatrix;
+
+import environment.Block;
+import environment.StructureInstance;
+
 
 public class UnorderedGroupingFeature extends Feature<List> {
 
 	protected List<FeatureGroup> elements;
 	protected CountFeature count;
 	protected DistanceFeature heightFeature;
+	protected DistanceFeature widthFeature;
+	protected PointFeature centerFeature;
 	
 	public UnorderedGroupingFeature(String name) {
 		super(name);
-		count = new CountFeature("count");
-		heightFeature = new DistanceFeature("ONT::HEIGHT-SCALE");
+		count = new CountFeature(FeatureConstants.NUMBER);
+		heightFeature = new DistanceFeature(FeatureConstants.HEIGHT);
+		widthFeature = new DistanceFeature(FeatureConstants.WIDTH);
+		centerFeature = new PointFeature(FeatureConstants.CENTER);
 		elements = new ArrayList<FeatureGroup>();
 	}
 
@@ -30,7 +35,9 @@ public class UnorderedGroupingFeature extends Feature<List> {
 	@Override
 	public void setValue(List newValue) {
 		elements = newValue;
+		generateFeatures();
 	}
+	
 	
 	public CountFeature getCountFeature()
 	{
@@ -38,6 +45,55 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		return count;
 	}
 	
+	public StructureInstance getStructureInstance()
+	{
+		return new StructureInstance(name,getBlocks());
+	}
+	
+	public List<BlockFeatureGroup> getBlockFeatureGroups()
+	{
+		List<BlockFeatureGroup> bfgs = new ArrayList<BlockFeatureGroup>();
+		for (FeatureGroup fg : elements)
+		{
+			if (fg instanceof BlockFeatureGroup)
+				bfgs.add((BlockFeatureGroup)fg);
+			else if (fg instanceof UnorderedGroupingFeature)
+				bfgs.addAll(((UnorderedGroupingFeature)fg).getBlockFeatureGroups());
+		}
+		
+		return bfgs;
+	}
+	
+	public List<Block> getBlocks()
+	{
+		List<BlockFeatureGroup> bfgs = getBlockFeatureGroups();
+		List<Block> toReturn = new ArrayList<Block>();
+		
+		for (BlockFeatureGroup bfg : bfgs)
+			toReturn.add(bfg.block);
+		
+		return toReturn;
+	}
+	
+	public void add(FeatureGroup fg)
+	{
+		elements.add(fg);
+		generateFeatures();
+	}
+	
+	private void generateCenterFeature()
+	{
+		DoubleMatrix center = DoubleMatrix.zeros(3);
+		List<Block> blocks = getBlocks();
+		for (Block b : blocks)
+		{
+			center.addi(b.position);
+		}
+		
+		center.divi(blocks.size());
+		
+		centerFeature.setValue(center);
+	}
 	
 	private void generateHeightFeature()
 	{
@@ -51,13 +107,13 @@ public class UnorderedGroupingFeature extends Feature<List> {
 				double originY = 0;
 				double blockHeight = 0;
 				
-				if (features.containsKey("ONT::HEIGHT-SCALE"))
-					blockHeight = (Double)features.get("ONT::HEIGHT-SCALE").getValue();
+				if (features.containsKey(FeatureConstants.HEIGHT))
+					blockHeight = (Double)features.get(FeatureConstants.HEIGHT).getValue();
 				
-				if (features.containsKey("ONT::LOCATION"))
-					originY = ((DoubleMatrix)features.get("ONT::LOCATION").getValue()).get(2);
+				if (features.containsKey(FeatureConstants.LOCATION))
+					originY = ((DoubleMatrix)features.get(FeatureConstants.LOCATION).getValue()).get(2);
 				
-				height = originY + height / 2;
+				height = originY + blockHeight / 2;
 
 			}
 			else if (fg instanceof UnorderedGroupingFeature)
@@ -73,16 +129,73 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		
 	}
 	
+	private void generateWidthFeature()
+	{
+		double maxX = Double.MIN_VALUE;
+		double minX = Double.MAX_VALUE;
+		for (FeatureGroup fg : elements)
+		{
+			double width = 0;
+			double centerX = 0;
+
+			
+			if (fg instanceof BlockFeatureGroup)
+			{
+				Map<String, Feature> features = ((BlockFeatureGroup)fg).getFeatures();
+
+				if (features.containsKey(FeatureConstants.WIDTH))
+					width = (Double)features.get(FeatureConstants.WIDTH).getValue();
+				
+				if (features.containsKey(FeatureConstants.LOCATION))
+					centerX = ((DoubleMatrix)features.get(FeatureConstants.LOCATION).getValue()).get(2);
+
+			}
+			else if (fg instanceof UnorderedGroupingFeature)
+			{
+				width = getWidthFeature().getValue();
+				DoubleMatrix center = ((UnorderedGroupingFeature)fg).getCenterFeature().getValue();
+				centerX = center.get(0);
+			}
+			
+			if (centerX - width / 2 < minX)
+				minX = centerX - width / 2;
+			
+			if (centerX + width / 2 > maxX)
+				maxX = centerX + width / 2;
+			
+		}
+
+		widthFeature.setValue(maxX - minX);
+		
+	}
+	
 	public DistanceFeature getHeightFeature()
 	{
 		generateHeightFeature();
 		return heightFeature;
 	}
 	
+	public PointFeature getCenterFeature()
+	{
+		generateCenterFeature();
+		return centerFeature;
+	}
+	
+	public DistanceFeature getWidthFeature()
+	{
+		generateWidthFeature();
+		return widthFeature;
+	}
+	
+	public boolean isEmpty()
+	{
+		return elements.isEmpty();
+	}
+	
 	public TemporalSequenceFeature projectOnto(TemporalSequenceFeature onto)
 	{
 		for (FeatureGroup element : elements)
-			onto.addToSequence(element);
+			onto.add(element);
 		
 		return onto;
 	}
@@ -90,11 +203,21 @@ public class UnorderedGroupingFeature extends Feature<List> {
 	private void generateFeatures()
 	{
 		generateHeightFeature();
+		generateWidthFeature();
+		generateCenterFeature();
+		generateCountFeature();
 	}
 	
+	private void generateCountFeature() {
+		
+		count.setValue(elements.size());
+		
+	}
+
 	public Map<String,Feature> getFeatures()
 	{
 		HashMap<String,Feature> result = new HashMap<String,Feature>();
+		generateFeatures();
 		result.putAll(super.getFeatures());
 		result.put(count.name, count);
 		result.put(heightFeature.name, heightFeature);

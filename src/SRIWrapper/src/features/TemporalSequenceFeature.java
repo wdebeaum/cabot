@@ -9,15 +9,16 @@ import environment.Block;
 
 public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 
-	private DirectionFeature direction;
-	private PointFeature origin;
+	protected DirectionFeature direction;
+	protected PointFeature origin;
 	
 	public TemporalSequenceFeature(String name) {
 		super(name);
-		direction = new DirectionFeature("direction");
+		direction = new DirectionFeature(FeatureConstants.DIRECTION);
 		direction.setValue(new DoubleMatrix(new double[]{1,0,0}));
-		origin = new PointFeature("origin");
+		origin = new PointFeature(FeatureConstants.ORIGIN);
 		origin.setValue(new DoubleMatrix(new double[]{0,0,Block.BLOCK_WIDTH/2}));
+		
 		
 	}
 	
@@ -42,9 +43,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 			double newValue = oldZ - minZ + Block.BLOCK_WIDTH / 2;
 			// Make sure everything is above the table
 			((BlockFeatureGroup)fg).getPointFeature().getValue().put(2,newValue);
-;
-			
-			
+
 		}
 		TemporalSequenceFeature result = new TemporalSequenceFeature(name);
 		
@@ -131,7 +130,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 				else
 				{
 					((TemporalSequenceFeature)elements.get(index)).getOrigin().setValue(nextPosition.getValue());
-					onto.addToSequence(elements.get(index));
+					onto.add(elements.get(index));
 					
 					
 				}
@@ -207,7 +206,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		if (lastFg instanceof TemporalSequenceFeature)
 		{
 			DoubleMatrix lastValue = ((TemporalSequenceFeature)lastFg).getOrigin().getValue();
-			PointFeature newPF = new PointFeature("origin");
+			PointFeature newPF = new PointFeature(FeatureConstants.ORIGIN);
 			DoubleMatrix newValue = lastValue.add(direction.getValue()
 									.mul(new DoubleMatrix(new double[]{interval,interval,interval})));
 			newPF.setValue(newValue);
@@ -216,7 +215,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		if (lastFg instanceof BlockFeatureGroup)
 		{
 			DoubleMatrix lastValue = ((BlockFeatureGroup)lastFg).getPointFeature().getValue();
-			PointFeature newPF = new PointFeature("origin");
+			PointFeature newPF = new PointFeature(FeatureConstants.ORIGIN);
 			DoubleMatrix newValue = lastValue.add(direction.getValue()
 									.mul(new DoubleMatrix(new double[]{interval,interval,interval})))
 									.add(origin.getValue());
@@ -226,11 +225,6 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		
 		System.out.println("error getting next position");
 		return null;
-	}
-	
-	public void addToSequence(FeatureGroup fg)
-	{
-		elements.add(fg);
 	}
 	
 	public FeatureGroup getLastFeatureGroupInDirection()
@@ -244,6 +238,16 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 				lastFg = fg;
 		}
 		return lastFg;	
+	}
+	
+	public FeatureGroup getFirstFeatureGroupInDirection()
+	{
+		Collection<FeatureGroup> sortedPositions = sortedPositions(direction);
+		for (FeatureGroup fg : sortedPositions)
+		{
+			return fg;
+		}
+		return null;	
 	}
 	
 	public boolean extendToSize(int newSize, double interval)
@@ -262,14 +266,14 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 			if (lastFg instanceof BlockFeatureGroup)
 			{
 				DoubleMatrix lastValue = ((BlockFeatureGroup)lastFg).getPointFeature().getValue();
-				PointFeature newPF = new PointFeature("origin");
+				PointFeature newPF = new PointFeature(FeatureConstants.ORIGIN);
 				DoubleMatrix newValue = lastValue.add(direction.getValue()
 										.mul(new DoubleMatrix(new double[]{interval,interval,interval})));
 				
 				System.out.println("Position of new block: " + newValue);
 				Block b = new Block(newValue);
 				BlockFeatureGroup bfg = new BlockFeatureGroup(b);
-				addToSequence(bfg);
+				add(bfg);
 				lastFg = bfg;
 			}
 		}
@@ -336,6 +340,14 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 	
 	public PointFeature getOrigin()
 	{
+
+		if (!elements.isEmpty() && 
+				elements.get(0).getFeatures().containsKey(FeatureConstants.ORIGIN))
+		{
+			return (PointFeature)elements.get(0).getFeatures()
+						.get(FeatureConstants.ORIGIN).getValue();
+		}
+		
 		return origin;
 	}
 
@@ -373,19 +385,5 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		}
 		sb.append("\n");
 		return sb.toString();
-	}
-	
-	public List<BlockFeatureGroup> getBlockFeatureGroups()
-	{
-		List<BlockFeatureGroup> result = new ArrayList<BlockFeatureGroup>();
-		for (FeatureGroup fg : elements)
-		{
-			if (fg instanceof BlockFeatureGroup)
-				result.add((BlockFeatureGroup)fg);
-			else if (fg instanceof TemporalSequenceFeature)
-				result.addAll(((TemporalSequenceFeature)fg).getBlockFeatureGroups());
-		}
-		
-		return result;
 	}
 }

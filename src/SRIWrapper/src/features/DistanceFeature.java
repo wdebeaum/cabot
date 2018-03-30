@@ -11,7 +11,7 @@ public class DistanceFeature extends DecimalFeature {
 	public static String[] indicatorGlosses = {"(:* ONT::QUANTITY W::DIAMETER)", "(:* ONT::QUANTITY W::RADIUS)",
 									"(:* ONT::LETTER-SYMBOL W::SPACE)"};
 	public static String[] indicatorClasses = {};
-	public static String[] indicatorScales = {"ONT::HEIGHT-SCALE","ONT::LINEAR-SCALE"};
+	public static String[] indicatorScales = {FeatureConstants.HEIGHT,FeatureConstants.WIDTH,"ONT::LINEAR-SCALE"};
 	
 	public DistanceFeature(String name) {
 		super(name);

@@ -10,11 +10,13 @@ import environment.StructureInstance;
 import features.BlockFeatureGroup;
 import features.TemporalSequenceFeature;
 import goals.Goal;
+import goals.GoalMessages;
 import goals.GoalStateHandler;
 import goals.GoalStateHandler.SystemState;
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLToken;
+import models.Constraint;
 import models.FeatureConstraint;
 import models.FeatureProjection;
 import models.ModelBuilder;
@@ -47,11 +49,26 @@ public class EvaluateHandler {
 		KQMLList eventLF = KQMLUtilities.findTermInKQMLList(eventLFSymbol, context);
 		//String eventToQueryID = goalLF.getKeywordArg(":NEUTRAL").stringValue();
 		//KQMLList eventToQuery = KQMLUtilities.findTermInKQMLList(eventToQueryID, context);
-		String modelTermID = eventLF.getKeywordArg(":NEUTRAL1").stringValue();
-		KQMLList modelTerm = KQMLUtilities.findTermInKQMLList(modelTermID, context);
-		//String modelName = modelTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-		String modelName = modelTerm.getKeywordArg(":LEX").stringValue();
-		//steps.add(new Step("checkmodel", cleanObjectToMake));
+		String modelName;
+		if (eventLF.getKeywordArg(":NEUTRAL1") != null)
+		{
+			String modelTermID = eventLF.getKeywordArg(":NEUTRAL1").stringValue();
+			KQMLList modelTerm = KQMLUtilities.findTermInKQMLList(modelTermID, context);
+			//String modelName = modelTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+			modelName = modelTerm.getKeywordArg(":LEX").stringValue();
+			//steps.add(new Step("checkmodel", cleanObjectToMake));
+		}
+		else
+		{
+			modelName = modelBuilder.getLastModelName();
+			if (modelName == null)
+			{
+				TextToSpeech.say("I don't know which model you are referring to.");
+				return unacceptableContent("CANNOT-PROCESS", "ASK-IF", 
+							content.getKeywordArg(":ID").stringValue(),
+							"NIL", content.getKeywordArg(":AS"));
+			}
+		}
 		if (modelBuilder.getModelInstantiation(modelName) == null)
 		{
 			TextToSpeech.say("I don't know what a " + KQMLUtilities.cleanLex(modelName) + 
@@ -71,9 +88,10 @@ public class EvaluateHandler {
 		
 		StringBuilder response = new StringBuilder();
 		
-		if (modelBuilder.getModelInstantiation(modelName).constraints.isEmpty())
+		if (modelBuilder.getModelInstantiation(modelName).getConstraints().isEmpty())
 		{
-			TextToSpeech.say("Yes, because I didn't get any constraints for the model of a " + 
+			TextToSpeech.say("Yes, but that's because I didn't get any "
+					+ "constraints for the model of a " + 
 								KQMLUtilities.cleanLex(modelName));
 			return answerContent(true,context);
 		}
@@ -84,7 +102,7 @@ public class EvaluateHandler {
 			response.append("No because ");
 		
 		int reasonNumber = 0;
-		for (FeatureConstraint fc : modelBuilder.getModelInstantiation(modelName).constraints)
+		for (Constraint c : modelBuilder.getModelInstantiation(modelName).getConstraints())
 		{
 			if (reasonNumber > 0)
 			{
@@ -93,14 +111,14 @@ public class EvaluateHandler {
 					response.append(" and ");
 				}
 				else {
-					if (fc.isSatisfied())
+					if (c.isSatisfied())
 						response.append(" even though ");
 					else
 						response.append(" but ");
 				}
 			}
 			response.append("the ");
-			response.append(fc.reason());
+			response.append(c.reason());
 			reasonNumber++;
 		}
 		response.append(".");
@@ -195,7 +213,7 @@ public class EvaluateHandler {
 			}
 			else if (value.equals("ONT::FALSE"))
 			{
-				return goalStateHandler.waitingForUser(goalStateHandler.getCurrentGoal().getId());
+				return GoalMessages.waitingForUser(goalStateHandler.getCurrentGoal().getId());
 			}
 		}
 		
@@ -298,28 +316,33 @@ public class EvaluateHandler {
 		
 		String assertedObjectName = null;
 		
-		if (modelBuilder.currentModel != null)
-			assertedObjectName = modelBuilder.currentModel.name;
-		
+		if (modelBuilder.getLastModelName() != null)
+			assertedObjectName = modelBuilder.getLastModelName();
+		//if (modelBuilder.currentModel != null)
+		//	assertedObjectName = modelBuilder.currentModel.name;
+
+		KQMLList assertionContentTerm = null;
+		KQMLList neutralList = null;
 		for (KQMLObject assertionObject : assertions)
 		{
-			KQMLList assertionContentTerm = KQMLUtilities.findTermInKQMLList(assertionObject.stringValue(), context);
+			assertionContentTerm = KQMLUtilities.findTermInKQMLList(assertionObject.stringValue(), context);
 			
 			if (assertionContentTerm == null)
 				continue;
 			
-			if (assertionContentTerm.getKeywordArg(":INSTANCE-OF") != null &&
-					assertionContentTerm.getKeywordArg(":INSTANCE-OF").stringValue().equals("ONT::BE"))
+//			if (assertionContentTerm.getKeywordArg(":INSTANCE-OF") != null &&
+//					assertionContentTerm.getKeywordArg(":INSTANCE-OF").stringValue().equals("ONT::BE"))
+//			{
+			if (assertionContentTerm.getKeywordArg(":NEUTRAL") != null)
 			{
-				if (assertionContentTerm.getKeywordArg(":NEUTRAL") != null)
-				{
-					String neutralSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL").stringValue();
-					KQMLList neutralList = KQMLUtilities.findTermInKQMLList(neutralSymbol, context);
-					if (neutralList != null &&
-							neutralList.getKeywordArg(":LEX") != null)
-						assertedObjectName = neutralList.getKeywordArg(":LEX").stringValue();
-				}
+				String neutralSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL").stringValue();
+				neutralList = KQMLUtilities.findTermInKQMLList(neutralSymbol, context);
+				if (assertedObjectName == null && neutralList != null &&
+						neutralList.getKeywordArg(":LEX") != null && 
+						!neutralList.getKeywordArg(":SPEC").stringValue().equals("ONT::PRO"))
+					assertedObjectName = neutralList.getKeywordArg(":LEX").stringValue();
 			}
+//			}
 		}
 		
 		if (assertedObjectName == null)
@@ -338,8 +361,10 @@ public class EvaluateHandler {
 //			TextToSpeech.say("I don't see anything on the table.");
 //			return unacceptableContent("CANNOT-PROCESS", "ASSERTION", "NIL", goal, asObject);
 		}
-		
-		currentInstantiation.getConstraintsFromKQML(context);
+		if (neutralList != null)
+			currentInstantiation.getConstraintsFromKQML(neutralList, context);
+		else
+			System.out.println("No Neutral term to learn assertions");
 		
 		TextToSpeech.say("Ok.");
 		modelBuilder.processAssertion(content,context);
@@ -368,10 +393,11 @@ public class EvaluateHandler {
 			String newModelName = "ONT::REFERENTIAL-SEM";
 			KQMLObject whatPhrase = goalLF.getKeywordArg(":FORMAL");
 			String whatPhraseSymbol;
+			KQMLList whatPhraseTerm = null;
 			if (whatPhrase != null)
 			{
 				whatPhraseSymbol = whatPhrase.stringValue();
-				KQMLList whatPhraseTerm = KQMLUtilities.findTermInKQMLList(whatPhraseSymbol, context);
+				whatPhraseTerm = KQMLUtilities.findTermInKQMLList(whatPhraseSymbol, context);
 				KQMLObject beTerm = whatPhraseTerm.getKeywordArg(":SUCHTHAT");
 				
 				if (beTerm != null)
@@ -391,7 +417,8 @@ public class EvaluateHandler {
 					}
 				}
 			}
-			modelBuilder.processNewModel(newModelName);
+			modelBuilder.processNewModel(whatPhraseTerm,context);
+			//modelBuilder.processNewModel(newModelName);
 			
 		}
 		

@@ -3,6 +3,7 @@ package features;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import geometry.Line;
 
 import org.jblas.DoubleMatrix;
 
@@ -20,8 +21,8 @@ public class LineSegmentFeature implements FeatureGroup {
 	@Override
 	public HashMap<String,Feature> getFeatures() {
 		HashMap<String,Feature> result = new HashMap<String,Feature>();
-		result.put("ONT::STARTOFF-BEGIN-COMMENCE-START",start);
-		result.put("ONT::ENDPOINT",end);
+		result.put(FeatureConstants.ORIGIN,start);
+		result.put(FeatureConstants.END,end);
 		return result;
 	}
 	

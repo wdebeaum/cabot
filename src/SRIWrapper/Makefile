@@ -24,7 +24,6 @@ SRCS = 	SRIWrapper.java \
 	src/messages/BlockMessageSender.java \
 	src/spatialreasoning/Plan.java \
 	src/spatialreasoning/Step.java \
-	src/spatialreasoning/Selection.java \
 	src/environment/StructureInstance.java \
 	src/models/ModelBuilder.java \
 	src/models/StructureModel.java \

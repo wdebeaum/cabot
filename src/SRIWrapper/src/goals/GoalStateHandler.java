@@ -55,7 +55,7 @@ public class GoalStateHandler {
 		lastBlockPlaced = null;
 	}
 	
-	public int getNextId()
+	public static int getNextId()
 	{
 		int idToReturn = nextId;
 		nextId++;
@@ -77,7 +77,7 @@ public class GoalStateHandler {
 			if (currentGoal.isCompleted())
 			{
 				checkingForGoalCompletion = false;
-				return executionStatus(goalId, "ONT::DONE");
+				return GoalMessages.executionStatus(goalId, "ONT::DONE");
 			}
 			if (goalInstanceType == null)
 			{
@@ -108,7 +108,7 @@ public class GoalStateHandler {
 				}
 				
 				checkingForGoalCompletion = false;
-				return executionStatus(goalId, "ONT::DONE");
+				return GoalMessages.executionStatus(goalId, "ONT::DONE");
 			}
 			
 			KQMLList term = currentGoal.getTerm();
@@ -153,11 +153,11 @@ public class GoalStateHandler {
 					}
 				
 				}
-				return executionStatus(goalId, "ONT::DONE");
+				return GoalMessages.executionStatus(goalId, "ONT::DONE");
 			}
 			else if (goalInstanceType.equalsIgnoreCase("ONT::EVENTS-IN-MODEL"))
 			{
-				return done(goalId);
+				return GoalMessages.done(goalId);
 			}
 			else if (goalInstanceType.equalsIgnoreCase("ONT::CREATE"))
 			{
@@ -188,7 +188,7 @@ public class GoalStateHandler {
 									KQMLUtilities.cleanLex(lexName) + " is?");
 						systemState = SystemState.LEARNING_CONSTRAINTS;
 						
-						return waitingForUser(currentGoal.getId());	
+						return GoalMessages.waitingForUser(currentGoal.getId());	
 					}
 					else if (currentGoal.getAgent(context) == null)
 					{
@@ -234,17 +234,21 @@ public class GoalStateHandler {
 						
 						Goal goalToBuild = new Goal(buildContent.get(1).stringValue(),
 											"BW" + getNextId(),buildContent);
-						return proposeAdoptContent(goalToBuild.getId(), goalToBuild.getWhat(), asList, context);
+						return GoalMessages.proposeAdoptContent(goalToBuild.getId(), goalToBuild.getWhat(), asList, context);
 					}
 					else
 					{
-						return waitingForUser(currentGoal.getId());
+						return GoalMessages.waitingForUser(currentGoal.getId());
 					}
 				}
 			}
 			else if (goalInstanceType.equalsIgnoreCase("SHOW-EXAMPLE"))
 			{
-				return waitingForUser(currentGoal.getId());
+				return GoalMessages.waitingForUser(currentGoal.getId());
+			}
+			else if (goalInstanceType.equalsIgnoreCase("ONT::DESCRIBE"))
+			{
+				return GoalMessages.waitingForUser(currentGoal.getId());
 			}
 		}
 		else // No current goal
@@ -262,13 +266,13 @@ public class GoalStateHandler {
 		if (goalState == GoalState.WAITING || goalState == GoalState.COMPLETED)
 		{
 			TextToSpeech.say("I'm waiting for you to do or suggest something.");
-			return suggestSomething(context);
+			return GoalMessages.suggestSomething(context);
 		}
 		
 		if (goalState == GoalState.ACCEPTED && (systemState == SystemState.LEARNING_DEMONSTRATION ||
 												systemState == SystemState.LEARNING_CONSTRAINTS))
 		{
-			Goal newGoal = modelBuilder.whatNext(systemState);
+			Goal newGoal = modelBuilder.whatNext(systemState, currentGoal);
 			String currentGoalId = "NIL";
 			if (currentGoal != null)
 			{
@@ -278,22 +282,18 @@ public class GoalStateHandler {
 			}
 			if (newGoal == null)
 			{
-				return waitingForUser(currentGoalId);
+				return GoalMessages.waitingForUser(currentGoalId);
 			}
+			addGoal(newGoal);
 			context.add(newGoal.getTerm());
 			
-			return proposeAdoptContent(newGoal.getId(), newGoal.getWhat(), newGoal.getAsList(), context);
+			return GoalMessages.proposeAdoptContent(newGoal.getId(), newGoal.getWhat(), newGoal.getAsList(), context);
 		}
 
 		
-		return null;
+		return GoalMessages.waitingForUser(currentGoal.getId());
 	}
-	
-	private KQMLList suggestSomething(KQMLList context)
-	{
-		Goal suggestGoal = new Goal("ONT::YOU-SUGGEST-SOMETHING");
-		return proposeAdoptContent(suggestGoal.getId(), suggestGoal.getWhat(), suggestGoal.getAsList(), context);
-	}
+
 	
 	private KQMLList askWhatToBuild(String id, KQMLList context)
 	{
@@ -317,7 +317,10 @@ public class GoalStateHandler {
 		newContext.addAll(context);
 		newContext.add(newQuery.getTerm());
 		
-		return proposeAskWhContent(id,questionVariable,queryVariable,newContext);
+		KQMLList askWhContent = GoalMessages.askWhAdoptContent(queryId, 
+				questionVariable, queryVariable, currentGoal.getId());
+		
+		return GoalMessages.propose(askWhContent,newContext);
 	}
 	
 	private KQMLList askHowManyBlocksLeft(String id, KQMLList context)
@@ -363,8 +366,12 @@ public class GoalStateHandler {
 		newContext.add(newQuery.getTerm());
 		newContext.add(remainingTerm);
 		
-		return proposeAskWhContent(id,
-						questionVariable,queryVariable, newContext);
+		KQMLList adoptContent = 
+				GoalMessages.askWhAdoptContent(queryId, questionVariable,
+						queryVariable, currentGoal.getId());
+		Goal askGoal = new Goal(questionVariable,queryId, adoptContent);
+		addGoal(askGoal);
+		return GoalMessages.propose(adoptContent, context);
 		
 	}
 	
@@ -415,7 +422,7 @@ public class GoalStateHandler {
 			TextToSpeech.say("That looks like a " + KQMLUtilities.cleanLex(lexName) +
 								" to me. Are you finished?");
 			checkingForGoalCompletion = false;
-			waitingForUser(currentGoal.getId());
+			GoalMessages.waitingForUser(currentGoal.getId());
 			askIfDone(currentGoal.getId());
 		}
 		
@@ -474,37 +481,7 @@ public class GoalStateHandler {
 		return EvaluateHandler.acceptableContent("ADOPT", id, what, asObject, context);
 	}
 	
-	private KQMLList executionStatus(String goalId, String status)
-	{
-		KQMLList response = new KQMLList();
-		response.add("REPORT");
-		response.add(":CONTENT");
-		KQMLList executionStatusContent = new KQMLList();
-		executionStatusContent.add("EXECUTION-STATUS");
-		executionStatusContent.add(":GOAL");
-		executionStatusContent.add(goalId);
-		executionStatusContent.add(":STATUS");
-		executionStatusContent.add(status);
-		
-		response.add(executionStatusContent);
-		
-		return response;		
-	}
-	
-	public KQMLList waitingForUser(String goalId)
-	{
-		return executionStatus(goalId,"ONT::WAITING-FOR-USER");
-	}
-	
-	private KQMLList workingOnIt(String goalId)
-	{
-		return executionStatus(goalId,"ONT::WORKING-ON-IT");
-	}
-	
-	public KQMLList done(String goalId)
-	{
-		return executionStatus(goalId,"ONT::DONE");
-	}
+
 	
 	private void askIfDone(String goalId)
 	{
@@ -529,9 +506,11 @@ public class GoalStateHandler {
 		KQMLList newContext = new KQMLList();
 		newContext.addAll(currentContext);
 		newContext.add(newQuery.getTerm());
+		KQMLList askIfContent = GoalMessages.askIfAdoptContent(newQuery.getId(), 
+				finished.get(1).stringValue(), currentGoal.getId());
 		
-		KQMLList responseContent = proposeAskIfContent(newQuery.getId(),
-						finished.get(1).stringValue(), newContext);
+		KQMLList responseContent = GoalMessages.propose(askIfContent, newContext);
+		addGoal(newQuery);
 		KQMLPerformative performativeToSend = new KQMLPerformative("REPLY");
 		performativeToSend.setParameter(":RECEIVER", "DAGENT");
 		System.out.println("Response content: " + responseContent);
@@ -543,7 +522,7 @@ public class GoalStateHandler {
 	
 	private void sendDone(String goalId)
 	{
-		KQMLList responseContent = done(goalId);
+		KQMLList responseContent = GoalMessages.done(goalId);
 		KQMLPerformative performativeToSend = new KQMLPerformative("REPLY");
 		performativeToSend.setParameter(":RECEIVER", "DAGENT");
 		System.out.println("Response content: " + responseContent);
@@ -553,87 +532,6 @@ public class GoalStateHandler {
 	}
 	
 	
-	private KQMLList proposeAdoptContent(String id, String what, KQMLObject asList, KQMLList context)
-	{
-		KQMLList response = new KQMLList();
-		response.add("PROPOSE");
-		response.add(":CONTENT");
-		KQMLList adoptContent = new KQMLList();
-		adoptContent.add("ADOPT");
-		adoptContent.add(":ID");
-		adoptContent.add(id);
-		adoptContent.add(":WHAT");
-		adoptContent.add(what);
-		adoptContent.add(":AS");
-		adoptContent.add(asList);
-		
-		response.add(adoptContent);
-		
-		response.add(":CONTEXT");
-		response.add(context);
-		
-		return response;
-	}
-	
-	private KQMLList proposeAskWhContent(String id, String what, String query, KQMLList context)
-	{
-		KQMLList response = new KQMLList();
-		response.add("PROPOSE");
-		response.add(":CONTENT");
-		KQMLList adoptContent = new KQMLList();
-		adoptContent.add("ASK-WH");
-		adoptContent.add(":ID");
-		adoptContent.add(id);
-		adoptContent.add(":WHAT");
-		adoptContent.add(what);
-		adoptContent.add(":QUERY");
-		adoptContent.add(query);
-		adoptContent.add(":AS");
-		
-		KQMLList asList = new KQMLList();
-		asList.add("QUERY-IN-CONTEXT");
-		asList.add(":GOAL");
-		asList.add(currentGoal.getId());
-		adoptContent.add(asList);
-		
-		response.add(adoptContent);
-		
 
-		
-		response.add(":CONTEXT");
-		response.add(context);
-		
-		return response;		
-	}
-	
-	private KQMLList proposeAskIfContent(String id, String query, KQMLList context)
-	{
-		KQMLList response = new KQMLList();
-		response.add("PROPOSE");
-		response.add(":CONTENT");
-		KQMLList adoptContent = new KQMLList();
-		adoptContent.add("ASK-IF");
-		adoptContent.add(":ID");
-		adoptContent.add(id);
-		adoptContent.add(":QUERY");
-		adoptContent.add(query);
-		adoptContent.add(":AS");
-		
-		KQMLList asList = new KQMLList();
-		asList.add("QUERY-IN-CONTEXT");
-		asList.add(":GOAL");
-		asList.add(currentGoal.getId());
-		adoptContent.add(asList);
-		
-		response.add(adoptContent);
-		
-		response.add(":CONTEXT");
-		response.add(context);
-		
-		Goal newGoal = new Goal(id + "WH",id,adoptContent);
-		addGoal(newGoal);
-		
-		return response;		
-	}
 	
 }

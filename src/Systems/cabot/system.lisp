@@ -11,7 +11,7 @@
 (load #!TRIPS"src;Systems;core;system")
 
 (trips:def-trips-system :cabot
-  (:old-trips-component :lxm               #!TRIPS"src;LexiconManager;")
+  (:dfc-component	:lxm               #!TRIPS"src;LexiconManager;")
   (:dfc-component	:parser            #!TRIPS"src;Parser;")
   (:dfc-component       :im                #!TRIPS"src;NewIM;")
   (:dfc-component       :dagent            #!TRIPS"src;BasicDialogueAgent;")
@@ -43,6 +43,7 @@
 ;(load "cps-states.lisp")
 
 ;;;; extractor rules
+(load "preprocessRules.lisp")
 (load "cabotRules.lisp")
 ;(load "symbolmapping.lisp")
 
@@ -54,7 +55,7 @@
 ;; LOCALLY, but please do not commit without comments!
 
 
-;;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
+;(load #!TRIPS"src;Systems;cabot;dummymessages.lisp")
 ;;(load #!TRIPS"src;Systems;cabot;dummy-CSM.lisp")
 
 (defun parse-eval (x)

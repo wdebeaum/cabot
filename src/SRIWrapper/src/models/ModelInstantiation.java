@@ -6,20 +6,30 @@ import utilities.KQMLUtilities;
 import environment.*;
 import TRIPS.KQML.*;
 import features.*;
+import models.FeatureConstraint.ComparisonType;
+import models.FeatureConstraint.Operator;
+import spatialreasoning.Predicate;
 
 
 public class ModelInstantiation {
 
 	private StructureInstance currentStructureInstance;
 	private HashMap<String,FeatureGroup> components;
-	public List<FeatureConstraint> constraints;
+	public List<FeatureConstraint> featureConstraints;
+	public List<StructureConstraint> structureConstraints;
 	private List<StructureInstance> positiveExamples;
+	private Set<ReferringExpression> referringExpressions;
+	String[] generalFeaturesToAsk = {FeatureConstants.HEIGHT, FeatureConstants.WIDTH};
+	String[] subFeaturesToAsk = {FeatureConstants.NUMBER};
+	private boolean introduced;
 	
 	public ModelInstantiation() {
 		currentStructureInstance = new StructureInstance("placeholder", new ArrayList<Block>());
 		components = new HashMap<String,FeatureGroup>();
-		constraints = new ArrayList<FeatureConstraint>();
+		featureConstraints = new ArrayList<FeatureConstraint>();
+		structureConstraints = new ArrayList<StructureConstraint>();
 		positiveExamples = new ArrayList<StructureInstance>();
+		introduced = false;
 	}
 
 	public void addKQMLTerm(KQMLList term, KQMLList context)
@@ -40,134 +50,181 @@ public class ModelInstantiation {
 		}
 	}
 	
-	public void addConstraint()
+	public Set<Constraint> getConstraints()
 	{
-		
+		Set<Constraint> toReturn = new HashSet<Constraint>();
+		toReturn.addAll(featureConstraints);
+		toReturn.addAll(structureConstraints);
+		return toReturn;
 	}
 	
-	public void getConstraintsFromKQML(KQMLList context)
+	public Set<Feature> getConstrainedGeneralFeatures()
+	{
+		HashSet<Feature> features = new HashSet<Feature>();
+		for (FeatureConstraint fc : featureConstraints)
+		{
+			features.add(fc.feature);
+		}
+		
+		return features;
+	}
+	
+	public Set<Feature> getConstrainedSubFeatures()
+	{
+		HashSet<Feature> features = new HashSet<Feature>();
+		for (StructureConstraint sc : structureConstraints)
+		{
+			features.add(sc.featureConstraint.feature);
+		}
+		
+		return features;
+	}
+	
+	public Set<String> getConstrainedGeneralFeatureNames()
+	{
+		HashSet<String> features = new HashSet<String>();
+		for (FeatureConstraint fc : featureConstraints)
+		{
+			features.add(fc.feature.getName());
+		}
+		
+		return features;
+	}
+	
+	public Set<String> getConstrainedSubFeatureNames()
+	{
+		HashSet<String> features = new HashSet<String>();
+		for (StructureConstraint sc : structureConstraints)
+		{
+			features.add(sc.featureConstraint.feature.getName());
+		}
+		
+		return features;
+	}
+	
+	
+	public Constraint getConstraintToAsk()
+	{
+		Set<String> constrainedGeneralFeatureNames = getConstrainedGeneralFeatureNames();
+		Set<String> constrainedSubFeatureNames = getConstrainedSubFeatureNames();
+		Random rand = new Random();
+		//boolean generalQuestion = rand.nextBoolean();
+		boolean generalQuestion = true;
+		
+		int index = rand.nextInt(255);
+		int steps = 0;
+		String featureName = "";
+		
+		// Loop through features to ask about until we find one not described
+		if (generalQuestion)
+		{
+			do {
+				featureName = generalFeaturesToAsk[index % generalFeaturesToAsk.length];
+				index++;
+				steps++;
+				if (steps > generalFeaturesToAsk.length)
+					break;
+				
+			}
+			while (!constrainedGeneralFeatureNames.contains(featureName));
+			Feature feature = currentStructureInstance.getFeature(featureName);
+			FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
+								ComparisonType.VALUE);
+			return fc;
+		}
+		else
+		{
+			StructureConstraint structureConstraintToAsk = null;
+			for (StructureConstraint sc : structureConstraints)
+			{
+				boolean foundConstraint = true;
+				do {
+					featureName = subFeaturesToAsk[index % subFeaturesToAsk.length];
+					index++;
+					steps++;
+					if (steps > generalFeaturesToAsk.length)
+					{
+						steps = 0;
+						foundConstraint = false;
+						break;
+					}
+				}
+				while (!constrainedSubFeatureNames.contains(featureName));
+				
+				if (foundConstraint)
+				{
+					Feature feature = currentStructureInstance.getFeature(featureName);
+					FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
+							ComparisonType.VALUE);
+					ReferringExpression refExp = sc.getSubject();
+					StructureConstraint toReturn = new StructureConstraint(refExp,fc);
+					return toReturn;
+				}
+				
+			}
+			return null;
+			
+		}
+	}
+	
+	public void getConstraintsFromKQML(KQMLList neutralTerm, KQMLList context)
 	{
 		int constraintsFound = 0;
+		introduced = true;
+		List<ReferringExpression> refExps = 
+				ReferringExpression.getReferringExpressions(neutralTerm, context);
+		
+		if (refExps.isEmpty())
+			System.out.println("No referring expressions found");
+		else
+		{
+			System.out.println("Referring expressions found:");
+			for (ReferringExpression refExp : refExps)
+			{
+				System.out.println("Term: " + refExp.headTerm);
+				System.out.println("Predicates: ");
+				for (Predicate p : refExp.predicates)
+					System.out.println(p.toString());
+			}
+		}
 		for (KQMLObject term : context)
 		{
 			KQMLList termList = (KQMLList)term;
-			boolean result = extractFeature(termList,context);
-			
-		}
-	}
-	
-	private boolean extractFeature(KQMLList term, KQMLList context)
-	{
-
-		String scale = "unnamed";
-		Feature extractedFeature = null;
-		Feature groundFeature = null;
-		String ground = null;
-		String operatorString = null;
-		String descriptorFeatureString = null;
-		KQMLList groundTerm = null;
-
-		// Get the scale for naming the feature
-		if (term.getKeywordArg(":SCALE") != null)
-		{
-			scale = term.getKeywordArg(":SCALE").stringValue();
-			if (scale.equalsIgnoreCase("ONT::LINEAR-SCALE"))
+			FeatureConstraint fc;
+			if (refExps.isEmpty())
 			{
-				scale = term.getKeywordArg(":INSTANCE-OF").stringValue();
-			}
-			extractedFeature = currentStructureInstance.getFeature(scale);
-			System.out.println("Scale: " + scale);
-		}
-		
-		// Get the comparison object or property
-		if (term.getKeywordArg(":GROUND") != null)
-		{
-			ground = term.getKeywordArg(":GROUND").stringValue();
-			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
-			System.out.println("Ground: " + ground);
-		}
-		
-		// Get the ONT::MORE-VAL or equivalent
-		if (term.getKeywordArg(":INSTANCE-OF") != null)
-			operatorString = term.getKeywordArg(":INSTANCE-OF").stringValue();
-		else
-			return false;
-		
-		FeatureConstraint.Operator operator = FeatureConstraint.operatorFromTRIPS(operatorString);
-		
-		// The instance-of is not actually an operator, but a descriptor
-		if (operator == null && (operatorString.equalsIgnoreCase("ONT::HORIZONTAL") ||
-								operatorString.equalsIgnoreCase("ONT::VERTICAL") ||
-								operatorString.equalsIgnoreCase("ONT::LINEAR-GROUPING")))
-		{
-			descriptorFeatureString = operatorString;
-			if (currentStructureInstance.hasFeature(descriptorFeatureString))
-				extractedFeature = currentStructureInstance.
-											getFeature(descriptorFeatureString);
-			operator = FeatureConstraint.Operator.GREATER;
-			groundFeature = DecimalFeature.getDefaultDecimalMinimum();
-		}
-		
-		if (groundTerm != null)
-		{
-			if (groundTerm.getKeywordArg(":INSTANCE-OF") != null)
-			{
-				String groundScale = groundTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-				System.out.println("Ground Scale: " + groundScale);
-				groundFeature = currentStructureInstance.getFeature(groundScale);
-				
-			}
-			else if (groundTerm.getKeywordArg(":SCALE") != null)
-			{
-				String groundScale = groundTerm.getKeywordArg(":SCALE").stringValue();
-				System.out.println("Ground Scale: " + groundScale);
-				groundFeature = currentStructureInstance.getFeature(groundScale);
-				
-			}
-			else
-			{
-				KQMLObject groundConcept = groundTerm.get(2);
-				if (groundConcept instanceof KQMLList)
+				fc = FeatureConstraint.extractFeature(currentStructureInstance,
+													termList,context);
+				if (fc != null)
 				{
-					String groundFeatureName = ((KQMLList)groundConcept).get(2).stringValue();
-					groundFeature = currentStructureInstance.getFeature(groundFeatureName);
+					featureConstraints.add(fc);
+					constraintsFound++;
 				}
 			}
-			
-			
-		}
-		if (extractedFeature == null || groundFeature == null || operator == null)
-			return false;
-		System.out.println("Ground Feature: " + groundFeature.getName());
-		FeatureConstraint newConstraint = new FeatureConstraint(extractedFeature,
-													operator, 
-													FeatureConstraint.ComparisonType.VALUE, 
-													groundFeature);
-		System.out.println("Extracted feature: " + newConstraint);
-		constraints.add(newConstraint);
-		return true;
-		
-	}
-	
-	//TODO
-	public List<FeatureConstraint> unsatisfiedConstraints()
-	{
-		List<FeatureConstraint> results = new ArrayList<FeatureConstraint>();
-		for (FeatureConstraint constraint : constraints)
-		{
-			
+			else // TODO : Get all ref exps, not just first one
+			{
+				ReferringExpression first = refExps.get(0);
+				fc = FeatureConstraint.extractFeature(first.getPseudoInstance(),
+						termList,context);
+				if (fc != null)
+				{
+					StructureConstraint sc = new StructureConstraint(first,fc);
+					structureConstraints.add(sc);
+					constraintsFound++;
+				}
+			}
+
 		}
 		
-		return results;
+		System.out.println("Found " + constraintsFound + " constraints");
 	}
-	
 	
 	
 	public boolean testModelOnStructureInstance(Collection<Block> newBlocks)
 	{
 		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
 		currentStructureInstance.generateFeatures();
-		for (FeatureConstraint constraint : constraints)
+		for (FeatureConstraint constraint : featureConstraints)
 		{
 			System.out.println("Constraint:");
 			System.out.println(constraint);
@@ -180,6 +237,23 @@ public class ModelInstantiation {
 				return false;
 			}
 		}
+		
+		for (StructureConstraint constraint : structureConstraints)
+		{
+			
+			System.out.println("Constraint:");
+			System.out.println(constraint);
+			boolean satisfied = constraint.isSatisfied();
+			
+			if (satisfied)
+				System.out.println(" is satisfied");
+			else
+			{
+				System.out.println(" is not satisfied");
+				return false;
+			}
+				
+		}
 		return true;
 	}
 	
@@ -190,6 +264,10 @@ public class ModelInstantiation {
 
 	public List<StructureInstance> getPositiveExamples() {
 		return positiveExamples;
+	}
+
+	public boolean isIntroduced() {
+		return introduced;
 	}
 	
 	

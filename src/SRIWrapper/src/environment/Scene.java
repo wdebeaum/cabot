@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.json.simple.JSONObject;
@@ -24,6 +25,7 @@ public class Scene {
 	public static volatile Scene currentScene = null;
 	public Block pointedTo;
 	private Block proxyBlock;
+	private int nextBlockId = 0;
 
 	
 	public Scene(JSONObject blocksJson, JSONObject blocksMetadataJson)
@@ -42,10 +44,17 @@ public class Scene {
 					newId++;
 				
 				if (newId <= 20)
+				{
 					integerBlockMapping.put(newId, b);
+					nextBlockId = newId + 1;
+				}
+				
 			}
 			else
+			{
 				integerBlockMapping.put(b.id, b);
+				nextBlockId = b.id + 1;
+			}
 		}
 		
 		
@@ -63,6 +72,22 @@ public class Scene {
 		proxyBlock = null;
 	}
 	
+	public Scene()
+	{
+		isStable = true;
+		timestamp = "file";
+		integerBlockMapping = new HashMap<Integer,Block>();
+		pointedTo = null;
+		proxyBlock = null;
+	}
+	
+	public void addBlock(Block b)
+	{
+		integerBlockMapping.put(nextBlockId, b);
+		nextBlockId++;
+	}
+	
+	// Note: The labels are according to the block list values, not the apparatus id's
 	public String describeScene()
 	{
 		Predicate above = new Predicate(PredicateType.ABOVE);
@@ -76,7 +101,7 @@ public class Scene {
 		for (Block b : integerBlockMapping.values())
 		{
 			if (onGround.evaluate(b))
-				resultString.append("Block " + b.label + " is on the table.\n");
+				resultString.append("Block " + b.getId() + " is on the table.\n");
 		}
 		
 		List<Block> blockList = new ArrayList<Block>(integerBlockMapping.values());
@@ -87,13 +112,17 @@ public class Scene {
 				Block b1 = blockList.get(i);
 				Block b2 = blockList.get(j);
 				if (above.evaluate(b1,b2))
-					resultString.append("Block " + b1.label + " is above the " + b2.label + " block.\n");
+					resultString.append("Block " + b1.getId() + 
+							" is above the " + b2.getId() + " block.\n");
 				if (below.evaluate(b1,b2))
-					resultString.append("Block " + b1.label + " is below the " + b2.label + " block.\n");
+					resultString.append("Block " + b1.getId() + 
+							" is below the " + b2.getId() + " block.\n");
 				if (nextTo.evaluate(b1,b2))
-					resultString.append("Block " + b1.label + " is next to the " + b2.label + " block.\n");
+					resultString.append("Block " + b1.getId() + 
+							" is next to the " + b2.getId() + " block.\n");
 				if (touching.evaluate(b1,b2))
-					resultString.append("Block " + b1.label + " is touching the " + b2.label + " block.\n");
+					resultString.append("Block " + b1.getId() + 
+							" is touching the " + b2.getId() + " block.\n");
 				
 			}
 		}
@@ -205,6 +234,28 @@ public class Scene {
 	public StructureInstance getWholeStructureInstance(String name)
 	{
 		return new StructureInstance(name, integerBlockMapping.values());
+	}
+	
+	public StructureInstance getComplementStructureInstance(StructureInstance si)
+	{
+		
+		HashSet<Block> complement = new HashSet<Block>(integerBlockMapping.values());
+		complement.removeAll(si.blocks);
+		
+		StructureInstance toReturn = new StructureInstance("complement",complement);
+		
+		return toReturn;
+	}
+	
+	public StructureInstance getComplementStructureInstance(Block b)
+	{
+		
+		HashSet<Block> complement = new HashSet<Block>(integerBlockMapping.values());
+		complement.remove(b);
+		
+		StructureInstance toReturn = new StructureInstance("complement",complement);
+		
+		return toReturn;
 	}
 	
 	public KQMLList getKQMLRepresentation()

@@ -723,7 +723,9 @@
 	 (agr 3p) ;(agr ?agr)
 	 (case (? cas sub obj -)) (sem ?xx) ;(sem (? xx ($ F::phys-obj)))
       (LF (% Description (Status Ont::indefinite-plural) (var ?v) ;(Sort Individual)
-	     (class (? c ont::PHYS-OBJECT)) (lex ?l2) (sem (? xx ($ F::phys-obj)))
+	     (class (? c ont::PHYS-OBJECT)) (lex ?l2)
+	     (sem (? xx ($ F::phys-obj (F::container -)
+			   (F::information -))))
 	     (transform ?transform)  (generated ?gen)
 	     (constraint (& (quan ?newval) (refset (% *PRO* (VAR *)
 						      ;(CLASS ONT::PHYS-OBJECT) (sem (? xx ($ F::phys-obj)))
@@ -895,7 +897,8 @@
      (number (val ?!v2) (lex ?l2)))
 
     ;; between 20 and 35
-    ((number (RESTR (& (min ?!v1) (max ?!v2))) (agr 3p) (lex (?l1 ?l2)) (ntype ?ntype) (range +)
+    ((number (RESTR (& (min ?!v1) (max ?!v2))) (agr 3p) (lex (?l1 ?l2)) (ntype w::range) ;(ntype ?ntype)
+	     (range +)
       (var *) (LF ?lf) (coerce ?coerce) (sem ?sem)
       (nobarespec ?nbs)
 	     )
@@ -1040,7 +1043,7 @@
     ;; This covers "1" since number-sequence has to have at least 2 numbers
     ((RNUMBER (LF ?lf) (val (?!lf)) (agr ?a) (coerce ?coerce) (sem ?sem) (lex ?lex) (number-only +) (bare-number +))
      -rn2>
-     (head (NUMBER (val ?!lf) (ntype (? !nt w::decpoint w::negative w::positive w::fraction)) 
+     (head (NUMBER (val ?!lf) (ntype (? !nt w::negative w::positive w::fraction)) ;(ntype (? !nt w::decpoint w::negative w::positive w::fraction))  ; allow decpoint for "beat 3.5"
 	    (agr ?a) (sem ?sem) (coerce ?coerce) (lex ?lex)
 	    (premod -)
 	    ))
@@ -1063,7 +1066,8 @@
 
     ;;  e.g., ENGINE E 1
    
-    ((name (lex ?seq) (lf ?cl) (SEM ?sem) (agr 3s) (name +) (generated +)
+     ((name (lex ?seq) (lf ?cl) (SEM ?sem) (agr 3s) (name +) (generated +)
+	    (sort ?sort) (subcat ?subcat) (subcat-map ?smap)
       )
      -noun-nname2> 0.98 ;0.96  ; increased to 0.98 so "block 1 and block 3" would parse
      ;; Myrosia 10/26/03 added (name -) to prevent cases like "aspirin 7" or "pittsford 8"
@@ -1072,7 +1076,8 @@
      (head (n (name -) (one -) (SEM ?sem) (SEM ($ (? xx f::PHYS-OBJ f::abstr-obj) (f::scale -)))   ;; don't want scales like "S" for seconds, etc
 	      (WH -) (lf ?cl) 
 	    (LF (:* ?lfparent ?lfform))
-	    (lex ?lex))) 
+	    (lex ?lex)
+	    (sort ?sort) (subcat ?subcat) (subcat-map ?smap))) ; pass up sort and subcat so we can use n1-reln3 (e.g., the beat 1 of meausure 1)
      (BOUND (arg1 ?cl))
      ;;     (nname (lex ?name))
      (rnumber (val ?name))
@@ -1149,11 +1154,13 @@
     ;; Myrosia 2008/04/30
     ;; A rule that allows "an open switch Z" as well as "open switch Z" without an article
     ;; It's similar to the nname-bare, but requires a generated name with headcat N to disallow "the open A"
-    ((n (sort pred) (class ?lf) (mass (? mm bare count )) (agr 3s) (CASE (? case SUB OBJ))  (generated +)
+    ((n (sort ?sort) (subcat ?subcat) (subcat-map ?smap) ;(sort pred)
+	(class ?lf) (mass (? mm bare count )) (agr 3s) (CASE (? case SUB OBJ))  (generated +)
         (sem ?sem) (lex ?lex)(RESTR (& (name-of ?lex))))
-     -nname-bare-generated> 0.96
-     (head (name (SEM ?sem) (generated +) (headcat N)
-	    (SEM ($ f::PHYS-OBJ)) (WH -) (lf ?cl) (lex ?lex))) 
+     -nname-bare-generated> ; 0.96
+     (head (name (SEM ?sem) (generated +) (headcat N) (sort ?sort) (subcat ?subcat) (subcat-map ?smap) ; pass up sort and subcat so we can use n1-reln3 (e.g., the beat 1 of meausure 1)
+	    ;(SEM ($ f::PHYS-OBJ)) (WH -) (lf ?cl) (lex ?lex))) 
+	    (SEM ($ (? t f::PHYS-OBJ f::abstr-obj))) (WH -) (lf ?cl) (lex ?lex))) ; abstr-obj: beat (music)
      )
     
 
@@ -1543,7 +1550,7 @@
    
    ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::definite)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (DAY-OF-WEEK ?!dow) (DAY ?day) (Month ?m) (YEAR ?y)))))
-	(SEM ($ F::TIME (F::TIME-FUNCTION F::DAY-OF-WEEK) (F::TIME-SCALE F::INTERVAL)))
+	(SEM ($ F::TIME (F::TIME-FUNCTION F::DAY-OF-WEEK) (F::TIME-SCALE F::INTERVAL) (F::SCALE -)))
 	(VAR ?v) (NAME +) (Sort pred)
 	(lex ?hlex) (headcat ?hcat))
     -NP-date1>
@@ -1553,7 +1560,7 @@
    ;; July third, etc, no day of the week
     ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::definite)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (DAY ?!day) (Month ?m) (YEAR ?y)))))
-	(SEM ($ F::TIME (F::TIME-FUNCTION F::DAY-OF-WEEK) (F::TIME-SCALE F::INTERVAL)))
+	(SEM ($ F::TIME (F::TIME-FUNCTION F::DAY-OF-WEEK) (F::TIME-SCALE F::INTERVAL) (F::SCALE -)))
 	(Sort pred)
       (VAR ?v) (NAME +)
 	(lex ?hlex) (headcat ?hcat))
@@ -1565,7 +1572,7 @@
     ;;  e.g.,  July, and July 2004
     ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::DEFINITE) (NAME +)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (Month ?!m) (YEAR ?y) (phase ?phase))))) (sort pred) 
-	(SEM ($ F::TIME (F::TIME-FUNCTION F::MONTH-NAME) (F::TIME-SCALE F::INTERVAL)))
+	(SEM ($ F::TIME (F::TIME-FUNCTION F::MONTH-NAME) (F::TIME-SCALE F::INTERVAL) (F::SCALE -)))
 	(VAR ?v) (lex ?hlex) (headcat ?hcat))
      -NP-date3> 1.0
      (DATE (DOW -) (var ?v) (DAY -) (Month ?!m)  (Year ?y) 
@@ -1575,7 +1582,7 @@
     ;; 2004,  the second century, ...
      ((NP (LF  (% DESCRIPTION (VAR ?v) (STATUS ont::DEFINITE)
 		(CLASS ONT::TIME-LOC) (CONSTRAINT (& (YEAR ?y) (century ?c) (era ?e)(phase ?phase)))))
-	(SEM ($ F::TIME (F::TIME-FUNCTION F::YEAR-NAME) (F::TIME-SCALE F::INTERVAL)))
+	(SEM ($ F::TIME (F::TIME-FUNCTION F::YEAR-NAME) (F::TIME-SCALE F::INTERVAL) (F::SCALE -)))
 	(VAR ?v) (sort pred) (NAME +)
 	(lex ?hlex) (headcat ?hcat))
      -NP-date4> 1.0
@@ -1588,7 +1595,7 @@
      ;; times: 2 - 3pm
     ((NP (LF  (% DESCRIPTION (VAR *) (status ?st)
 		 (CLASS ONT::TIME-RANGE)(CONSTRAINT (& (to ?v2) (from ?v1)))))
-      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1)))
+      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1) (F::SCALE -)))
       (VAR *) (headcat ?hcat))
       -date-range>
      (NP (LF  (% DESCRIPTION (VAR ?v1) (status ?st)))
@@ -1603,7 +1610,7 @@
     ;; e.g., "the 1980s" "the 40s" 
     ;;  we can't build an N1 here as then it would become a SET through the INDV-PLURAL rules.
     ((NP (LF (% DESCRIPTION (VAR ?v) (status ?spec) (CLASS ONT::TIME-RANGE) (CONSTRAINT (& (decade ?n) (poss ?poss)))))
-      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1))) (SORT PRED)
+      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1) (F::SCALE -))) (SORT PRED)
       (VAR ?v) (headcat ?hcat))
       -decade1>
      (SPEC (LF ?spec) (ARG ?v) (mass count) (CARD ?CARD)

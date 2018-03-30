@@ -91,8 +91,7 @@ public class SRIWrapper extends StandardTripsModule  {
     		if (argv[3].contains("t"))
     		{
     			System.out.println("Messages enabled");
-    	    	BlockMessageSender.ENABLED = true;
-    	    	TextToSpeech.APPARATUS_ENABLED = true;
+	    	    	BlockMessageSender.ENABLED = true;
     			listenForMessages = true;
     		}
     	}
@@ -238,13 +237,6 @@ public class SRIWrapper extends StandardTripsModule  {
 	}
 	try {
 	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (LOG-SPEECHACT . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
-	try {
-	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (STOPPED-SPEAKING . *)))");
 	    send(perf);
 	} catch (IOException ex) {
@@ -292,13 +284,6 @@ public class SRIWrapper extends StandardTripsModule  {
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
-	try {
-	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (request &key :content (write-assoc-files . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
 	
 	try {
 	    KQMLPerformative perf =
@@ -310,6 +295,13 @@ public class SRIWrapper extends StandardTripsModule  {
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (request &key :content (what-next . *)))");
+	    send(perf);		
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}	
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (request &key :content (commit . *)))");
 	    send(perf);		
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);

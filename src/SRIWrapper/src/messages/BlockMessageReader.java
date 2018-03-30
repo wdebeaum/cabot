@@ -119,6 +119,8 @@ public class BlockMessageReader implements Runnable {
 				long nextMilliseconds = nextTime.toInstant().toEpochMilli();
 				millisecondsToWait = (long)((nextMilliseconds - currentMilliseconds) / speedMultiplier);
 				System.out.println("Waiting " + millisecondsToWait + " milliseconds.");
+				if (millisecondsToWait > 5000)
+					System.out.println(s.describeScene());
 			}
 			else
 			{

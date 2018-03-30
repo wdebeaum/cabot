@@ -102,7 +102,7 @@
 
 (define-type ONT::FUNCTION-OBJECT
 ; :parent ONT::domain-property
- :parent ONT::abstract-object-nontemporal
+ :parent ONT::tangible-abstract-object
  :sem (F::Abstr-obj)
  )
 
@@ -468,6 +468,7 @@
  :wordnet-sense-keys ("measure%1:03:00" "quantity%1:03:00" "amount%1:03:00")
 ; :parent ONT::DOMAIN-PROPERTY
  :parent ONT::GROUP-OBJECT-abstr
+ :sem (F::abstr-obj (F::tangible +))
  :arguments ((:ESSENTIAL ONT::FIGURE)
              )
  )
@@ -552,7 +553,7 @@
 (define-type ONT::LENGTH-UNIT
  :wordnet-sense-keys ("linear_measure%1:23:00" "linear_unit%1:23:00" "week%1:28:00" "hebdomad%1:28:00")
  :parent ONT::tangible-unit
- :sem (F::Abstr-obj (F::Scale ONT::LINEAR-D)) ; Ont::length))  ; e.g., km: not just length but could also be width, height, etc
+ :sem (F::Abstr-obj (F::Scale ONT::LINEAR-EXTENT-SCALE)) ;ONT::LINEAR-D)) ; Ont::length))  ; e.g., km: not just length but could also be width, height, etc
  )
 
 ;; acre, sqare feet
@@ -1148,6 +1149,11 @@
  :parent ONT::ps-object
  )
 
+(define-type ONT::action-defined-by-game
+ :wordnet-sense-keys ("turn%1:04:06" "move%1:04:02")
+ :parent ONT::event-defined-by-activity
+ )
+
 ;; lottery, contest
 (define-type ont::competition
   :wordnet-sense-keys ("competition%1:11:00")
@@ -1312,7 +1318,7 @@
 
 (define-type ont::value
  :wordnet-sense-keys ("value%1:07:00")
- :parent ONT::abstract-object-nontemporal
+ :parent ONT::tangible-abstract-object
   :arguments (;(:REQUIRED ONT::FIGURE (F::Abstr-obj (F::Scale Ont::money-scale) (f::object-function f::currency)))
 	      (:REQUIRED ont::FIGURE ((? lo f::phys-obj f::abstr-obj)))
               (:REQUIRED ONT::GROUND (F::Abstr-obj (F::Scale Ont::money-scale) (f::object-function f::currency)))
@@ -1380,11 +1386,13 @@
  )
 |#
 
+#| ; merged with medical-event
 ;;; (health) care, treatment
 (define-type ONT::treatment
  :wordnet-sense-keys ("care%1:04:01" "attention%1:04:01" "aid%1:04:01" "tending%1:04:00" "regimen%1:09:00::" "regime%1:09:00::")
  :parent ONT::procedure
  )
+|#
 
 ;; diagnostics
 (define-type ont::medical-test
@@ -1502,8 +1510,9 @@
 
 ;; We need f::situation counterparts for medical words classified as ont::treatment or ont::diagnostic for i2b2 because we don't have multiple inheritance
 ;; surgery
-(define-type ONT::medical-action
- :parent ONT::action
+(define-type ONT::medical-event
+ :wordnet-sense-keys ("care%1:04:01" "attention%1:04:01" "aid%1:04:01" "tending%1:04:00" "regimen%1:09:00::" "regime%1:09:00::")
+ :parent ONT::event-defined-by-activity
  :sem (F::Situation (F::aspect F::dynamic))
  :arguments ((:OPTIONAL ONT::FIGURE)
              )

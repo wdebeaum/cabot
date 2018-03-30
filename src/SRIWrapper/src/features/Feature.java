@@ -10,11 +10,13 @@ public abstract class Feature<T> implements FeatureGroup{
 
 	protected String name;
 	protected String prettyName;
+	protected boolean constant;
 	
 	public Feature(String name)
 	{
 		this.name = name;
 		prettyName = name;
+		constant = false;
 	}
 	
 	public abstract T getValue();
@@ -75,6 +77,16 @@ public abstract class Feature<T> implements FeatureGroup{
 	public String toString()
 	{
 		return "" + getValue().toString();
+	}
+	
+	public boolean isConstant()
+	{
+		return constant;
+	}
+	
+	public void setConstant(boolean value)
+	{
+		constant = value;
 	}
 	
 }

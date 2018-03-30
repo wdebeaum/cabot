@@ -12,7 +12,6 @@ import environment.Scene;
 
 public class Plan {
 
-	public List<Constraint> constraints;
 	public Set<String> variables;
 	public List<Step> steps;
 	public String nextBlock;
@@ -22,7 +21,6 @@ public class Plan {
 	
 	public Plan(ModelBuilder modelBuilder)
 	{
-		constraints = new ArrayList<Constraint>();
 		steps = new ArrayList<Step>();
 		currentStep = 0;
 		this.modelBuilder = modelBuilder;
@@ -78,13 +76,6 @@ public class Plan {
 		steps.get(currentStep).setUtterance(utterance);
 	}
 	
-	
-	public List<Constraint> generatePlan(Scene s)
-	{
-		List<Constraint> remainingConstraints = new ArrayList<Constraint>();
-		
-		return remainingConstraints;
-	}
 	
 	public void executeNextStep()
 	{

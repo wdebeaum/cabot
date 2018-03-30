@@ -26,7 +26,9 @@ public class BlockFeatureGroup implements FeatureGroup {
 	{
 		PointFeature result = new PointFeature("position");
 		result.setValue(block.position);
-		setFeature(result);	
+		PointFeature origin = new PointFeature(FeatureConstants.ORIGIN);
+		result.setValue(block.position);
+		setFeature(origin);	
 	}
 	
 	private void generateWidthFeature()

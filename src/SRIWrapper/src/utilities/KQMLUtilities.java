@@ -3,6 +3,9 @@ package utilities;
 import TRIPS.KQML.*;
 
 public class KQMLUtilities {
+	
+	public static int ONT_REF = 0;
+	public static int VARIABLE = 1;
 
 	public static KQMLList findTermInKQMLList(String variableName,KQMLList list)
 	{

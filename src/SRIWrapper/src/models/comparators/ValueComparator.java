@@ -15,7 +15,7 @@ public class ValueComparator implements Comparator<Feature> {
 	@Override
 	public int compare(Feature first, Feature second) {
 
-		boolean doubleComparison = false;
+		double doubleComparisonEpsilon = 0;
 		if (!(first.getValue() instanceof Number))
 			throw new ClassCastException("Feature value not of type Number");
 		if (!(second.getValue() instanceof Number))
@@ -24,14 +24,15 @@ public class ValueComparator implements Comparator<Feature> {
 		// If one of the values is a double, use an epsilon for equals
 		if (first.getValue() instanceof Double || 
 				second.getValue() instanceof Double)
-			doubleComparison = true;
+			doubleComparisonEpsilon = EQUALS_EPSILON;
+		
 		
 		double firstValue = ((Number)first.getValue()).doubleValue();
 		double secondValue = ((Number)second.getValue()).doubleValue();
 		
-		if (firstValue < secondValue)
+		if (firstValue < secondValue - doubleComparisonEpsilon)
 			return -1;
-		if (firstValue > secondValue)
+		if (firstValue > secondValue + doubleComparisonEpsilon)
 			return 1;
 		
 		return 0;
