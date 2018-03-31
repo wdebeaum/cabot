@@ -1,7 +1,0 @@
-# Deprecated! Use goals-par instead
-
-ONT::CREATE =>
-ONT::BUILD-MODEL =>
-ONT::FIND-TREATMENT =>
-ONT::LEARN =>
-ONT::QUERY-MODEL => ONT::BUILD-MODEL
