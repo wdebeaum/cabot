@@ -1,0 +1,223 @@
+aae	Aedes aegypti
+aau	Acacia auriculiformis
+aca	Anolis carolinensis
+aga	Anopheles gambiae
+age	Ateles geoffroyi
+ahy	Arachis hypogaea
+aja	Artibeus jamaicensis
+aly	Arabidopsis lyrata
+ama	Avicennia marina
+ame	Apis mellifera
+amg	Acacia mangium
+api	Acyrthosiphon pisum
+aqc	Aquilegia caerulea
+aqu	Amphimedon queenslandica
+asu	Ascaris suum
+ata	Aegilops tauschii
+ath	Arabidopsis thaliana
+atr	Amborella trichopoda
+bbe	Branchiostoma belcheri
+bcy	Bruguiera cylindrica
+bdi	Brachypodium distachyon
+bfl	Branchiostoma floridae
+bfv	Bovine foamy virus
+bgy	Bruguiera gymnorhiza
+bhv1	Bovine herpesvirus 1
+bhv5	Bovine herpesvirus 5
+bkv	BK polyomavirus
+blv	Bovine leukemia virus
+bma	Brugia malayi
+bmo	Bombyx mori
+bna	Brassica napus
+bol	Brassica oleracea
+bpcv1	Bandicoot papillomatosis carcinomatosis virus type 1
+bpcv2	Bandicoot papillomatosis carcinomatosis virus type 2
+bra	Brassica rapa
+bta	Bos taurus
+cbn	Caenorhabditis brenneri
+cbr	Caenorhabditis briggsae
+cca	Cynara cardunculus
+ccl	Citrus clementina
+ccr	Cyprinus carpio
+cel	Caenorhabditis elegans
+cfa	Canis familiaris
+cgr	Cricetulus griseus
+chi	Capra hircus
+cin	Ciona intestinalis
+cla	Cerebratulus lacteus
+cln	Cunninghamia lanceolata
+cme	Cucumis melo
+cpa	Carica papaya
+cqu	Culex quinquefasciatus
+cre	Chlamydomonas reinhardtii
+crm	Caenorhabditis remanei
+crt	Citrus reticulata
+csa	Ciona savignyi
+csi	Citrus sinensis
+cte	Capitella teleta
+ctr	Citrus trifoliata
+dan	Drosophila ananassae
+ddi	Dictyostelium discoideum
+der	Drosophila erecta
+dev	Duck enteritis virus
+dgr	Drosophila grimshawi
+dme	Drosophila melanogaster
+dmo	Drosophila mojavensis
+dpe	Drosophila persimilis
+dpr	Digitalis purpurea
+dps	Drosophila pseudoobscura
+dpu	Daphnia pulex
+dre	Danio rerio
+dse	Drosophila sechellia
+dsi	Drosophila simulans
+dvi	Drosophila virilis
+dwi	Drosophila willistoni
+dya	Drosophila yakuba
+ebv	Epstein Barr virus
+eca	Equus caballus
+efu	Eptesicus fuscus
+egr	Echinococcus granulosus
+egu	Elaeis guineensis
+emu	Echinococcus multilocularis
+esi	Ectocarpus siliculosus
+far	Festuca arundinacea
+fru	Fugu rubripes
+gar	Gossypium arboreum
+gga	Gallus gallus
+ggo	Gorilla gorilla
+ghb	Gossypium herbaceum
+ghr	Gossypium hirsutum
+gma	Glycine max
+gpy	Glottidia pyramidata
+gra	Gossypium raimondii
+gsa	Gyrodactylus salaris
+gso	Glycine soja
+han	Helianthus annuus
+har	Helianthus argophyllus
+hbr	Hevea brasiliensis
+hbv	Herpes B virus
+hci	Helianthus ciliaris
+hcmv	Human cytomegalovirus
+hco	Haemonchus contortus
+hex	Helianthus exilis
+hhi	Hippoglossus hippoglossus
+hhv6b	Human herpesvirus 6B
+hiv1	Human immunodeficiency virus 1
+hma	Hydra magnipapillata
+hme	Heliconius melpomene
+hpa	Helianthus paradoxus
+hpe	Helianthus petiolaris
+hru	Haliotis rufescens
+hsa	Homo sapiens
+hsv1	Herpes Simplex Virus 1
+hsv2	Herpes Simplex Virus 2
+htu	Helianthus tuberosus
+hvsa	Herpesvirus saimiri strain A11
+hvt	Herpesvirus of turkeys
+hvu	Hordeum vulgare
+iltv	Infectious laryngotracheitis virus
+ipu	Ictalurus punctatus
+isc	Ixodes scapularis
+jcv	JC polyomavirus
+kshv	Kaposi sarcoma-associated herpesvirus
+lca	Lemur catta
+lco	Leucosolenia complicata
+lgi	Lottia gigantea
+lja	Lotus japonicus
+lla	Lagothrix lagotricha
+lmi	Locusta migratoria
+lus	Linum usitatissimum
+lva	Lytechinus variegatus
+mcmv	Mouse cytomegalovirus
+mcv	Merkel cell polyomavirus
+mdm	Malus domestica
+mdo	Monodelphis domestica
+mdv1	Mareks disease virus
+mdv2	Mareks disease virus type 2
+mes	Manihot esculenta
+meu	Macropus eugenii
+mghv	Mouse gammaherpesvirus 68
+mja	Marsupenaeus japonicus
+mml	Macaca mulatta
+mmu	Mus musculus
+mne	Macaca nemestrina
+mse	Manduca sexta
+mtr	Medicago truncatula
+ngi	Nasonia giraulti
+nlo	Nasonia longicornis
+nta	Nicotiana tabacum
+nve	Nematostella vectensis
+nvi	Nasonia vitripennis
+oan	Ornithorhynchus anatinus
+oar	Ovis aries
+ocu	Oryctolagus cuniculus
+odi	Oikopleura dioica
+oha	Ophiophagus hannah
+ola	Oryzias latipes
+osa	Oryza sativa
+pab	Picea abies
+pbi	Pygathrix bieti
+pde	Pinus densata
+peu	Populus euphratica
+pgi	Panax ginseng
+pin	Phytophthora infestans
+pma	Petromyzon marinus
+pmi	Patiria miniata
+pol	Paralichthys olivaceus
+ppa	Pan paniscus
+ppc	Pristionchus pacificus
+ppe	Prunus persica
+ppt	Physcomitrella patens
+ppy	Pongo pygmaeus
+pra	Phytophthora ramorum
+prd	Panagrellus redivivus
+prv	Pseudorabies virus
+psj	Phytophthora sojae
+pta	Pinus taeda
+ptc	Populus trichocarpa
+pti	Phaeodactylum tricornutum
+ptr	Pan troglodytes
+pvu	Phaseolus vulgaris
+pxy	Plutella xylostella
+rco	Ricinus communis
+rgl	Rehmannia glutinosa
+rlcv	Rhesus lymphocryptovirus
+rmi	Rhipicephalus microplus
+rno	Rattus norvegicus
+rrv	Rhesus monkey rhadinovirus
+sbi	Sorghum bicolor
+sci	Sycon ciliatum
+sha	Sarcophilus harrisii
+sja	Schistosoma japonicum
+sko	Saccoglossus kowalevskii
+sla	Saguinus labiatus
+sly	Solanum lycopersicum
+sma	Schistosoma mansoni
+sme	Schmidtea mediterranea
+smo	Selaginella moellendorffii
+smr	Strigamia maritima
+sof	Saccharum officinarum
+spu	Strongylocentrotus purpuratus
+ssa	Salmo salar
+ssc	Sus scrofa
+ssl	Salvia sclarea
+ssp	Saccharum sp.
+ssy	Symphalangus syndactylus
+str	Strongyloides ratti
+stu	Solanum tuberosum
+sv40	Simian virus 40
+tae	Triticum aestivum
+tca	Tribolium castaneum
+tcc	Theobroma cacao
+tch	Tupaia chinensis
+tgu	Taeniopygia guttata
+tni	Tetraodon nigroviridis
+tre	Terebratulina retusa
+ttu	Triticum turgidum
+tur	Tetranychus urticae
+vun	Vigna unguiculata
+vvi	Vitis vinifera
+xbo	Xenoturbella bocki
+xla	Xenopus laevis
+xtr	Xenopus tropicalis
+zma	Zea mays
