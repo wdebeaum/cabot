@@ -8,8 +8,16 @@ import goals.Goal;
 import goals.GoalMessages;
 import goals.GoalStateHandler;
 import goals.GoalStateHandler.SystemState;
+import goals.Query;
+import messages.BlockMessageSender;
+import messages.EvaluateHandler;
+import messages.FeatureParser;
+import spatialreasoning.Predicate;
+import spatialreasoning.PredicateType;
 import TRIPS.KQML.*;
+import environment.Block;
 
+import java.io.IOException;
 import java.util.*;
 
 import utilities.KQMLUtilities;
@@ -21,8 +29,13 @@ public class ModelBuilder {
 	private String lastModelName;
 	private Map<String,ModelInstantiation> modelInstantiations;
 	private Feature lastFeatureAsked;
+	private Constraint lastConstraintAsked;
+	private Goal lastGoal;
 	boolean receivedAssertion = false;
 	boolean askedFeature = false;
+	boolean showedExample = false;
+	boolean showedUserExample = false;
+	int constraintsReceived = 0;
 	String[] numbers = {"zero","one","two","three","four","five","six"};
 
 	
@@ -33,6 +46,8 @@ public class ModelBuilder {
 		modelInstantiations = new HashMap<String,ModelInstantiation>();
 		lastModelName = null;
 		lastFeatureAsked = null;
+		lastGoal = null;
+		lastConstraintAsked = null;
 	}
 	
 	public String answerQuery(KQMLList query)
@@ -40,95 +55,283 @@ public class ModelBuilder {
 		return null;
 	}
 	
+	public KQMLList answerCurrentConstraint(KQMLList content, KQMLList context)
+	{
+		if (lastConstraintAsked == null)
+			return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
+					content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
+		
+		if (lastConstraintAsked instanceof PredicateConstraint)
+		{
+			List<Predicate> predicates = PredicateParser.extractPredicatesFromAnswer(context);
+			
+			if (predicates.isEmpty())
+			{
+				TextToSpeech.say("Hmm, I don't quite understand.");
+				return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
+						content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
+			}
+			
+			// TODO: Improve to take multiple predicates
+			((PredicateConstraint)lastConstraintAsked).setPredicate(predicates.get(0));
+			getLastModelInstantiation().addConstraint(lastConstraintAsked);
+			
+			TextToSpeech.say("Okay, got it.");
+			return EvaluateHandler.acceptableEffectContent(content, new KQMLList(), context);
+		}
+		
+		KQMLObject valueObject = content.getKeywordArg(":VALUE");
+		if (valueObject == null)
+			return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
+					content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
+
+		double value;
+
+		try 
+		{
+			value = FeatureParser.extractDoubleValue(content, context);
+		}
+		catch(NumberFormatException nfe)
+		{
+			TextToSpeech.say("Hmm, I don't quite understand.");
+			return EvaluateHandler.unacceptableAnswerContent(content);
+		}
+		
+		lastConstraintAsked.setValue(value);
+		
+		if (getLastModelInstantiation() == null)
+			return EvaluateHandler.unacceptableAnswerContent(content);	
+		
+		getLastModelInstantiation().addConstraint(lastConstraintAsked);
+		
+		lastConstraintAsked = null;
+		TextToSpeech.say("Okay, got it.");
+		constraintsReceived++;
+		
+		return EvaluateHandler.acceptableEffectContent(content, new KQMLList(), context);
+		
+	}
+	
 	public String getLastModelName()
 	{
 		return lastModelName;
 	}
 	
-	
+
+
 	
 	public String askAboutModel(Constraint constraintToAsk)
 	{
 		
 		StringBuilder sb = new StringBuilder();
-		String featureName = constraintToAsk.getFeature().getPrettyName();
-		sb.append("What is the greatest the ");
-		sb.append(featureName);
+		String featureName;
+		if (constraintToAsk instanceof PredicateConstraint)
+			featureName = "";
+		else
+			featureName = constraintToAsk.getFeature().getPrettyName();
+		
+		lastConstraintAsked = constraintToAsk;
+		if (featureName.equals("NUMBER"))
+			sb.append("How many blocks can be in the ");
+		else if (constraintToAsk instanceof PredicateConstraint)
+		{
+			sb.append("Where can the ");
+			sb.append(((PredicateConstraint) constraintToAsk).getSubject());
+			sb.append(" be?");
+			return sb.toString();
+		}
+		else
+		{
+			sb.append("What is the greatest the ");
+			sb.append(featureName);
+		}
 		
 		if (constraintToAsk instanceof StructureConstraint)
 		{
+			
 			ReferringExpression re = ((StructureConstraint)constraintToAsk).getSubject();
-			sb.append(" of the ");
-			sb.append(re);
+			if (featureName.equals(FeatureConstants.NUMBER))
+				sb.append(re);
+			else
+			{
+				sb.append(" of the ");
+				sb.append(re);
+			}
 		}
 	
-		sb.append(" can be?");
+		if (!featureName.equals(FeatureConstants.NUMBER))
+			sb.append(" can be?");
 		return sb.toString();
 	}
 	
 	
 
-	public Goal whatNext(SystemState state, Goal currentGoal)
+	public KQMLList whatNext(SystemState state, Goal currentGoal)
 	{
 		if (state == SystemState.LEARNING_DEMONSTRATION)
 		{
-			TextToSpeech.say("Show me an example.");
-			return new Goal("SHOW-EXAMPLE");
+			return getShowExampleGoal(currentGoal);
 		}
 		
 		if (state == SystemState.LEARNING_CONSTRAINTS)
 		{
 			if (!getLastModelInstantiation().isIntroduced())
 			{
-				TextToSpeech.say("Can you describe the structure?");
-				return new Goal("ONT::DESCRIBE");
+				TextToSpeech.say("Can you tell me something about the structure?");
+				lastGoal = new Goal("ONT::DESCRIBE");
+				lastGoal.setParent(currentGoal);
+				return GoalMessages.proposeAdoptContent(lastGoal);
 			}
+			
+
 			
 			if (!askedFeature)
 			{
 				Constraint constraintToAsk = getLastModelInstantiation().getConstraintToAsk();
-				TextToSpeech.say(askAboutModel(constraintToAsk));
-				askedFeature = true;
-				return getGoalToAskAboutModel(currentGoal);			
+				
+				if (constraintToAsk == null && !showedExample)
+				{
+					showedExample = true;
+					return getShowExampleGoal(currentGoal);
+				}
+				
+				if (constraintToAsk != null)
+				{
+					
+					TextToSpeech.say(askAboutModel(constraintToAsk));
+					askedFeature = true;
+					Query query = getQueryToAskAboutModel(currentGoal, constraintToAsk);
+					query.setParent(currentGoal);
+					lastGoal = query;
+					return GoalMessages.proposeAskWhContent(query);		
+				}
 			}
+			
+			if (!showedExample)
+			{
+				showedExample = true;
+				return getShowExampleGoal(currentGoal);
+			}
+			
+			if (!showedUserExample)
+			{
+				KQMLList result = askAboutExample(currentGoal);
+				showedUserExample = true;
+				if (result != null)
+				{
+	
+					return result; 
+				}
+			}
+
 			
 			TextToSpeech.say("Can you tell me anything else about it?");
 			askedFeature = false;
-			return new Goal("ONT::DESCRIBE");
+			lastGoal = new Goal("ONT::DESCRIBE");
+			lastGoal.setParent(currentGoal);
+			return GoalMessages.proposeAdoptContent(lastGoal);
 		}
 		
 		return null;
 	}
 	
-	private Goal getGoalToAskAboutModel(Goal currentGoal)
+	private KQMLList getShowExampleGoal(Goal currentGoal)
+	{
+		TextToSpeech.say("Can you show me an example?");
+		lastGoal = new Goal("SHOW-EXAMPLE");
+		lastGoal.setParent(currentGoal);
+		return GoalMessages.proposeAdoptContent(lastGoal);
+	}
+	
+	private KQMLList askAboutExample(Goal currentGoal)
+	{
+		GridModel2D satisfiedExample = null;
+		System.out.println("Creating random instances to test");
+		for (int i = 0; i < 300; i++)
+		{
+			GridModel2D currentGridModel = GridModel2D.randomSample(6);
+			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
+					currentGridModel.getBlocks()))
+			{
+				satisfiedExample = currentGridModel;
+				System.out.println("Found satisfied example");
+				break;
+			}
+		}
+		
+		if (satisfiedExample == null)
+			return null;
+		
+		TextToSpeech.say("Is this a correct example?");
+
+		try {
+			BlockMessageSender.sendPostRequest(satisfiedExample.getBlocks());
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		Query q = getQueryToAskAboutExample(currentGoal);
+		
+		lastGoal = q;
+		lastGoal.setParent(currentGoal);
+		
+		return GoalMessages.proposeAskIfContent(q);
+		
+	}
+	
+	private Query getQueryToAskAboutExample(Goal currentGoal)
+	{
+		String questionVariable = "Q" + GoalStateHandler.getNextId();
+
+		KQMLList newTerm = new KQMLList();
+		newTerm.add("ONT::RELN");
+		newTerm.add(questionVariable);
+		newTerm.add(":INSTANCE-OF");
+		newTerm.add("ONT::STRUCTURE");
+		
+		
+		Query newQuery = new Query();
+		//newQuery.updateTerm();
+		lastGoal = newQuery;
+		newQuery.setParent(currentGoal);
+		newQuery.addContextElement(newTerm);
+		newQuery.addQuery(questionVariable, "");
+
+		return newQuery;		
+	}
+	
+	private Query getQueryToAskAboutModel(Goal currentGoal, Constraint constraint)
 	{
 		
-		KQMLList currentTerm = currentGoal.getTerm();
-		String questionVariable = "WH" + GoalStateHandler.getNextId();
-		String queryVariable = "Q" + GoalStateHandler.getNextId();
-		String queryId = "QI" + GoalStateHandler.getNextId();
+		String questionVariable = "Q" + GoalStateHandler.getNextId();
+		String whatVariable = "WH" + GoalStateHandler.getNextId();
+		String featureName;
+		if (constraint instanceof PredicateConstraint)
+			featureName = "ONT::LOCATION";
+		else
+			featureName = constraint.getFeature().getName();
+		
 		KQMLList newTerm = new KQMLList();
-		newTerm.addAll(currentTerm);
-		
-		
-		if (newTerm.getKeywordArg(":AFFECTED-RESULT") != null)
-			newTerm.removeKeywordArg(":AFFECTED-RESULT");
-		newTerm.add(":AFFECTED-RESULT");
+		newTerm.add("ONT::RELN");
 		newTerm.add(questionVariable);
+		newTerm.add(":INSTANCE-OF");
+		newTerm.add(featureName);
 		
-		Goal newQuery = new Goal(queryVariable,queryId,newTerm);
-		newQuery.updateTerm();
-		//newQuery.addContext(queryId);
-//		addGoal(newQuery);
-//		newContext.addAll(context);
-//		newContext.add(newQuery.getTerm());
+		KQMLList whatTerm = new KQMLList();
+		whatTerm.add("ONT::WH-TERM");
+		whatTerm.add(whatVariable);
 		
+		
+		Query newQuery = new Query(whatVariable,"QI" + GoalStateHandler.getNextId(),new KQMLList());
+		//newQuery.updateTerm();
+		lastGoal = newQuery;
+		newQuery.setParent(currentGoal);
+		newQuery.addQuery(featureName, questionVariable);
+		newQuery.addContextElement(newTerm);
+
 		return newQuery;
-		
-//		KQMLList askWhContent = GoalMessages.askWhAdoptContent(queryId, 
-//				questionVariable, queryVariable, currentGoal.getId());
-//		
-//		return GoalMessages.propose(askWhContent,newContext);
 	}
 
 	
@@ -144,14 +347,15 @@ public class ModelBuilder {
 	
 	public void processAssertion(KQMLList content, KQMLList context)
 	{
-		
+		constraintsReceived++;
 	}
 	
 	public String processNewModel(KQMLList term, KQMLList context)
 	{
 		String variable = term.get(KQMLUtilities.VARIABLE).stringValue();
 		String modelBaseName = "structure";
-		if (term.getKeywordArg(":LEX") != null)
+		if (term.getKeywordArg(":LEX") != null && 
+				!term.getKeywordArg(":LEX").stringValue().equalsIgnoreCase("W::SHAPE"))
 			modelBaseName = KQMLUtilities.cleanLex(
 					term.getKeywordArg(":LEX").stringValue());
 		
@@ -192,5 +396,15 @@ public class ModelBuilder {
 	{
 		return modelInstantiations.get(modelName);
 	}
+
+	public Goal getLastGoal() {
+		return lastGoal;
+	}
+	
+	public Constraint getLastConstraintAsked()
+	{
+		return lastConstraintAsked;
+	}
+	
 
 }

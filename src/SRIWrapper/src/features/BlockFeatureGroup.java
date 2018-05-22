@@ -24,10 +24,11 @@ public class BlockFeatureGroup implements FeatureGroup {
 	
 	private void generatePointFeature()
 	{
-		PointFeature result = new PointFeature("position");
+		PointFeature result = new PointFeature(FeatureConstants.LOCATION);
 		result.setValue(block.position);
+		setFeature(result);
 		PointFeature origin = new PointFeature(FeatureConstants.ORIGIN);
-		result.setValue(block.position);
+		origin.setValue(block.position);
 		setFeature(origin);	
 	}
 	
@@ -50,7 +51,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 	
 	public PointFeature getPointFeature()
 	{
-		return (PointFeature)features.get("ONT::LOCATION");
+		return (PointFeature)features.get(FeatureConstants.LOCATION);
 	}
 
 	@Override
@@ -66,7 +67,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 	
 	public void setPointFeature(PointFeature pf)
 	{
-		features.put("ONT::LOCATION", pf);
+		features.put(FeatureConstants.LOCATION, pf);
 		block.position = pf.getValue();
 	}
 	

@@ -19,6 +19,7 @@ public class BlockMessagePuller implements Runnable {
 	public volatile boolean stop = false;
 	public volatile boolean pause = false;
 	public boolean recordedSession = false;
+	private String apiIp;
 	public Plan currentPlan;
 	private Scene lastScene;
 	private int statesRecorded;
@@ -28,7 +29,7 @@ public class BlockMessagePuller implements Runnable {
 	
 	public BufferedWriter outputWriter;
 	
-	public BlockMessagePuller(SRIWrapper wrapper, GoalStateHandler gsh, Plan p)
+	public BlockMessagePuller(SRIWrapper wrapper, GoalStateHandler gsh, Plan p, String apiIp)
 	{
 		currentPlan = p;
 		lastScene = null;
@@ -37,6 +38,7 @@ public class BlockMessagePuller implements Runnable {
 		lastScene = null;
 		this.goalStateHandler = gsh;
 		this.wrapper = wrapper;
+		this.apiIp = apiIp;
 		
 		try {
 			File file = new File("block-state-log.json");
@@ -52,9 +54,10 @@ public class BlockMessagePuller implements Runnable {
 		
 	}
 	
-	public BlockMessagePuller(SRIWrapper wrapper, GoalStateHandler gsh, Plan p, String recordedSessionFileName)
+	public BlockMessagePuller(SRIWrapper wrapper, GoalStateHandler gsh, Plan p, 
+			String recordedSessionFileName, String apiIp)
 	{
-		this(wrapper, gsh, p);
+		this(wrapper, gsh, p, apiIp);
 		recordedSession = true;
 	}
 	
@@ -75,12 +78,12 @@ public class BlockMessagePuller implements Runnable {
 			if (!pause)
 			{
 				//System.out.println("Reading metadata");
-				JSONObject blockMetadataInfoObject = JsonReader.readURL("http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-metadata.json");
+				JSONObject blockMetadataInfoObject = JsonReader.readURL("http://" + apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-metadata.json");
 				if (blockMetadataInfoObject == null)
 					System.out.println("Error reading apiInfo");
 		
 				//System.out.println("Reading block data");
-				JSONObject blockStateInfoObject = JsonReader.readURL("http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-state.json");
+				JSONObject blockStateInfoObject = JsonReader.readURL("http://" + apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-state.json");
 				if (blockMetadataInfoObject == null)
 					System.out.println("Error reading apiInfo");
 //				else

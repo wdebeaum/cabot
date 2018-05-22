@@ -26,6 +26,7 @@ import messages.BlockMessageReader;
 import messages.BlockMessageSender;
 import messages.CommDataReader;
 import messages.EvaluateHandler;
+import messages.NetworkConfiguration;
 import models.*;
 import environment.*;
 import features.*;
@@ -73,28 +74,33 @@ public class SRIWrapper extends StandardTripsModule  {
      * StandardTripsModule parameters.
      */
     public SRIWrapper(String argv[], boolean isApplication) {
-    	super(argv, isApplication);
-    	BlockMessageSender.ENABLED = false;
-    	TextToSpeech.APPARATUS_ENABLED = false;
-    	if (argv.length > 2)
-    	{
-    		if (argv[2].contains("t"))
-    		{
-    			System.out.println("Apparatus disabled");
-    			connectToApparatus = false;
-    			BlockMessageSender.ENABLED = false;
-    			TextToSpeech.APPARATUS_ENABLED = false;
-    		}
-    	}
-    	if (argv.length > 3)
-    	{
-    		if (argv[3].contains("t"))
-    		{
-    			System.out.println("Messages enabled");
-	    	    	BlockMessageSender.ENABLED = true;
-    			listenForMessages = true;
-    		}
-    	}
+	    	super(argv, isApplication);
+	    	BlockMessageSender.ENABLED = true;
+	    	TextToSpeech.APPARATUS_ENABLED = true;
+	    	if (argv.length > 2)
+	    	{
+	    		if (argv[2].contains("t"))
+	    		{
+	    			System.out.println("Apparatus disabled");
+	    			connectToApparatus = false;
+	    			BlockMessageSender.ENABLED = false;
+	    			TextToSpeech.APPARATUS_ENABLED = false;
+	    		}
+	    	}
+	    	if (argv.length > 3)
+	    	{
+	    		if (argv[3].contains("t"))
+	    		{
+	    			System.out.println("Messages enabled");
+		    	    	BlockMessageSender.ENABLED = true;
+	    			listenForMessages = true;
+	    		}
+	    	}
+	    	if (argv.length > 4)
+	    	{
+			System.out.println("Apparatus IP specified as: |" + argv[4] + "|");
+	    		NetworkConfiguration.apiIp = argv[4];
+	    	}
     }
 
     /**
@@ -314,7 +320,8 @@ public class SRIWrapper extends StandardTripsModule  {
 	    error("Yow! Subscription failed: " + ex);
 	}
 	
-	blockMessagePuller = new BlockMessagePuller(this, goalStateHandler, plan);
+	blockMessagePuller = new BlockMessagePuller(this, goalStateHandler, plan, 
+			NetworkConfiguration.apiIp);
 	blockMessagePullerThread = new Thread(blockMessagePuller);
 
 	if (connectToApparatus)
@@ -322,15 +329,17 @@ public class SRIWrapper extends StandardTripsModule  {
 		System.out.println("Connecting to block messages from apparatus...");
 		blockMessagePullerThread.start();
 	}
-	
-    commDataReader = new CommDataReader();
-    commDataReaderThread = new Thread(commDataReader);
-    
-    if (connectToApparatus)
-    {
-    	System.out.println("Connecting to comm messages from apparatus...");
-    	commDataReaderThread.start();
-    }
+	if (!NetworkConfiguration.simulated)
+	{
+	    commDataReader = new CommDataReader(NetworkConfiguration.apiIp);
+	    commDataReaderThread = new Thread(commDataReader);
+	    
+	    if (connectToApparatus)
+	    {
+	    	System.out.println("Connecting to comm messages from apparatus...");
+	    	commDataReaderThread.start();
+	    }
+	}
     
     blockMessageReaderThread = null;
 	// Tell the Facilitator we are ready

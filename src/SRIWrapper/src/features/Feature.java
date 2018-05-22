@@ -3,6 +3,8 @@ package features;
 import java.util.*;
 
 import TRIPS.KQML.*;
+import models.ReferringExpression;
+import utilities.KQMLUtilities;
 
 
 
@@ -11,12 +13,14 @@ public abstract class Feature<T> implements FeatureGroup{
 	protected String name;
 	protected String prettyName;
 	protected boolean constant;
+	private ReferringExpression source;
 	
 	public Feature(String name)
 	{
 		this.name = name;
-		prettyName = name;
+		prettyName = KQMLUtilities.cleanConcept(name);
 		constant = false;
+		source = null;
 	}
 	
 	public abstract T getValue();
@@ -81,12 +85,22 @@ public abstract class Feature<T> implements FeatureGroup{
 	
 	public boolean isConstant()
 	{
-		return constant;
+		return (constant && source == null);
 	}
 	
 	public void setConstant(boolean value)
 	{
 		constant = value;
 	}
+
+	public ReferringExpression getSource() {
+		return source;
+	}
+
+	public void setSource(ReferringExpression source) {
+		this.source = source;
+	}
+	
+	
 	
 }

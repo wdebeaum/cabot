@@ -10,15 +10,15 @@ import TRIPS.KQML.KQMLToken;
 
 public class Goal {
 
-	private String what;
-	private String id;
-	private KQMLList term;
-	private static int nextGoalWhat = 0;
-	private static int nextGoalId = 1;
-	private Goal parent;
-	private GoalType type;
-	private KQMLList context;
-	private boolean completed = false;
+	protected String what;
+	protected String id;
+	protected KQMLList term;
+	protected static int nextGoalWhat = 0;
+	protected static int nextGoalId = 1;
+	protected Goal parent;
+	protected GoalType type;
+	protected KQMLList context;
+	protected boolean completed = false;
 	
 	
 	public enum GoalType {GOAL, SUBGOAL, MODIFICATION, ELABORATION, QUERYINCONTEXT }
@@ -69,7 +69,7 @@ public class Goal {
 		return agent;
 	}
 	
-	private static int getNextId()
+	protected static int getNextId()
 	{
 		nextGoalId += 2;
 		return nextGoalId;
@@ -78,6 +78,11 @@ public class Goal {
 	public void addContext(KQMLList newContext)
 	{
 		context.addAll(newContext);
+	}
+	
+	public void addContextElement(KQMLList newContextElement)
+	{
+		context.add(newContextElement);
 	}
 	
 	public String getInstanceOf()
@@ -116,7 +121,10 @@ public class Goal {
 
 	public void setParent(Goal parent) {
 		this.parent = parent;
-		type = GoalType.SUBGOAL;
+		if (parent == null && type == GoalType.SUBGOAL)
+			type = GoalType.GOAL;
+		else if (type == GoalType.GOAL)
+			type = GoalType.SUBGOAL;
 	}
 	
 	public KQMLList getAsList()
@@ -130,6 +138,7 @@ public class Goal {
 			response.add("GOAL");
 			return response;
 		}
+
 		
 		if (type.equals(GoalType.QUERYINCONTEXT))
 		{
@@ -202,5 +211,11 @@ public class Goal {
 	{
 		term.set(1, new KQMLToken(what));
 	}
+
+	public KQMLList getContext() {
+		return context;
+	}
+	
+	
 	
 }

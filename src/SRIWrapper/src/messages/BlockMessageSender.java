@@ -3,8 +3,13 @@ package messages;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 
 import org.jblas.DoubleMatrix;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import environment.Block;
 
@@ -16,10 +21,16 @@ public class BlockMessageSender {
 	{
 		if (ENABLED == false)
 			return;
-		String request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
-				"/machine-manip/action.json";
 		
-		sendPostRequest(b,request);
+		String request;
+		if (NetworkConfiguration.simulated)
+			request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
+			"/plan/block-state.json";
+		else
+			request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
+			"/machine-manip/action.json";
+		
+		sendPostRequest(b.getJSONRepresentation().toString(),request);
 	}
 	
 	public static void sendPostRequest(DoubleMatrix position) throws IOException
@@ -28,12 +39,60 @@ public class BlockMessageSender {
 		sendPostRequest(b);
 	}
 	
-	public static void sendPostRequest(Block b, String request) throws IOException
+	public static void sendPostRequest(Collection<Block> blocks) throws IOException
 	{
-		String urlParameters  = b.getJSONRepresentation();
+		if (ENABLED == false)
+			return;
+		
+		String request;
+		if (NetworkConfiguration.simulated)
+		{
+			request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
+			"/plan/block-state.json";
+			JSONObject blockStateObject = new JSONObject();
+			String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH.mm.ss.SSS").format(new Date());
+			blockStateObject.put("Timestamp", timeStamp);
+			blockStateObject.put("IsStable", "true");
+			
+			JSONArray array = new JSONArray();
+			int i = 1;
+			for (Block b : blocks)
+			{
+				array.add(b.getJSONRepresentation(i));
+				i++;
+			}
+			blockStateObject.put("BlockStates", array);
+			
+			sendPostRequest(blockStateObject.toString(),request);
+		}
+		else
+		{
+			request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
+			"/machine-manip/action.json";
+			for (Block b : blocks)
+				sendPostRequest(b.getJSONRepresentation().toString(),request);
+		}
+		
+	}
+	
+	public static void clearBlocks() throws IOException
+	{
+		String request = "http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort +
+				"/plan/block-state.json";
+		System.out.println("Sending clear block request");
+		JSONObject blockStateObject = new JSONObject();
+		JSONArray array = new JSONArray();
+		blockStateObject.put("BlockStates", array);
+		
+		sendPostRequest(blockStateObject.toString(),request);
+	}
+	
+	public static void sendPostRequest(String content, String request) throws IOException
+	{
+
 		System.out.println("Sending:");
-		System.out.println(urlParameters);
-		byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );
+		System.out.println(content);
+		byte[] postData       = content.getBytes( StandardCharsets.UTF_8 );
 		int    postDataLength = postData.length;
 		URL    url            = new URL( request );
 		HttpURLConnection conn= (HttpURLConnection) url.openConnection();   
@@ -71,7 +130,7 @@ public class BlockMessageSender {
 	
 	public void sendCurlPostRequest(Block b)
 	{
-		String urlParameters  = b.getJSONRepresentation();
+		String urlParameters  = b.getJSONRepresentation().toString();
 		System.out.println("Sending:");
 		System.out.println(urlParameters);
 		byte[] postData       = urlParameters.getBytes( StandardCharsets.UTF_8 );

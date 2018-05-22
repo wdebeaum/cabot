@@ -87,6 +87,12 @@ public class Scene {
 		nextBlockId++;
 	}
 	
+	public void addBlocks(Collection<Block> blocks)
+	{
+		for (Block b : blocks)
+			addBlock(b);
+	}
+	
 	// Note: The labels are according to the block list values, not the apparatus id's
 	public String describeScene()
 	{

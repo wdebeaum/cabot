@@ -200,7 +200,7 @@ public class Block implements BoundedVolume{
 		return blockContent;
 	}
 	
-	public String getJSONRepresentation()
+	public JSONObject getJSONRepresentation()
 	{
 		JSONObject jsonBlock = new JSONObject();
 		DoubleMatrix yInvertPosition = position.mul(new DoubleMatrix(new double[]{1,-1,1}));
@@ -210,7 +210,20 @@ public class Block implements BoundedVolume{
 		jsonBlock.put("confidence", "" + confidence);
 		
 		
-		return jsonBlock.toString();
+		return jsonBlock;
+	}
+	
+	public JSONObject getJSONRepresentation(int blockId)
+	{
+		JSONObject jsonBlock = new JSONObject();
+		DoubleMatrix yInvertPosition = position.mul(new DoubleMatrix(new double[]{1,-1,1}));
+		jsonBlock.put("id", "" + blockId);
+		jsonBlock.put("position", FormatConversion.doubleMatrixToJSONString(yInvertPosition));
+		jsonBlock.put("rotation", FormatConversion.doubleMatrixToJSONString(rotation));
+		jsonBlock.put("confidence", "" + confidence);
+		
+		
+		return jsonBlock;
 	}
 
 	public boolean isProxyInstructed() {

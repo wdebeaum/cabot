@@ -86,6 +86,7 @@ public class StructureInstance implements FeatureGroup {
 		CountFeature countFeature = new CountFeature(FeatureConstants.NUMBER);
 		countFeature.setValue(blocks.size());
 		setFeature(countFeature);
+		features.put(FeatureConstants.SIZE, countFeature);
 	}
 	
 	private void generateLinearityFeature()

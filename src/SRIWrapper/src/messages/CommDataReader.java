@@ -25,9 +25,17 @@ import utilities.TextToSpeech;
 public class CommDataReader implements Runnable {
 
 	public volatile boolean stop = false;
+	private String apiIp;
+	
+	public CommDataReader(String apiIp)
+	{
+		this.apiIp = apiIp;
+	}
+	
 	@Override
 	public void run() {
-		JSONObject streamInfoObject = JsonReader.readURL("http://" + NetworkConfiguration.apiIp + ":" + NetworkConfiguration.apiPort + "/human-comm-api/stream-info.json");
+		JSONObject streamInfoObject = JsonReader.readURL("http://" + apiIp + ":" + 
+				NetworkConfiguration.apiPort + "/human-comm-api/stream-info.json");
 		if (streamInfoObject == null)
 			System.out.println("Error reading apiInfo");
 		else

@@ -8,6 +8,7 @@ import environment.Scene;
 import environment.StructureInstance;
 import features.Feature;
 import features.FeatureConstants;
+import features.FeatureGroup;
 import features.UnorderedGroupingFeature;
 import spatialreasoning.Predicate;
 
@@ -15,14 +16,12 @@ public class StructureConstraint implements Constraint {
 
 	ReferringExpression subject;
 	FeatureConstraint featureConstraint;
-	Predicate predicateConstraint;
 	List<ReferringExpression> objects;
 	
 	public StructureConstraint(ReferringExpression subject, 
 			FeatureConstraint featureConstraint) {
 		this.subject = subject;
 		this.featureConstraint = featureConstraint;
-		this.predicateConstraint = null;
 		objects = new ArrayList<ReferringExpression>();
 	}
 	
@@ -30,41 +29,63 @@ public class StructureConstraint implements Constraint {
 			Predicate predicateConstraint) {
 		this.subject = subject;
 		this.featureConstraint = null;
-		this.predicateConstraint = predicateConstraint;
 		objects = new ArrayList<ReferringExpression>();
 	}
 	
 	public static StructureConstraint extractStructureConstraint(KQMLList neutralTerm, 
 														KQMLList tree)
 	{
-		ReferringExpression.getDefiniteHeadTermSymbols(tree);
+		ReferringExpressionParser.getDefiniteHeadTermSymbols(tree);
 		return null;
 	}
 	
 	public boolean isSatisfied(Scene s)
 	{
-		subject.evaluate(s);
+		return isSatisfied(s,subject);
+		
+	}
+	
+	public boolean isSatisfied(Scene s, ReferringExpression newSubject)
+	{
+		newSubject.evaluate(s);
 		
 		System.out.println(this);
-		System.out.println("has " + subject.getPseudoInstance().getFeature(FeatureConstants.NUMBER) + " blocks");
+		System.out.println("has " + 
+				newSubject.getPseudoInstance().getFeature(FeatureConstants.NUMBER) + 
+				" blocks");
 	
 		
 		for (ReferringExpression object : objects)
 			object.evaluate(s);
 		
-		if (featureConstraint != null && !featureConstraint.isSatisfied())
+		if (featureConstraint != null && !featureConstraint.isSatisfied(s))
 			return false;
 		
-		// TODO
-		if (predicateConstraint != null)
+		// If restricted, check all other referring expressions of the same type
+		// and make sure they don't fit
+		if (newSubject.isRestricted())
 		{
-			StructureInstance si = subject.getPseudoInstance();
-			predicateConstraint.evaluate(
-					(UnorderedGroupingFeature)si.getFeature(FeatureConstants.GROUPING));
+			UnorderedGroupingFeature inverse = newSubject.inverseGroupingFeature;
+			System.out.println("Testing other instances for restriction:");
+			for (FeatureGroup other: inverse.getValue())
+			{
+				String featureNameToTest = featureConstraint.feature.getName();
+				if (other.getFeatures().containsKey(featureNameToTest))
+				{
+					Feature otherFeature = other.getFeatures().get(featureNameToTest);
+					System.out.println("Other grouping has " + featureNameToTest + " of "
+							+ otherFeature.getValue());
+					if (featureConstraint.isSatisfied(otherFeature, s))
+					{
+						System.out.println("Another matching object type satisfied the"
+								+ " restricted feature constraint");
+						return false;
+					}
+				}
+			}
 		}
 		
 		return true;
-			
 	}
 	
 	public boolean isSatisfied()
@@ -78,8 +99,6 @@ public class StructureConstraint implements Constraint {
 		sb.append("StructureConstraint: " + subject + "\n");
 		if (featureConstraint != null)
 			sb.append(featureConstraint.toString() + "\n");
-		if (predicateConstraint != null)
-			sb.append(predicateConstraint.toString() + "\n");
 		return sb.toString();
 	}
 	
@@ -102,6 +121,21 @@ public class StructureConstraint implements Constraint {
 
 	public ReferringExpression getSubject() {
 		return subject;
+	}
+	
+	public String getFeatureName()
+	{
+		return getFeature().getPrettyName();
+	}
+	
+	@Override
+	public boolean setValue(double value)
+	{
+		if (featureConstraint == null)
+			return false;
+		
+		featureConstraint.setValue(value);
+		return true;
 	}
 
 }

@@ -35,7 +35,7 @@ public class ColumnFeature extends UnorderedGroupingFeature {
 			if (!unusedBlocks.contains(b1))
 				continue;
 			
-			System.out.println("Starting column with block " + b1.getId());
+			//System.out.println("Starting column with block " + b1.getId());
 			ColumnFeature column = new ColumnFeature(FeatureConstants.COLUMN);
 			
 			unusedBlocks.remove(b1);
@@ -49,13 +49,13 @@ public class ColumnFeature extends UnorderedGroupingFeature {
 				{
 					column.add(new BlockFeatureGroup(b2));
 					unusedBlocksIterator.remove();
-					System.out.println("Added block " + b2.getId() + " to column");
+					//System.out.println("Added block " + b2.getId() + " to column");
 				}
 			}
 			
 			columns.add(column);
 		}
-		System.out.println(columns.size() + " columns extracted");
+		//System.out.println(columns.size() + " columns extracted");
 		return columns;
 	}
 	

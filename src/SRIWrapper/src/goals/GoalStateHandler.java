@@ -29,6 +29,7 @@ public class GoalStateHandler {
 	private HashMap<String,Goal> nameGoalMapping;
 	private HashMap<String,Goal> idGoalMapping;
 	private Goal currentGoal;
+	private Goal lastProposedGoal;
 	private KQMLList currentContext;
 	private GoalState goalState;
 	public SystemState systemState;
@@ -53,6 +54,7 @@ public class GoalStateHandler {
 		idGoalMapping = new HashMap<String, Goal>();
 		this.modelBuilder = modelBuilder;
 		lastBlockPlaced = null;
+		lastProposedGoal = null;
 	}
 	
 	public static int getNextId()
@@ -123,12 +125,7 @@ public class GoalStateHandler {
 				// Get relevant elements from KQML
 				fp.extractProjectionFromKQML(context);
 				
-//				String affected = term.getKeywordArg(":AFFECTED").stringValue();
-//				
-//				System.out.println("AFFECTED:" + affected);
-//				TemporalSequenceFeature tsfAffected = (TemporalSequenceFeature)fp.variableFGBindings.get(affected);
-//				tsfAffected.straighten();
-//				System.out.println(tsfAffected);
+
 				BuildAction ba = fp.getBuildAction();
 				if (ba == null)
 					return null;
@@ -244,11 +241,13 @@ public class GoalStateHandler {
 			}
 			else if (goalInstanceType.equalsIgnoreCase("SHOW-EXAMPLE"))
 			{
-				return GoalMessages.waitingForUser(currentGoal.getId());
+				return getModelBuilderGoal(context);
+				//return GoalMessages.waitingForUser(currentGoal.getId());
 			}
 			else if (goalInstanceType.equalsIgnoreCase("ONT::DESCRIBE"))
 			{
-				return GoalMessages.waitingForUser(currentGoal.getId());
+				//return GoalMessages.waitingForUser(currentGoal.getId());
+				return getModelBuilderGoal(context);
 			}
 		}
 		else // No current goal
@@ -272,28 +271,36 @@ public class GoalStateHandler {
 		if (goalState == GoalState.ACCEPTED && (systemState == SystemState.LEARNING_DEMONSTRATION ||
 												systemState == SystemState.LEARNING_CONSTRAINTS))
 		{
-			Goal newGoal = modelBuilder.whatNext(systemState, currentGoal);
-			String currentGoalId = "NIL";
-			if (currentGoal != null)
-			{
-				if (newGoal != null)
-					newGoal.setParent(currentGoal);
-				currentGoalId = currentGoal.getId();
-			}
-			if (newGoal == null)
-			{
-				return GoalMessages.waitingForUser(currentGoalId);
-			}
-			addGoal(newGoal);
-			context.add(newGoal.getTerm());
-			
-			return GoalMessages.proposeAdoptContent(newGoal.getId(), newGoal.getWhat(), newGoal.getAsList(), context);
+			return getModelBuilderGoal(context);
 		}
 
 		
 		return GoalMessages.waitingForUser(currentGoal.getId());
 	}
 
+	
+	private KQMLList getModelBuilderGoal(KQMLList context)
+	{
+		
+		System.out.println("Getting model builder goal");
+		KQMLList response = modelBuilder.whatNext(systemState, currentGoal);
+		Goal newGoal = modelBuilder.getLastGoal();
+		String currentGoalId = "NIL";
+		if (currentGoal != null)
+		{
+			if (newGoal != null)
+				newGoal.setParent(currentGoal);
+			currentGoalId = currentGoal.getId();
+		}
+		if (newGoal == null)
+		{
+			return GoalMessages.waitingForUser(currentGoalId);
+		}
+		addGoal(newGoal);
+		context.add(newGoal.getTerm());
+		
+		return response;
+	}
 	
 	private KQMLList askWhatToBuild(String id, KQMLList context)
 	{
@@ -317,7 +324,7 @@ public class GoalStateHandler {
 		newContext.addAll(context);
 		newContext.add(newQuery.getTerm());
 		
-		KQMLList askWhContent = GoalMessages.askWhAdoptContent(queryId, 
+		KQMLList askWhContent = GoalMessages.askWhContent(queryId, 
 				questionVariable, queryVariable, currentGoal.getId());
 		
 		return GoalMessages.propose(askWhContent,newContext);
@@ -367,7 +374,7 @@ public class GoalStateHandler {
 		newContext.add(remainingTerm);
 		
 		KQMLList adoptContent = 
-				GoalMessages.askWhAdoptContent(queryId, questionVariable,
+				GoalMessages.askWhContent(queryId, questionVariable,
 						queryVariable, currentGoal.getId());
 		Goal askGoal = new Goal(questionVariable,queryId, adoptContent);
 		addGoal(askGoal);
@@ -506,7 +513,7 @@ public class GoalStateHandler {
 		KQMLList newContext = new KQMLList();
 		newContext.addAll(currentContext);
 		newContext.add(newQuery.getTerm());
-		KQMLList askIfContent = GoalMessages.askIfAdoptContent(newQuery.getId(), 
+		KQMLList askIfContent = GoalMessages.askIfContent(newQuery.getId(), 
 				finished.get(1).stringValue(), currentGoal.getId());
 		
 		KQMLList responseContent = GoalMessages.propose(askIfContent, newContext);

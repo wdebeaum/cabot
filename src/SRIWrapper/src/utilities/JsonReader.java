@@ -1,6 +1,7 @@
 package utilities;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,19 +23,35 @@ public class JsonReader {
 	    
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is, 
 	    		  									Charset.forName("UTF-8")));
-			JSONObject json = (JSONObject)parser.parse(rd);
+			String escaped = getEscapedJSONString(rd);
+			JSONObject json = (JSONObject)parser.parse(escaped);
+			if (is != null)
+				is.close();
 			return json;
 	    } catch (IOException | ParseException e) {
 			System.out.println("Could not connect to: " + url);
 		} finally {
 		    try {
-				is.close();
+		    		if (is != null)
+		    			is.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Could not close connection to: " + url);
 			}
 	    }
 		return null;
+	}
+	
+	private static String getEscapedJSONString(BufferedReader br) throws IOException
+	{
+		String line;
+		StringBuilder sb = new StringBuilder();
+		while ((line = br.readLine()) != null)
+		{
+			sb.append(line.replace("\\", "" ).replace("\"{", "{").replace("}\"", "}"));
+		}
+		
+		return sb.toString();
 	}
 
 

@@ -4,6 +4,7 @@ public class FeatureConstants {
 
 	public static final String HEIGHT = "ONT::HEIGHT-SCALE";
 	public static final String WIDTH = "ONT::WIDTH-SCALE";
+	public static final String SIZE = "ONT::SIZE-SCALE";
 	public static final String CENTER = "ONT::CENTER";
 	public static final String LOCATION = "ONT::LOCATION";
 	public static final String ORIGIN = "ONT::STARTPOINT";
@@ -29,8 +30,27 @@ public class FeatureConstants {
 	public static final String GROUPING = "ONT::GROUP-OBJECT";
 	public static final String SEQUENCE = "ONT::SEQUENCE";
 	public static final String BLOCK = "ONT::BLOCK";
+	public static final String SPACE = "ONT::LOC-AS-AREA";
+	public static final String SET = "ONT::SET";
+	public static final String GAP = "ONT::PHYS-SHAPE";
+	public static final String OTHER = "ONT::OTHER";
+	public static final String REF_SEM = "ONT::REFERENTIAL-SEM";
 	public FeatureConstants() {
 		// TODO Auto-generated constructor stub
+	}
+	
+	public static boolean isNumericAttributeFeature(String feature)
+	{
+		switch (feature)
+		{
+		case HEIGHT:
+		case WIDTH:
+		case NUMBER:
+			return true;
+			
+		default:
+			return false;
+		}
 	}
 
 }

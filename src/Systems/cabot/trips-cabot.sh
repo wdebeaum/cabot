@@ -3,7 +3,7 @@
 # File: trips-cabot.sh
 # Creator: George Ferguson
 # Created: Wed Jun 20 10:38:13 2012
-# Time-stamp: <Wed Feb 22 14:29:10 CST 2017 lgalescu>
+# Time-stamp: <Mon Mar 26 13:50:58 CDT 2018 lgalescu>
 #
 # trips-cabot: Run TRIPS/CABOT
 #
@@ -37,11 +37,12 @@ TRIPS_VOICE_DEFAULT=allison
 #
 # Command-line
 
-usage="trips-$TRIPS_SYSNAME [-debug] [-port 6200] [-logdir DIR] [-nouser] [-nolisp] [-nocsm] [-nochat] [-showgen] [-showtraffic] [-display tty]"
+usage="trips-$TRIPS_SYSNAME [-debug] [-port 6200] [-logdir DIR] [-nouser] [-nolisp] [-nocsm] [-nochat] [-showgen] [-showtraffic] [-display tty] [-apparatusip <ip address>]"
 
 debug=false
 port=''
 logdir=''
+apparatusip=''
 display=''
 voice="${TRIPS_VOICE:-$TRIPS_VOICE_DEFAULT}"
 who=User
@@ -64,6 +65,8 @@ nolisp=''
 nocsm=''
 showgen=false
 showtraffic=''
+# this should be generally empty
+testmode=''
 
 while test ! -z "$1"; do
     case "$1" in
@@ -74,6 +77,7 @@ while test ! -z "$1"; do
 	-channel)	channel="$2";	shift;;
 	-display)	display="$2";	shift;;
 	-logdir)	logdir="$2";	shift;;
+    -apparatusip)   apparatusip="$2";   shift;;
 	-debug)		debug=t;;
 	-nodebug)	debug='';;
 	-nouser)	nouser=t;;
@@ -88,9 +92,10 @@ while test ! -z "$1"; do
 	-nobeep)	nobeep=t;;
 	-quiet)		nospeech=t; nobeep=t;;
 	-noapparatus)	noapparatus=t;;
-    -sriba)      sriba=t;;
+	-sriba)      sriba=t;;
 	-showgen)	showgen=t;;
 	-showtraffic)	showtraffic=t;;
+	-testmode)	testmode=t;;
 	-help|-h|-\?)
 	    echo "usage: $usage"
 	    exit 0;;
@@ -147,7 +152,7 @@ cleanup () {
 }
 
 rkill() {
-    for cpid in $(ps -o pid,ppid | awk -v ppid=$1 '$2==ppid {print $1}')
+    for cpid in $(ps -x -o pid,ppid | awk -v ppid=$1 '$2==ppid {print $1}')
     do
 	rkill $cpid
     done
@@ -202,7 +207,7 @@ cat - <<_EOF_ >>/tmp/trips$$
 			  "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
 			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
 			  "$TRIPS_BASE/src/SRIWrapper/src")
-	   :argv ($port_opt $noapparatus $sriba)))
+	   :argv ($port_opt $noapparatus $sriba $apparatusip)))
 (request
  :receiver facilitator
  :content (start-module
@@ -307,9 +312,14 @@ fi
      $port_opt \
      -process-input-utterances yes \
      -terms-file $TRIPS_BASE/etc/$TRIPS_SYSNAME/BlockNames.tsv \
-     -init-taggers terms-from-file,misspellings \
-     -default-type '(or affixes words punctuation terms-from-file misspellings)' \
+     -init-taggers terms-from-file,misspellings,word-net \
+     -default-type '(or affixes words punctuation terms-from-file misspellings word-net)' \
  2>&1 | tee $logdir/TextTagger.err) &
+
+# GraphMatcher
+if test -n "$testmode" ; then
+    (sleep 5; $TRIPS_BASE/bin/GraphMatcher >GraphMatcher.err 2>&1) &
+fi
 
 # set display option for facilitator
 if test -n "$nouser"; then

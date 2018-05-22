@@ -30,7 +30,9 @@ public class AxisAlignedBoundingBox {
 	
 	public DoubleMatrix getCenter()
 	{
-		return new DoubleMatrix(new double[] {maxX-minX,maxY-minY,maxZ-minZ});
+		return new DoubleMatrix(new double[] {(maxX+minX)/2,
+												(maxY+minY)/2,
+												(maxZ+minZ)/2});
 	}
 	
 	// This is not actually right, just an approximation
@@ -96,6 +98,9 @@ public class AxisAlignedBoundingBox {
 	
 	public static AxisAlignedBoundingBox fromBlocks(List<Block> blocks)
 	{
+		if (blocks.isEmpty())
+			return null;
+		
 		List<AxisAlignedBoundingBox> boundingBoxes = new ArrayList<AxisAlignedBoundingBox>();
 		List<Double> xValues = new ArrayList<Double>();
 		List<Double> yValues = new ArrayList<Double>();

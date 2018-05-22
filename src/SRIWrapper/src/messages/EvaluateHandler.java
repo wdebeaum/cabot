@@ -13,6 +13,7 @@ import goals.Goal;
 import goals.GoalMessages;
 import goals.GoalStateHandler;
 import goals.GoalStateHandler.SystemState;
+import goals.Query;
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLToken;
@@ -21,6 +22,7 @@ import models.FeatureConstraint;
 import models.FeatureProjection;
 import models.ModelBuilder;
 import models.ModelInstantiation;
+import models.StructureConstraint;
 
 public class EvaluateHandler {
 
@@ -45,6 +47,8 @@ public class EvaluateHandler {
 
 	public KQMLList handleAskIfMessage(KQMLList content, KQMLList context)
 	{
+		Query q = new Query("",content.getKeywordArg(":ID").stringValue(), content);
+		goalStateHandler.addGoal(q);
 		String eventLFSymbol = content.getKeywordArg(":QUERY").stringValue();
 		KQMLList eventLF = KQMLUtilities.findTermInKQMLList(eventLFSymbol, context);
 		//String eventToQueryID = goalLF.getKeywordArg(":NEUTRAL").stringValue();
@@ -93,17 +97,20 @@ public class EvaluateHandler {
 			TextToSpeech.say("Yes, but that's because I didn't get any "
 					+ "constraints for the model of a " + 
 								KQMLUtilities.cleanLex(modelName));
-			return answerContent(true,context);
+			return answerContent(content.getKeywordArg(":ID").stringValue(),
+					content.getKeywordArg(":QUERY").stringValue(),
+					true,context);
 		}
 		
 		if (satisfied)
-			response.append("Yes because ");
+			response.append("I think so, because ");
 		else
-			response.append("No because ");
+			response.append("I don't think so, because ");
 		
 		int reasonNumber = 0;
 		for (Constraint c : modelBuilder.getModelInstantiation(modelName).getConstraints())
 		{
+			boolean constraintSatisfied = c.isSatisfied(Scene.currentScene);
 			if (reasonNumber > 0)
 			{
 				if (satisfied)
@@ -111,11 +118,24 @@ public class EvaluateHandler {
 					response.append(" and ");
 				}
 				else {
-					if (c.isSatisfied())
+					if (constraintSatisfied)
 						response.append(" even though ");
 					else
 						response.append(" but ");
 				}
+			}
+			if (c instanceof StructureConstraint)
+			{
+				if (((StructureConstraint)c).getSubject().isRestricted())
+				{
+					if (constraintSatisfied)
+						response.append("only ");
+					else
+						response.append("more than one of ");
+				}
+					
+				
+					
 			}
 			response.append("the ");
 			response.append(c.reason());
@@ -124,11 +144,15 @@ public class EvaluateHandler {
 		response.append(".");
 		TextToSpeech.say(response.toString());
 		
-		return answerContent(satisfied,context);
+		return answerContent(content.getKeywordArg(":ID").stringValue(),
+							content.getKeywordArg(":QUERY").stringValue(),satisfied,context);
 	}
 	
 	public KQMLList handleAskWhMessage(KQMLList content, KQMLList context)
 	{
+		Query q = new Query(content.getKeywordArg(":WHAT").stringValue(),
+					content.getKeywordArg(":ID").stringValue(), content);
+		goalStateHandler.addGoal(q);
 		String eventLFSymbol = content.getKeywordArg(":QUERY").stringValue();
 		KQMLList eventLF = KQMLUtilities.findTermInKQMLList(eventLFSymbol, context);
 		
@@ -172,6 +196,14 @@ public class EvaluateHandler {
 	
 	public KQMLList handleYesNoAnswerMessage(KQMLList content, KQMLList context)
 	{
+		// Clear planned blocks
+		try {
+			BlockMessageSender.clearBlocks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		// Only handles "are you done?" right now
 		String value = content.getKeywordArg(":VALUE").toString();
 		
@@ -216,6 +248,10 @@ public class EvaluateHandler {
 				return GoalMessages.waitingForUser(goalStateHandler.getCurrentGoal().getId());
 			}
 		}
+		else if (instanceOf.equals("ONT::STRUCTURE"))
+		{
+			return acceptableContent(content, context);
+		}
 		
 		return failureContent("FAILED-TO-INTERPRET", "NIL",
 				new KQMLList(new KQMLToken("MISSING-GOAL")), new KQMLList());
@@ -240,12 +276,17 @@ public class EvaluateHandler {
 		
 			
 		String queryVariable = content.getKeywordArg(":QUERY").stringValue();
-		if (goalStateHandler.getGoal(queryVariable) == null)
+		
+		String toVariable = content.getKeywordArg(":TO").stringValue();
+		if (goalStateHandler.getGoal(toVariable) == null)
 		{
-			return failureContent("FAILED-TO-INTERPRET", queryVariable,
-					new KQMLList(new KQMLToken("MISSING-GOAL")), new KQMLList());			
+			return failureContent("FAILED-TO-INTERPRET", toVariable,
+					new KQMLList(new KQMLToken("MISSING-GOAL")), new KQMLList());		
 		}
 		
+		// There's a constraint waiting to be answered
+		if (modelBuilder.getLastConstraintAsked() != null)
+			return modelBuilder.answerCurrentConstraint(content, context);
 
 		KQMLList queryTerm = KQMLUtilities.findTermInKQMLList(queryVariable, context);
 		
@@ -273,7 +314,6 @@ public class EvaluateHandler {
 			KQMLList newContext = new KQMLList();
 			newContext.addAll(context);
 			newContext.add(newGoal.getTerm());
-			//return acceptableEffectContent(content,effect,newContext);
 			return null;
 		}
 		else
@@ -310,6 +350,12 @@ public class EvaluateHandler {
 		String id = content.getKeywordArg(":ID").stringValue();
 		KQMLObject asObject = content.getKeywordArg(":AS");
 		KQMLList goalLF = KQMLUtilities.findTermInKQMLList(goal, context);
+		String parentGoalType = "";
+		String proposedGoalType = "";
+		if (goalStateHandler.getCurrentGoal() != null)
+			parentGoalType = goalStateHandler.getCurrentGoal().getInstanceOf();
+		if (modelBuilder.getLastGoal() != null)
+			proposedGoalType = modelBuilder.getLastGoal().getInstanceOf();
 		Goal assertionGoal = new Goal(goal,id,goalLF);
 		goalStateHandler.addGoal(assertionGoal);
 		KQMLList assertions = (KQMLList)goalLF.getKeywordArg(":EVENTS");
@@ -330,9 +376,6 @@ public class EvaluateHandler {
 			if (assertionContentTerm == null)
 				continue;
 			
-//			if (assertionContentTerm.getKeywordArg(":INSTANCE-OF") != null &&
-//					assertionContentTerm.getKeywordArg(":INSTANCE-OF").stringValue().equals("ONT::BE"))
-//			{
 			if (assertionContentTerm.getKeywordArg(":NEUTRAL") != null)
 			{
 				String neutralSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL").stringValue();
@@ -342,7 +385,7 @@ public class EvaluateHandler {
 						!neutralList.getKeywordArg(":SPEC").stringValue().equals("ONT::PRO"))
 					assertedObjectName = neutralList.getKeywordArg(":LEX").stringValue();
 			}
-//			}
+
 		}
 		
 		if (assertedObjectName == null)
@@ -358,17 +401,34 @@ public class EvaluateHandler {
 		{
 			modelBuilder.processNewModel(assertedObjectName);
 			currentInstantiation = modelBuilder.getModelInstantiation(assertedObjectName);
-//			TextToSpeech.say("I don't see anything on the table.");
-//			return unacceptableContent("CANNOT-PROCESS", "ASSERTION", "NIL", goal, asObject);
 		}
+		int constraintsFound = 0;
 		if (neutralList != null)
-			currentInstantiation.getConstraintsFromKQML(neutralList, context);
+			constraintsFound = currentInstantiation.getConstraintsFromKQML(assertionContentTerm, context);
 		else
 			System.out.println("No Neutral term to learn assertions");
 		
-		TextToSpeech.say("Ok.");
-		modelBuilder.processAssertion(content,context);
-		goalStateHandler.systemState = SystemState.WAITING;
+		if (constraintsFound > 0 ||
+				proposedGoalType.equalsIgnoreCase("SHOW-EXAMPLE"))
+		{
+			TextToSpeech.say("Ok.");
+			modelBuilder.processAssertion(content,context);
+		}
+		else
+		{
+			TextToSpeech.say("Hmm, I'm sorry, I couldn't understand any constraints from that." );
+			// This takes awhile but shouldn't stop the next utterance
+			if (TextToSpeech.SPEECH_ENABLED)
+			{
+				try {
+					Thread.sleep(4100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		//goalStateHandler.systemState = SystemState.WAITING;
 		
 		return acceptableContent("ASSERTION", id, goal, goalLF, context);
 	}
@@ -547,6 +607,24 @@ public class EvaluateHandler {
 		return response;
 	}
 	
+	public static KQMLList acceptableContent(KQMLList content, KQMLList context)
+	{
+		KQMLList response = new KQMLList();
+		response.add("REPORT");
+		response.add(":CONTENT");
+		KQMLList acceptable = new KQMLList();
+		acceptable.add("ACCEPTABLE");
+		acceptable.add(":WHAT");
+		acceptable.add(content);
+		
+		response.add(acceptable);
+		
+		response.add(":CONTEXT");
+		response.add(context);
+		
+		return response;
+	}
+	
 	public static KQMLList acceptableEffectContent(KQMLList what,
 								KQMLList effect, KQMLList context)
 	{
@@ -596,6 +674,23 @@ public class EvaluateHandler {
 		return response;
 	}
 	
+	public static KQMLList unacceptableAnswerContent(KQMLList content)
+{
+	KQMLList response = new KQMLList();
+	response.add("REPORT");
+	response.add(":CONTENT");
+	KQMLList unacceptable = new KQMLList();
+	unacceptable.add("UNACCEPTABLE");
+	unacceptable.add(":TYPE");
+	unacceptable.add("ANSWER");
+	unacceptable.add(":WHAT");
+	unacceptable.add(content);
+	
+	response.add(unacceptable);
+	
+	return response;
+}
+	
 	private static KQMLList failureContent(String type, String what, KQMLList reason,
 											KQMLList possibleResolution)
 	{
@@ -619,7 +714,7 @@ public class EvaluateHandler {
 	}
 	
 	
-	private KQMLList answerContent(boolean answer, KQMLList context) 
+	private KQMLList answerContent(String queryId, String queryWhat, boolean answer, KQMLList context) 
 	{
 		KQMLList response = new KQMLList();
 		response.add("REPORT");
@@ -627,9 +722,9 @@ public class EvaluateHandler {
 		KQMLList answerContent = new KQMLList();
 		answerContent.add("ANSWER");
 		answerContent.add(":TO");
-		answerContent.add(goalStateHandler.getCurrentGoal().getId());
+		answerContent.add(queryId);
 		answerContent.add(":QUERY");
-		answerContent.add(goalStateHandler.getCurrentGoal().getWhat());
+		answerContent.add(queryWhat);
 		answerContent.add(":VALUE");
 		if (answer == true)
 			answerContent.add("ONT::TRUE");

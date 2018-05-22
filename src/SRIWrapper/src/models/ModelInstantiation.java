@@ -6,17 +6,18 @@ import utilities.KQMLUtilities;
 import environment.*;
 import TRIPS.KQML.*;
 import features.*;
+import messages.FeatureParser;
 import models.FeatureConstraint.ComparisonType;
 import models.FeatureConstraint.Operator;
 import spatialreasoning.Predicate;
+import spatialreasoning.PredicateType;
 
 
 public class ModelInstantiation {
 
 	private StructureInstance currentStructureInstance;
 	private HashMap<String,FeatureGroup> components;
-	public List<FeatureConstraint> featureConstraints;
-	public List<StructureConstraint> structureConstraints;
+	public Set<Constraint> constraints;
 	private List<StructureInstance> positiveExamples;
 	private Set<ReferringExpression> referringExpressions;
 	String[] generalFeaturesToAsk = {FeatureConstants.HEIGHT, FeatureConstants.WIDTH};
@@ -26,8 +27,7 @@ public class ModelInstantiation {
 	public ModelInstantiation() {
 		currentStructureInstance = new StructureInstance("placeholder", new ArrayList<Block>());
 		components = new HashMap<String,FeatureGroup>();
-		featureConstraints = new ArrayList<FeatureConstraint>();
-		structureConstraints = new ArrayList<StructureConstraint>();
+		constraints = new HashSet<Constraint>();
 		positiveExamples = new ArrayList<StructureInstance>();
 		introduced = false;
 	}
@@ -53,15 +53,14 @@ public class ModelInstantiation {
 	public Set<Constraint> getConstraints()
 	{
 		Set<Constraint> toReturn = new HashSet<Constraint>();
-		toReturn.addAll(featureConstraints);
-		toReturn.addAll(structureConstraints);
+		toReturn.addAll(constraints);
 		return toReturn;
 	}
 	
 	public Set<Feature> getConstrainedGeneralFeatures()
 	{
 		HashSet<Feature> features = new HashSet<Feature>();
-		for (FeatureConstraint fc : featureConstraints)
+		for (FeatureConstraint fc : getFeatureConstraints())
 		{
 			features.add(fc.feature);
 		}
@@ -72,7 +71,7 @@ public class ModelInstantiation {
 	public Set<Feature> getConstrainedSubFeatures()
 	{
 		HashSet<Feature> features = new HashSet<Feature>();
-		for (StructureConstraint sc : structureConstraints)
+		for (StructureConstraint sc : getStructureConstraints())
 		{
 			features.add(sc.featureConstraint.feature);
 		}
@@ -83,7 +82,7 @@ public class ModelInstantiation {
 	public Set<String> getConstrainedGeneralFeatureNames()
 	{
 		HashSet<String> features = new HashSet<String>();
-		for (FeatureConstraint fc : featureConstraints)
+		for (FeatureConstraint fc : getFeatureConstraints())
 		{
 			features.add(fc.feature.getName());
 		}
@@ -94,7 +93,7 @@ public class ModelInstantiation {
 	public Set<String> getConstrainedSubFeatureNames()
 	{
 		HashSet<String> features = new HashSet<String>();
-		for (StructureConstraint sc : structureConstraints)
+		for (StructureConstraint sc : getStructureConstraints())
 		{
 			features.add(sc.featureConstraint.feature.getName());
 		}
@@ -102,84 +101,151 @@ public class ModelInstantiation {
 		return features;
 	}
 	
+	public Set<FeatureConstraint> getFeatureConstraints()
+	{
+		Set<FeatureConstraint> result = new HashSet<FeatureConstraint>();
+		for (Constraint c : constraints)
+			if (c instanceof FeatureConstraint)
+				result.add((FeatureConstraint)c);
+		return result;
+	}
+	
+	public Set<StructureConstraint> getStructureConstraints()
+	{
+		Set<StructureConstraint> result = new HashSet<StructureConstraint>();
+		for (Constraint c : constraints)
+			if (c instanceof StructureConstraint)
+				result.add((StructureConstraint)c);
+		return result;
+	}
+	
+	public Set<PredicateConstraint> getPredicateConstraints()
+	{
+		Set<PredicateConstraint> result = new HashSet<PredicateConstraint>();
+		for (Constraint c : constraints)
+			if (c instanceof PredicateConstraint)
+				result.add((PredicateConstraint)c);
+		return result;
+	}
 	
 	public Constraint getConstraintToAsk()
 	{
 		Set<String> constrainedGeneralFeatureNames = getConstrainedGeneralFeatureNames();
 		Set<String> constrainedSubFeatureNames = getConstrainedSubFeatureNames();
-		Random rand = new Random();
-		//boolean generalQuestion = rand.nextBoolean();
-		boolean generalQuestion = true;
 		
+		System.out.println("Constrained general features: ");
+		for (String s : constrainedGeneralFeatureNames)
+			System.out.println(s);
+		System.out.println("Constrained structure features: ");
+		for (String s : constrainedSubFeatureNames)
+			System.out.println(s);
+		Random rand = new Random();
+		int questionType = rand.nextInt(3);
 		int index = rand.nextInt(255);
 		int steps = 0;
 		String featureName = "";
 		
 		// Loop through features to ask about until we find one not described
-		if (generalQuestion)
+		// General Feature
+		if (questionType == 0)
 		{
 			do {
 				featureName = generalFeaturesToAsk[index % generalFeaturesToAsk.length];
 				index++;
 				steps++;
 				if (steps > generalFeaturesToAsk.length)
-					break;
+					return null;
 				
 			}
-			while (!constrainedGeneralFeatureNames.contains(featureName));
+			while (constrainedGeneralFeatureNames.contains(featureName));
+			
+			
 			Feature feature = currentStructureInstance.getFeature(featureName);
 			FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
 								ComparisonType.VALUE);
 			return fc;
 		}
-		else
+		
+		else if (questionType == 1 && getPredicateConstraints().isEmpty())
 		{
-			StructureConstraint structureConstraintToAsk = null;
-			for (StructureConstraint sc : structureConstraints)
+			// Ask about placement of top blocks
+			List<UnorderedRowFeature> rows = 
+					UnorderedRowFeature.rowsFromBlocks(Scene.currentScene.integerBlockMapping.values());
+			
+			if (rows.size() > 1)
 			{
-				boolean foundConstraint = true;
-				do {
-					featureName = subFeaturesToAsk[index % subFeaturesToAsk.length];
-					index++;
-					steps++;
-					if (steps > generalFeaturesToAsk.length)
+				
+				for (UnorderedRowFeature row : rows)
+				{
+					Predicate p = new Predicate(PredicateType.TOP);
+					// Get the top row
+					if (p.evaluate(row))
 					{
-						steps = 0;
-						foundConstraint = false;
-						break;
+						System.out.println("Found top row");
+						ReferringExpression refExp;
+						// Ask where the top block can be
+						if (row.getBlocks().size() == 1)
+							refExp = new ReferringExpression(p,"ONT::THE","ONT::BLOCK");
+						else
+							refExp = new ReferringExpression(p,"ONT::THE-SET","ONT::BLOCK");
+						PredicateConstraint pc = new PredicateConstraint(refExp);
+						return pc;
+						// Ask how many blocks can be in the top row
+						// If there is no row, skip down below
 					}
 				}
-				while (!constrainedSubFeatureNames.contains(featureName));
-				
-				if (foundConstraint)
-				{
-					Feature feature = currentStructureInstance.getFeature(featureName);
-					FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
-							ComparisonType.VALUE);
-					ReferringExpression refExp = sc.getSubject();
-					StructureConstraint toReturn = new StructureConstraint(refExp,fc);
-					return toReturn;
-				}
-				
 			}
-			return null;
+		}
+		
+		for (StructureConstraint sc : getStructureConstraints())
+		{
+			boolean foundConstraint = true;
+			do {
+				featureName = subFeaturesToAsk[index % subFeaturesToAsk.length];
+				index++;
+				steps++;
+				if (steps > generalFeaturesToAsk.length)
+				{
+					steps = 0;
+					foundConstraint = false;
+					break;
+				}
+			}
+			while (constrainedSubFeatureNames.contains(featureName));
+			
+			if (foundConstraint)
+			{
+				Feature feature = currentStructureInstance.getFeature(featureName);
+				FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
+						ComparisonType.VALUE);
+				ReferringExpression refExp = sc.getSubject();
+				StructureConstraint toReturn = new StructureConstraint(refExp,fc);
+				return toReturn;
+			}
 			
 		}
+		return null;
+		
 	}
 	
-	public void getConstraintsFromKQML(KQMLList neutralTerm, KQMLList context)
+	public int getConstraintsFromKQML(KQMLList eventTerm, KQMLList context)
 	{
 		int constraintsFound = 0;
 		introduced = true;
-		List<ReferringExpression> refExps = 
-				ReferringExpression.getReferringExpressions(neutralTerm, context);
+		
+		ReferringExpressionParser refExpParser = 
+				new ReferringExpressionParser(eventTerm, context);
+		
+		Map<String, ReferringExpression> refExps = 
+				refExpParser.extractReferringExpressions();
+		
 		
 		if (refExps.isEmpty())
 			System.out.println("No referring expressions found");
 		else
 		{
 			System.out.println("Referring expressions found:");
-			for (ReferringExpression refExp : refExps)
+			for (ReferringExpression refExp : refExps.values())
 			{
 				System.out.println("Term: " + refExp.headTerm);
 				System.out.println("Predicates: ");
@@ -187,72 +253,210 @@ public class ModelInstantiation {
 					System.out.println(p.toString());
 			}
 		}
+		
+		FeatureParser featureParser = new FeatureParser(eventTerm, context,
+												refExps, refExpParser.getHeadReferringExpression(),
+												currentStructureInstance);
+		
 		for (KQMLObject term : context)
 		{
 			KQMLList termList = (KQMLList)term;
-			FeatureConstraint fc;
-			if (refExps.isEmpty())
+			
+			// Cases of "only" as in "only the left column has a height greater than one"
+			if (termList.getKeywordArg(":INSTANCE-OF").stringValue().
+					equalsIgnoreCase("ONT::RESTRICTION") && 
+					refExpParser.getHeadReferringExpression() != null)
 			{
-				fc = FeatureConstraint.extractFeature(currentStructureInstance,
-													termList,context);
-				if (fc != null)
-				{
-					featureConstraints.add(fc);
-					constraintsFound++;
-				}
+				refExpParser.getHeadReferringExpression().setRestricted(true);
 			}
-			else // TODO : Get all ref exps, not just first one
-			{
-				ReferringExpression first = refExps.get(0);
-				fc = FeatureConstraint.extractFeature(first.getPseudoInstance(),
-						termList,context);
-				if (fc != null)
-				{
-					StructureConstraint sc = new StructureConstraint(first,fc);
-					structureConstraints.add(sc);
-					constraintsFound++;
-				}
-			}
+		}
+		
+		Set<Constraint> featureConstraintsFound = featureParser.extractFeatures();
+		
+		constraintsFound += featureConstraintsFound.size();
+		constraints.addAll(featureConstraintsFound);
 
+		PredicateParser predicateParser = new PredicateParser(eventTerm, context,
+				refExpParser.getHeadReferringExpression());
+		Set<PredicateConstraint> predicateConstraintsFound = 
+					predicateParser.extractPredicateConstraints();
+		constraintsFound += predicateConstraintsFound.size();
+		constraints.addAll(predicateConstraintsFound);
+		
+		if (constraintsFound == 0)
+		{
+			System.out.println("Adding predicated refexps to constraints");
+			for (ReferringExpression refExp : refExps.values())
+			{
+				System.out.println("Term: " + refExp.headTerm);
+				System.out.println("Predicates: ");
+				for (Predicate p : refExp.predicates)
+				{
+					constraintsFound++;
+					constraints.add(new PredicateConstraint(refExp,p));
+				}
+			}
 		}
 		
 		System.out.println("Found " + constraintsFound + " constraints");
+		
+		return constraintsFound;
 	}
 	
 	
-	public boolean testModelOnStructureInstance(Collection<Block> newBlocks)
+	public boolean testModelOnStructureInstance(Collection<Block> newBlocks, boolean debug)
 	{
 		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
 		currentStructureInstance.generateFeatures();
-		for (FeatureConstraint constraint : featureConstraints)
+		for (FeatureConstraint constraint : getFeatureConstraints())
 		{
-			System.out.println("Constraint:");
-			System.out.println(constraint);
-			boolean satisfied = constraint.isSatisfied();
+			if (debug)
+			{
+				System.out.println("Constraint:");
+				System.out.println(constraint);
+			}
+			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
 			if (satisfied)
-				System.out.println(" is satisfied");
+				if (debug)
+					System.out.println(" is satisfied");
 			else
 			{
-				System.out.println(" is not satisfied");
+				if (debug)
+					System.out.println(" is not satisfied");
 				return false;
 			}
 		}
 		
-		for (StructureConstraint constraint : structureConstraints)
+		for (StructureConstraint constraint : getStructureConstraints())
 		{
-			
-			System.out.println("Constraint:");
-			System.out.println(constraint);
-			boolean satisfied = constraint.isSatisfied();
+			if (debug) {
+				System.out.println("Constraint:");
+				System.out.println(constraint);
+			}
+			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
 			
 			if (satisfied)
-				System.out.println(" is satisfied");
+				if (debug)
+					System.out.println(" is satisfied");
 			else
 			{
 				System.out.println(" is not satisfied");
 				return false;
 			}
 				
+		}
+		
+		for (PredicateConstraint constraint : getPredicateConstraints())
+		{
+			if (debug)
+			{
+				System.out.println("Constraint:");
+				System.out.println(constraint);
+			}
+			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
+			
+			if (satisfied)
+				if (debug)
+					System.out.println(" is satisfied");
+			else
+			{
+				if (debug)
+					System.out.println(" is not satisfied");
+				return false;
+			}
+							
+		}
+		return true;
+	}
+	
+	public boolean testModelOnParticularStructureInstanceNoDebug(Collection<Block> newBlocks)
+	{
+		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
+		currentStructureInstance.generateFeatures();
+		Scene currentScene = new Scene();
+		currentScene.addBlocks(newBlocks);
+		
+		for (FeatureConstraint constraint : getFeatureConstraints())
+		{
+
+			boolean satisfied = constraint.isSatisfied(currentScene);
+			if (!satisfied)
+				return false;
+		}
+		
+		for (StructureConstraint constraint : getStructureConstraints())
+		{
+			boolean satisfied = constraint.isSatisfied(currentScene);
+			
+			if (!satisfied)
+				return false;
+			
+				
+		}
+		
+		for (PredicateConstraint constraint : getPredicateConstraints())
+		{
+			boolean satisfied = constraint.isSatisfied(currentScene);
+			
+			if (!satisfied)
+				return false;	
+		}
+		return true;
+	}
+	
+	public boolean testModelOnStructureInstance(Collection<Block> newBlocks)
+	{
+		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
+		currentStructureInstance.generateFeatures();
+		for (FeatureConstraint constraint : getFeatureConstraints())
+		{
+
+			System.out.println("Constraint:");
+			System.out.println(constraint);
+			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
+			if (satisfied)
+				System.out.println(" is satisfied");
+			else
+			{
+				System.out.println(" is not satisfied");
+				return false;
+			}
+		}
+		
+		for (StructureConstraint constraint : getStructureConstraints())
+		{
+			System.out.println("Constraint:");
+			System.out.println(constraint);
+
+			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
+			
+			if (satisfied)
+				System.out.println(" is satisfied");
+			else
+			{
+				System.out.println(" is not satisfied");
+				return false;
+			}
+			
+
+				
+		}
+		
+		for (PredicateConstraint constraint : getPredicateConstraints())
+		{
+			System.out.println("Constraint:");
+			System.out.println(constraint);
+
+			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
+			
+			if (satisfied)
+				System.out.println(" is satisfied");
+			else
+			{
+				System.out.println(" is not satisfied");
+				return false;
+			}
+							
 		}
 		return true;
 	}
@@ -268,6 +472,11 @@ public class ModelInstantiation {
 
 	public boolean isIntroduced() {
 		return introduced;
+	}
+	
+	public void addConstraint(Constraint c)
+	{
+		constraints.add(c);
 	}
 	
 	

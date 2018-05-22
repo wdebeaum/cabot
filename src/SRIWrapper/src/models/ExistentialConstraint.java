@@ -1,10 +1,20 @@
 package models;
 
-public class ExistentialConstraint {
+import environment.Scene;
+import features.Feature;
+import spatialreasoning.Predicate;
 
-	public ExistentialConstraint() {
-		ReferringExpression subject;
-		FeatureConstraint constraint;
+public class ExistentialConstraint extends StructureConstraint {
+	
+	public ExistentialConstraint(ReferringExpression subject,
+								FeatureConstraint featureConstraint) {
+		super(subject, featureConstraint);
 	}
+	
+	public ExistentialConstraint(ReferringExpression subject,
+			Predicate predicateConstraint) {
+		super(subject, predicateConstraint);
+}
+
 
 }

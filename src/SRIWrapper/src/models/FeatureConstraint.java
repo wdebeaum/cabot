@@ -2,11 +2,8 @@ package models;
 
 import java.util.*;
 
-import TRIPS.KQML.KQMLList;
-import TRIPS.KQML.KQMLObject;
-import environment.StructureInstance;
+import environment.Scene;
 import models.comparators.*;
-import utilities.KQMLUtilities;
 import features.CountFeature;
 import features.DecimalFeature;
 import features.Feature;
@@ -15,7 +12,7 @@ import features.FeatureConstants;
 public class FeatureConstraint implements Constraint {
 
 	public enum Operator {LESS,GREATER,GEQ,LEQ,EQUAL}
-	public enum ComparisonType {VALUE,DISTANCE}
+	public enum ComparisonType {VALUE,DISTANCE,DEFAULT}
 	
 	Feature feature;
 	Operator operator;
@@ -31,7 +28,9 @@ public class FeatureConstraint implements Constraint {
 		this.operator = operator;
 		this.value = value;
 		this.comparisonType = comparisonType;
-		this.comparisonFeature = null;
+		this.comparisonFeature = new DecimalFeature("value");
+		this.comparisonFeature.setValue(value);
+		this.comparisonFeature.setConstant(true);
 	}
 	
 	public FeatureConstraint(Feature feature, Operator operator, 
@@ -50,7 +49,7 @@ public class FeatureConstraint implements Constraint {
 		this.feature = feature;
 		this.operator = operator;
 		this.value = -1;
-		this.comparisonFeature = null;
+		this.comparisonFeature = new DecimalFeature("value");
 		this.comparisonType = comparisonType;
 	}
 	
@@ -73,14 +72,24 @@ public class FeatureConstraint implements Constraint {
 				return Operator.GEQ;
 			if (lex.equalsIgnoreCase("W::MAX"))
 				return Operator.LEQ;
+		case FeatureConstants.HORIZONTAL:
+		case FeatureConstants.VERTICAL:
+		case FeatureConstants.LINE:
+			return Operator.GREATER;
+		case "ONT::HAVE":
+			return Operator.EQUAL;
 		default:
 			return null;
-		
 		}
 	}
 	
-	public boolean isSatisfied()
+	
+	public boolean isSatisfied(Feature featureToTest, Scene s)
 	{
+		if (featureToTest.getSource() != null)
+			featureToTest.getSource().evaluate(s);
+		if (comparisonFeature.getSource() != null)
+			comparisonFeature.getSource().evaluate(s);
 		Comparator comparator;
 		if (comparisonType.equals(ComparisonType.DISTANCE))
 			comparator = new DistanceComparator();
@@ -89,26 +98,42 @@ public class FeatureConstraint implements Constraint {
 		switch (operator)
 		{
 		case LESS:
-			return comparator.compare(feature,comparisonFeature) < 0;
+			return comparator.compare(featureToTest,comparisonFeature) < 0;
 		case GREATER:
-			return comparator.compare(feature,comparisonFeature) > 0;
+			return comparator.compare(featureToTest,comparisonFeature) > 0;
 		case EQUAL:
-			return comparator.compare(feature,comparisonFeature) == 0;
+			return comparator.compare(featureToTest,comparisonFeature) == 0;
 		case GEQ:
-			return comparator.compare(feature,comparisonFeature) >= 0;
+			return comparator.compare(featureToTest,comparisonFeature) >= 0;
 		case LEQ:
-			return comparator.compare(feature,comparisonFeature) <= 0;
+			return comparator.compare(featureToTest,comparisonFeature) <= 0;
 		default:
 			return false;
 			
 		}
 	}
 	
+	public boolean isSatisfied(Scene s)
+	{
+		return isSatisfied(feature,s);	
+	}
+	
 	public String toString()
 	{
-		return "Feature Constraint: " + feature.getName() + " " 
+		if (comparisonFeature != null)
+		{
+			if (comparisonFeature.isConstant())
+				return "Feature Constraint: " + feature.getName() + " " 
+									+ operator + " " 
+									+ comparisonFeature.getValue();
+			else
+				return "Feature Constraint: " + feature.getName() + " " 
 									+ operator + " " 
 									+ comparisonFeature.getName();
+		}
+		else
+			return "Feature Constraint: " + feature.getName() + " " 
+			+ operator + " unresolved value";			
 	}
 	
 	public String reason()
@@ -117,20 +142,24 @@ public class FeatureConstraint implements Constraint {
 		System.out.println("Feature " + feature.getPrettyName() + ": " + feature.getValue());
 		StringBuilder sb = new StringBuilder();
 		String negationString = "";
-		if (!isSatisfied())
+		if (!isSatisfied(Scene.currentScene))
 			negationString = "not";
 
 		sb.append(getPrettyFeatureName(feature.getName()));
 		sb.append(" is ");
 		sb.append(negationString);
 		sb.append(" ");
-		sb.append(operator.toString().toLowerCase());
-		if (operator.equals(Operator.EQUAL))
-			sb.append(" to ");
-		else
-			sb.append(" than ");
+		sb.append(getPrettyOperatorName(operator));
+		sb.append(" ");
 		if (comparisonFeature.isConstant())
 			sb.append(comparisonFeature.getValue());
+		else if (comparisonFeature.getSource() != null)
+		{
+			sb.append(" the ");
+			sb.append(getPrettyFeatureName(comparisonFeature.getName()));
+			sb.append(" of the ");
+			sb.append(comparisonFeature.getSource().toString());
+		}
 		else
 			sb.append("the " + getPrettyFeatureName(comparisonFeature.getName()));
 		
@@ -147,150 +176,7 @@ public class FeatureConstraint implements Constraint {
 		return result.toLowerCase();
 	}
 	
-	public static boolean isComparatorInContext(KQMLList context)
-	{
-		for (KQMLObject term : context)
-		{
-			KQMLList termList = (KQMLList)term;
-			if (termList.getKeywordArg(":INSTANCE-OF") != null)
-			{
-				String instance = termList.getKeywordArg(":INSTANCE-OF").stringValue();
-				String lex = "";
-				if (termList.getKeywordArg(":LEX") != null)
-					lex = termList.getKeywordArg(":LEX").stringValue();
-				if (FeatureConstraint.operatorFromTRIPS(instance, lex) != null)
-					return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	public static FeatureConstraint extractFeature(StructureInstance structureInstance, KQMLList term, KQMLList context)
-	{
 
-		String scale = "unnamed";
-		Feature extractedFeature = null;
-		Feature groundFeature = null;
-		String ground = null;
-		String operatorString = null;
-		String descriptorFeatureString = null;
-		KQMLList groundTerm = null;
-		
-		if (term.getKeywordArg(":INSTANCE-OF") == null)
-			return null;
-		
-		// Get the scale for naming the feature
-		if (term.getKeywordArg(":SCALE") != null)
-		{
-			scale = term.getKeywordArg(":SCALE").stringValue();
-			if (scale.equalsIgnoreCase("ONT::LINEAR-SCALE"))
-			{
-				scale = term.getKeywordArg(":INSTANCE-OF").stringValue();
-			}
-			extractedFeature = structureInstance.getFeature(scale);
-			System.out.println("Scale: " + scale);
-		}
-		else if (term.getKeywordArg(":FIGURE") != null)
-		{
-			String figureSymbol = term.getKeywordArg(":FIGURE").stringValue();
-			KQMLList figureTerm = 
-					KQMLUtilities.findTermInKQMLList(figureSymbol, context);
-			
-			descriptorFeatureString = figureTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-			extractedFeature = structureInstance.getFeature(descriptorFeatureString);
-			System.out.println("Scale: " + descriptorFeatureString);
-		}
-		
-		// Get the comparison object or property
-		if (term.getKeywordArg(":GROUND") != null)
-		{
-			ground = term.getKeywordArg(":GROUND").stringValue();
-			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
-			System.out.println("Ground: " + ground);
-		}
-		
-		// Get the ONT::MORE-VAL or equivalent
-		operatorString = term.getKeywordArg(":INSTANCE-OF").stringValue();
-		String lex = "";
-		if (term.getKeywordArg(":LEX") != null)
-			lex = term.getKeywordArg(":LEX").stringValue();
-		
-		FeatureConstraint.Operator operator = 
-				FeatureConstraint.operatorFromTRIPS(operatorString, lex);
-		
-		// The instance-of is not actually an operator, but a descriptor
-		if (operator == null && (operatorString.equalsIgnoreCase(FeatureConstants.HORIZONTAL) ||
-								operatorString.equalsIgnoreCase(FeatureConstants.VERTICAL) ||
-								operatorString.equalsIgnoreCase(FeatureConstants.LINE)))
-		{
-			descriptorFeatureString = operatorString;
-			if (structureInstance.hasFeature(descriptorFeatureString))
-				extractedFeature = structureInstance.
-											getFeature(descriptorFeatureString);
-			operator = FeatureConstraint.Operator.GREATER;
-			groundFeature = DecimalFeature.getDefaultDecimalMinimum();
-		}
-		
-		// Number constraints
-		if (operator == null && operatorString.equalsIgnoreCase(FeatureConstants.NUMBER))
-		{
-			// If there's a comparator, that should take precedence
-			if (FeatureConstraint.isComparatorInContext(context))
-				return null;
-			else if (term.getKeywordArg(":VALUE") != null)
-			{
-				operator = FeatureConstraint.Operator.EQUAL;
-				extractedFeature = structureInstance.getFeature(FeatureConstants.NUMBER);
-				groundFeature = new CountFeature(FeatureConstants.NUMBER);
-				int value = Integer.parseInt(term.getKeywordArg(":VALUE").stringValue());
-				groundFeature.setValue(value);
-				groundFeature.setConstant(true);
-			}
-		}
-		
-		
-		if (groundTerm != null)
-		{
-			if (groundTerm.getKeywordArg(":INSTANCE-OF") != null)
-			{
-				String groundScale = groundTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-				System.out.println("Ground Scale: " + groundScale);
-				groundFeature = structureInstance.getFeature(groundScale);
-				
-			}
-			else if (groundTerm.getKeywordArg(":SCALE") != null)
-			{
-				String groundScale = groundTerm.getKeywordArg(":SCALE").stringValue();
-				System.out.println("Ground Scale: " + groundScale);
-				groundFeature = structureInstance.getFeature(groundScale);
-				
-			}
-			else if (groundTerm.getKeywordArg(":VALUE") != null)
-			{
-				
-			}
-			else
-			{
-				KQMLObject groundConcept = groundTerm.get(2);
-				if (groundConcept instanceof KQMLList)
-				{
-					String groundFeatureName = ((KQMLList)groundConcept).get(2).stringValue();
-					groundFeature = structureInstance.getFeature(groundFeatureName);
-				}
-			}
-		}
-		if (extractedFeature == null || groundFeature == null || operator == null)
-			return null;
-		System.out.println("Ground Feature: " + groundFeature.getName());
-		FeatureConstraint newConstraint = new FeatureConstraint(extractedFeature,
-													operator, 
-													FeatureConstraint.ComparisonType.VALUE, 
-													groundFeature);
-		System.out.println("Extracted feature: " + newConstraint);
-		return newConstraint;
-		
-	}
 
 	@Override
 	public String getDescription() {
@@ -302,5 +188,66 @@ public class FeatureConstraint implements Constraint {
 	public Feature getFeature() {
 		// TODO Auto-generated method stub
 		return feature;
+	}
+	
+	public String getPrettyOperatorName(Operator operator)
+	{
+		switch (operator)
+		{
+		case LESS:
+			return "less than";
+		case GREATER:
+			return "greater than";
+		case EQUAL:
+			return "equal to";
+		case GEQ:
+			return "greater than or equal to";
+		case LEQ:
+			return "less than or equal to";
+		default:
+			return "";
+			
+		}
+	}
+	
+	public String getFeatureName()
+	{
+		return getFeature().getPrettyName();
+	}
+	
+	@Override
+	public boolean equals(Object other)
+	{
+		if (!(other instanceof FeatureConstraint))
+			return false;
+		
+		FeatureConstraint otherFc = (FeatureConstraint)other;
+		
+		return otherFc.getFeatureName().equalsIgnoreCase(getFeatureName()) &&
+				otherFc.operator == operator && otherFc.value == otherFc.value &&
+				comparisonFeature.getName().equalsIgnoreCase(
+						otherFc.comparisonFeature.getName());
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		int result = getFeatureName().hashCode() + operator.hashCode() +
+				(int)value;
+		if (comparisonFeature != null)
+			result += comparisonFeature.hashCode();
+		
+		return result;
+	}
+	
+	@Override
+	public boolean setValue(double value)
+	{
+		this.value = value;
+		
+		this.comparisonFeature = new CountFeature("value");
+		comparisonFeature.setValue((int)value);
+		comparisonFeature.setConstant(true);
+		return true;
 	}
 }

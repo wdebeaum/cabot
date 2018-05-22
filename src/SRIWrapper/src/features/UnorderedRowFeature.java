@@ -2,12 +2,16 @@ package features;
 
 import java.util.*;
 
+import org.jblas.DoubleMatrix;
+
 import environment.Block;
 import spatialreasoning.Predicate;
 
 
 public class UnorderedRowFeature extends UnorderedGroupingFeature {
 
+	private UnorderedGroupingFeature endpointFeature;
+	
 	public UnorderedRowFeature(String name) {
 		super(name);
 		// TODO Auto-generated constructor stub
@@ -36,7 +40,7 @@ public class UnorderedRowFeature extends UnorderedGroupingFeature {
 				{
 					row.elements.add(new BlockFeatureGroup(b2));
 					unusedBlocksIterator.remove();
-					System.out.println("Added block to row");
+					//System.out.println("Added block to row");
 				}
 			}
 			
@@ -44,6 +48,55 @@ public class UnorderedRowFeature extends UnorderedGroupingFeature {
 		}
 		
 		return rows;
+	}
+	
+	private void generateEndpointFeature()
+	{
+		double maxX = Double.MIN_VALUE;
+		double minX = Double.MAX_VALUE;
+		endpointFeature = new UnorderedGroupingFeature("endpoints");
+		if (elements.size() < 3)
+		{
+			for (FeatureGroup element : elements)
+				endpointFeature.add(element);
+			return;
+		}
+		FeatureGroup startFg = null, endFg = null;
+		for (FeatureGroup fg : elements)
+		{
+
+			double centerX = 0;
+
+			DoubleMatrix center = (DoubleMatrix)fg.getFeatures()
+									.get(FeatureConstants.LOCATION).getValue();
+			if (center != null)
+				centerX = center.get(0);
+
+			
+			if (centerX < minX)
+			{
+				minX = centerX;
+				startFg = fg;
+			}
+			
+			if (centerX > maxX)
+			{
+				maxX = centerX;
+				endFg = fg;
+			}
+			
+		}
+
+		endpointFeature.add(startFg);
+		endpointFeature.add(endFg);
+		
+		
+	}
+	
+	public UnorderedGroupingFeature getEndpointFeature()
+	{
+		generateEndpointFeature();
+		return endpointFeature;
 	}
 	
 	@Override

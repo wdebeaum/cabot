@@ -55,6 +55,13 @@ public class GoalMessages {
 		return response;
 	}
 	
+	public static KQMLList proposeAdoptContent(Goal g)
+	{
+		KQMLList newContext = g.getContext();
+		newContext.add(g.getTerm());
+		return proposeAdoptContent(g.getId(), g.getWhat(), g.getAsList(), newContext);
+	}
+	
 //	public static KQMLList proposeAskWhContent(String id, String what, String query, 
 //			String parentId, KQMLList context)
 //	{
@@ -132,7 +139,7 @@ public class GoalMessages {
 		return response;
 	}
 	
-	public static KQMLList askIfAdoptContent(String id, String query, String parentId)
+	public static KQMLList askIfContent(String id, String query, String parentId)
 	{
 		KQMLList adoptContent = new KQMLList();
 		adoptContent.add("ASK-IF");
@@ -151,17 +158,18 @@ public class GoalMessages {
 		return adoptContent;
 	}
 	
-	public static KQMLList askWhAdoptContent(String id, String query,
+	public static KQMLList askWhContent(String id, String query,
 			String what, String parentId)
 	{
 		KQMLList adoptContent = new KQMLList();
-		adoptContent.add("ASK-Wh");
+		adoptContent.add("ASK-WH");
 		adoptContent.add(":ID");
 		adoptContent.add(id);
 		adoptContent.add(":WHAT");
 		adoptContent.add(what);
 		adoptContent.add(":QUERY");
 		adoptContent.add(query);
+
 		adoptContent.add(":AS");
 		
 		KQMLList asList = new KQMLList();
@@ -171,6 +179,22 @@ public class GoalMessages {
 		adoptContent.add(asList);
 		
 		return adoptContent;
+	}
+	
+	public static KQMLList proposeAskWhContent(Query q)
+	{
+		KQMLList content =  askWhContent(q.getId(), q.getQueryId(), q.getWhat(), q.getParent().getId());
+		KQMLList context = new KQMLList();
+		context.addAll(q.getContext());
+		return propose(content, context);
+	}
+	
+	public static KQMLList proposeAskIfContent(Query q)
+	{
+		KQMLList content =  askIfContent(q.getId(), q.getQuery(), q.getParent().getId());
+		KQMLList context = new KQMLList();
+		context.addAll(q.getContext());
+		return propose(content, context);
 	}
 	
 	public static KQMLList waitingForUser(String goalId)

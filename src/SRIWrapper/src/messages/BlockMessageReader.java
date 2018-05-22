@@ -1,5 +1,6 @@
 package messages;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +41,7 @@ public class BlockMessageReader implements Runnable {
 	private SRIWrapper wrapper;
 	private static boolean MESSAGES_ENABLED = false;
 	
+	// Reads Block states from a saved file
 	public BlockMessageReader(SRIWrapper wrapper, GoalStateHandler gsh, Plan p, String metaDataFile, String blockDataFile)
 	{
 		currentPlan = p;
@@ -52,7 +54,8 @@ public class BlockMessageReader implements Runnable {
 
 		JSONParser parser = new JSONParser();
 		try {
-			currentLoadedBlockData = (JSONArray)parser.parse(new FileReader(blockDataFile));
+			currentLoadedBlockData = (JSONArray)parser.parse(
+					new FileReader(blockDataFile));
 		} catch (FileNotFoundException e) {
 			System.err.println("No such file found.");
 			e.printStackTrace();
@@ -79,7 +82,7 @@ public class BlockMessageReader implements Runnable {
 		
 	}
 
-	
+
 	
 	@Override
 	public void run() {

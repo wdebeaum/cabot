@@ -39,6 +39,7 @@ public class TextToSpeech {
 	    	{
 		    	try {
 					CommDataSender.sendSpeechPostRequest(input);
+		    			//CommDataSender.sendCurlPostSpeechRequest(input);
 					System.out.println(input);
 					return;
 				} catch (Exception e1) {

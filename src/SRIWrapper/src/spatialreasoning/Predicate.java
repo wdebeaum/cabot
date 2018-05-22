@@ -1,5 +1,6 @@
 package spatialreasoning;
 
+import TRIPS.KQML.KQMLList;
 import environment.Block;
 import environment.Scene;
 import environment.StructureInstance;
@@ -18,7 +19,7 @@ public class Predicate {
 	public static final double HALF_SIDE_LENGTH = .09;
 	
 	
-	PredicateType predicateType;
+	private PredicateType predicateType;
 	
 	public Predicate(PredicateType predicateType)
 	{
@@ -27,7 +28,12 @@ public class Predicate {
 	
 	public boolean evaluate(Block b)
 	{
-		UnorderedGroupingFeature sceneComplement = (UnorderedGroupingFeature)Scene.currentScene
+		return evaluate(b,Scene.currentScene);
+	}
+	
+	public boolean evaluate(Block b, Scene scene)
+	{
+		UnorderedGroupingFeature sceneComplement = (UnorderedGroupingFeature)scene
 									.getComplementStructureInstance(b)
 									.getFeature(FeatureConstants.GROUPING);
 
@@ -35,6 +41,8 @@ public class Predicate {
 		blockUGF.add(new BlockFeatureGroup(b));
 		switch (predicateType)
 		{
+		case ANYWHERE:
+			return true;
 		case ONGROUND:
 		case BOTTOM:
 			return b.onGround();
@@ -45,13 +53,17 @@ public class Predicate {
 		case ONTOPOF:
 			return false;
 		case TOP:
-			return higher(blockUGF, sceneComplement);
+			return top(blockUGF, sceneComplement);
 		case LEFT:
 		case LEFTLOC:
 			return left(blockUGF, sceneComplement);
 		case RIGHT:
 		case RIGHTLOC:
 			return right(blockUGF, sceneComplement);
+		case MIDDLE:
+		case CENTER:
+		case BETWEEN:
+			return middle(blockUGF, sceneComplement);
 		default:
 			return false;
 		}
@@ -77,6 +89,10 @@ public class Predicate {
 			return atSameHeight(b1,b2);
 		case ATSAMEY:
 			return atSameY(b1,b2);
+		case ANYWHERE:
+			return true;
+		case TOGETHER:
+			return isTouching(b1,b2);
 		default:
 			return false;
 		}
@@ -84,17 +100,22 @@ public class Predicate {
 	
 	public boolean evaluate(UnorderedGroupingFeature s)
 	{
+		return evaluate(s,Scene.currentScene);
+	}
+	
+	public boolean evaluate(UnorderedGroupingFeature s, Scene scene)
+	{
 		StructureInstance si = s.getStructureInstance();
-		UnorderedGroupingFeature sceneComplement = (UnorderedGroupingFeature)Scene.currentScene
+		UnorderedGroupingFeature sceneComplement = (UnorderedGroupingFeature)scene
 									.getComplementStructureInstance(si)
 									.getFeature(FeatureConstants.GROUPING);
 		
-		System.out.println("Blocks in group: ");
-		for (Block b : s.getBlocks())
-			System.out.println("Block " + b.getId());
-		System.out.println("Blocks in complement: ");
-		for (Block b : sceneComplement.getBlocks())
-			System.out.println("Block " + b.getId());
+//		System.out.println("Blocks in group: ");
+//		for (Block b : s.getBlocks())
+//			System.out.println("Block " + b.getId());
+//		System.out.println("Blocks in complement: ");
+//		for (Block b : sceneComplement.getBlocks())
+//			System.out.println("Block " + b.getId());
 		switch (predicateType)
 		{
 		case ONGROUND:
@@ -105,15 +126,23 @@ public class Predicate {
 		case NEXTTO:
 		case TOUCHING:
 		case ONTOPOF:
-			return false;
+			return above(s, sceneComplement) && isTouching(s, sceneComplement);
 		case TOP:
-			return higher(s, sceneComplement);
+			return top(s, sceneComplement);
 		case LEFT:
 		case LEFTLOC:
 			return left(s, sceneComplement);
 		case RIGHT:
 		case RIGHTLOC:
 			return right(s, sceneComplement);
+		case ANYWHERE:
+			return true;
+		case TOGETHER:
+			return isTogether(s);
+		case MIDDLE:
+		case CENTER:
+		case BETWEEN:
+			return middle(s,sceneComplement);
 		default:
 			return false;
 		}		
@@ -141,6 +170,11 @@ public class Predicate {
 			return lower(s1,s2);
 		case HIGHER:
 			return higher(s1,s2);
+		case ANYWHERE:
+			return true;
+		case MIDDLE:
+		case BETWEEN:
+			return middle(s1,s2);
 		default:
 			return false;
 		}
@@ -214,10 +248,70 @@ public class Predicate {
 				b1.getZ() > b2.getZ(); 
 	}
 	
+	public static boolean together(Block b1, Block b2)
+	{
+		return isTouching(b1,b2); 
+	}
+	
+	public static boolean isTogether(UnorderedGroupingFeature s1)
+	{
+		if (s1.getBlocks().size() == 1)
+			return true;
+		for (BlockFeatureGroup b1 : s1.getBlockFeatureGroups())
+		{
+			int neighbors = 0;
+			for (BlockFeatureGroup b2 : s1.getBlockFeatureGroups())
+			{
+				if (b1 == b2)
+					continue;
+				if (isTouching(b1.block,b2.block))
+					neighbors++;
+			}
+			if (neighbors == 0)
+				return false;
+		}
+		return true;
+	}
+	
+	public static boolean middle(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
+	{
+		int verticalMiddles = 0;
+		int horizontalMiddles = 0;
+		for (BlockFeatureGroup b1 : s1.getBlockFeatureGroups())
+		{
+			boolean blockOnLeft = false;
+			boolean blockOnRight = false;
+			boolean blockBelow = false;
+			boolean blockAbove = false;
+			for (BlockFeatureGroup b2 : s2.getBlockFeatureGroups())
+			{
+				
+				if (leftOf(b1.block,b2.block))
+					blockOnLeft = true;
+				if (rightOf(b1.block,b2.block))
+					blockOnRight = true;
+				if (higher(b1.block,b2.block))
+					blockBelow = true;
+				if (lower(b1.block,b2.block))
+					blockAbove = true;
+			}
+			if (blockOnLeft && blockOnRight)
+				horizontalMiddles++;
+			if (blockBelow && blockAbove)
+				verticalMiddles++;
+		}
+		
+		return ((horizontalMiddles == s1.getBlocks().size()) || 
+				(verticalMiddles == s1.getBlocks().size()));
+	}
+	
 	public static boolean above(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
 	{
 		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
 		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
+		
+		if (aabb1 == null || aabb2 == null)
+			return false;
 		
 		return (aabb1.intersectsX(aabb2) && 
 				aabb1.intersectsY(aabb2) && 
@@ -226,12 +320,12 @@ public class Predicate {
 	
 	public static boolean higher(Block b1, Block b2)
 	{
-		return b1.getZ() > b2.getZ();
+		return b1.getZ() > b2.getZ() + HALF_SIDE_LENGTH;
 	}
 	
 	public static boolean lower(Block b1, Block b2)
 	{
-		return b1.getZ() < b2.getZ();
+		return b1.getZ() < b2.getZ() - HALF_SIDE_LENGTH;
 	}
 	
 	public static boolean higher(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
@@ -244,16 +338,41 @@ public class Predicate {
 	
 	public static boolean left(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
 	{
-		System.out.println("Group 1 center: " + s1.getCenterFeature().getValue());
-		System.out.println("Group 2 center: " + s2.getCenterFeature().getValue());
-		return s1.getCenterFeature().getValue().get(0) < 
-				s2.getCenterFeature().getValue().get(0);
+		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
+		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
+		
+		return aabb1.getCenter().get(0) < aabb2.getCenter().get(0) - HALF_SIDE_LENGTH;
 	}
 	
 	public static boolean right(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
 	{
-		return s1.getCenterFeature().getValue().get(0) > 
-				s2.getCenterFeature().getValue().get(0);
+		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
+		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
+		
+		return aabb1.getCenter().get(0) > aabb2.getCenter().get(0) + HALF_SIDE_LENGTH;
+	}
+	
+	public static boolean leftOf(Block b1, Block b2)
+	{
+		return b1.position.get(0) < b2.position.get(0) - HALF_SIDE_LENGTH;
+	}
+	
+	public static boolean rightOf(Block b1, Block b2)
+	{
+		return b1.position.get(0) > b2.position.get(0) + HALF_SIDE_LENGTH;
+	}
+	
+	public static boolean top(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
+	{
+		for (Block b: s2.getBlocks())
+		{
+			UnorderedGroupingFeature blockUGF = new UnorderedGroupingFeature("block");
+			blockUGF.add(new BlockFeatureGroup(b));
+			if (higher(blockUGF,s1))
+				return false;
+		}
+		
+		return true;
 	}
 	
 	public static boolean lower(UnorderedGroupingFeature s1, UnorderedGroupingFeature s2)
@@ -313,9 +432,58 @@ public class Predicate {
 		}
 	}
 	
+	public PredicateType getPredicateType()
+	{
+		return predicateType;
+	}
+	
 	public String toString()
 	{
 		return predicateType.toString();
+	}
+	
+	public static Predicate predicateFromTerm(KQMLList term)
+	{
+		String ontType = "";
+		String lex = "*";
+		if (term.getKeywordArg(":INSTANCE-OF") != null)
+			ontType = term.getKeywordArg(":INSTANCE-OF").stringValue();
+		if (term.getKeywordArg(":LEX") != null)
+			lex = term.getKeywordArg(":LEX").stringValue();
+		
+		PredicateType result = PredicateType.fromString(ontType, lex);
+		
+		if (result == null)
+			return null;
+		
+		return new Predicate(result);
+	}
+	
+	public String prettyString()
+	{
+		switch (predicateType)
+		{
+		case ONGROUND:
+			return "on the table";
+		case ABOVE:
+			return "above";
+		case BELOW:
+			return "below";
+		case NEXTTO:
+			return "next to";
+		case TOUCHING:
+			return "touching";
+		case ONTOPOF:
+			return "on top of";
+		case LEFTLOC:
+			return "on the left";
+		case RIGHTLOC:
+			return "on the right";
+		case TOP:
+			return "on top";
+		default:
+			return "";
+		}
 	}
 
 }

@@ -23,6 +23,7 @@ public class DecimalFeature extends Feature<Double> implements Comparable<Decima
 	public void setValue(Double newValue) {
 		// TODO Auto-generated method stub
 		this.value = newValue;
+		constant = true;
 	}
 
 	@Override
