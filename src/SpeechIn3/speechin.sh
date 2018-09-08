@@ -3,7 +3,7 @@
 # speechin.sh: Wrapper for Sphinx in TRIPS
 #
 # George Ferguson, ferguson@cs.rochester.edu, 26 Sep 2002
-# $Id: speechin.sh,v 1.9 2009/04/13 14:43:39 lgalescu Exp $
+# $Id: speechin.sh,v 1.10 2018/09/05 06:16:00 lgalescu Exp $
 #
 # Lucian Galescu <lgalescu@ihmc.us> 2004/08/31
 # Adapted for use with Sphinx3.
@@ -98,6 +98,7 @@ cat - <<_EOF_>/tmp/trips$$
 -cmfn		$amdir/cm_16k_40_512
 -cmsave         cep_means.new
 -lw             11.7
+-fillprob	0.01
 -reportpron     0
 -reportfill     0
 _EOF_

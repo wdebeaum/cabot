@@ -2,14 +2,17 @@
  * recv.c
  *
  * George Ferguson, ferguson@cs.rochester.edu, 12 Jan 1996
- * Time-stamp: <Wed Dec 15 15:18:02 EST 2004 ferguson>
+ * Time-stamp: <Thu Aug  2 11:08:56 CDT 2018 lgalescu>
  */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "trlib/parse.h"
 #include "trlib/error.h"
 #include "util/debug.h"
 #include "recv.h"
+#include "send.h"
+#include "tts.h"
 #include "main.h"
 
 /*

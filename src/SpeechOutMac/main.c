@@ -2,7 +2,7 @@
  * main.c
  *
  * George Ferguson, ferguson@cs.rochester.edu, 10 Jan 1996
- * Time-stamp: <Tue May 10 12:24:32 CDT 2005 lgalescu>
+ * Time-stamp: <Thu Aug  2 14:27:58 CDT 2018 lgalescu>
  */
 #include <stdio.h>
 #include <string.h>
@@ -57,6 +57,8 @@ main(int argc, char **argv)
 	sprintf(buf, "\\!R%.2f\n", speech_rate);
 	tts_send(buf, NULL);
     }
+    /* Send subscriptions */
+    sendSubscriptions();
     /* Announce that we're ready */
     sendReadyMsg();
     /* Read KQML from stdin and feed it to the TTS engine */

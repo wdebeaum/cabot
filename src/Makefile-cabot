@@ -1,6 +1,6 @@
 # Makefile-cabot
 #
-# Time-stamp: <Tue Nov 22 14:00:53 CST 2016 lgalescu>
+# Time-stamp: <Wed Jul 25 18:13:57 CDT 2018 lgalescu>
 #
 # Author: Lucian Galescu <lgalescu@ihmc.us>, 14 Oct 2015
 #
@@ -32,33 +32,34 @@ LISP_MODULES = \
 LISP_PROGRAMS = \
 	Systems/cabot
 
-SPEECH_LIBS = 
-#        portaudio
+SPEECH_LIBS = \
+	portaudio
 
 include config/speech-out/defs.mk
 
 SPEECH_PROGRAMS = \
-	SpeechOutNot 
-#	Sphinx3 \
-#	SpeechIn3 \
-#	SpeechLM \
-#	SpeechController \
-#	SpeechOut \
-#	$(SPEECH_OUT_COMPONENT) \
-#	SpeechOutServer
+	SpeechOutNot \
+	Sphinx3 \
+	SpeechIn3 \
+	SpeechLM \
+	SpeechController \
+	SpeechOut \
+	$(SPEECH_OUT_COMPONENT) \
+	SpeechOutServer
 
 JAVA_PROGRAMS = \
 	Facilitator \
 	GroundingModule \
-	SRIWrapper \
 	KeyboardManager \
 	JavaWrapper \
 	Conceptualizer \
 	CollaborativeStateManager
+#	SRIWrapper 
 
 OTHER_PROGRAMS = \
 	TextPP \
 	TextTagger \
-	Tools
+	Tools \
+	GraphMatcher
 
 include Makefile-common

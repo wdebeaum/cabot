@@ -2,7 +2,7 @@
  * send.c
  *
  * George Ferguson, ferguson@cs.rochester.edu, 12 Jan 1996
- * Time-stamp: <Mon Mar 23 09:23:18 CDT 2009 lgalescu>
+ * Time-stamp: <Thu Aug  2 18:06:49 CDT 2018 lgalescu>
  */
 /* History
  * lgalescu 2009/03/22 - added notifications for started/stopped speaking 
@@ -17,6 +17,7 @@
 /*
  * Functions defined here:
  */
+void sendSubscriptions(void);
 void sendMonitorMsg(void);
 void sendOpenMsg(void);
 void sendReadyMsg(void);
@@ -27,6 +28,23 @@ void sendStartedSpeaking(void);
 void sendStoppedSpeaking(void);
 
 /*	-	-	-	-	-	-	-	-	*/
+
+void
+sendSubscriptions(void)
+{
+    KQMLPerformative *perf;
+
+    DEBUG0("");
+    if ((perf = KQMLNewPerformative("subscribe")) == NULL) {
+	return;
+    }
+    KQMLSetParameter(perf, ":content", "(request &key :content (say . *))");
+    trlibSendPerformative(stdout, perf);
+    KQMLSetParameter(perf, ":content", "(request &key :content (exit . *))");
+    trlibSendPerformative(stdout, perf);
+    KQMLFreePerformative(perf);
+    DEBUG0("done");
+}
 
 void
 sendMonitorMsg(void)

@@ -39,13 +39,13 @@
 	;;
 	(parser::*no-positions-in-lf* nil)
 	;;
-	(parser::*beam-pruning-on* nil)   ; no pruning
+	(parser::*beam-pruning-on* t)   ; no pruning
 	;;
 	(parser::*pruning-frequency* 500)
 	;;
 	(parser::*beam-width* 20)
 	;; max number of constituents built before stopping
-	((parser::setmaxnumberentries 3000))
+	((parser::setmaxnumberentries 4000))
 	;;
 	((parser::setmaxchartsize 3000))
 	;;
@@ -65,11 +65,11 @@
 	((parser::customize-cost-table 
 	  '((ont::SA_QUERY 1.2) 
 	     (ont::SA_IDENTIFY 1.3) 
-	     (ont::SA_pred-fragment 2) 
+	     (ont::SA_pred-fragment 1.3) 
 	     (ont::SA_request 1) 
 	     (ont::SA_YN-QUESTION 1) 
-	     (w::ADJP 1.2) 
-	     (w::advbl 1.3)
+	     (w::ADJP 2)
+	     (w::advbl 2)
 	     (ont::SA_CONFIRM 1) 
 	     (ont::SA_WH-QUESTION 1) 
 	     (ont::SA_TELL 1)

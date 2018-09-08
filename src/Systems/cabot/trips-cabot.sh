@@ -3,7 +3,7 @@
 # File: trips-cabot.sh
 # Creator: George Ferguson
 # Created: Wed Jun 20 10:38:13 2012
-# Time-stamp: <Mon Mar 26 13:50:58 CDT 2018 lgalescu>
+# Time-stamp: <Wed Aug  1 20:40:53 CDT 2018 lgalescu>
 #
 # trips-cabot: Run TRIPS/CABOT
 #
@@ -31,7 +31,10 @@ TRIPS_PORT_DEFAULT=6200
 TRIPS_SYSNAME=cabot
 TRIPS_SYSNAME_ALLCAPS=`echo $TRIPS_SYSNAME | tr "[:lower:]" "[:upper:]"`
 
-TRIPS_VOICE_DEFAULT=allison
+# good Mac voices:
+# - female: Ava/US > Fiona/Scot Karen/AU > Samantha/US Susan/US Serena/UK
+# - male: Daniel/UK > Lee/AU > Tom/US
+TRIPS_VOICE_DEFAULT=Daniel
 
 #############################################################################
 #
@@ -52,8 +55,8 @@ display="${TRIPS_DISPLAY}"
 usettsdic=''
 nospeech=''
 # disabled for now LG 2015/12/04
-nospeechin=t
-nospeechout=t
+nospeechin=''
+nospeechout=''
 speechonly=''
 nochat=''
 nobeep=''
@@ -307,6 +310,19 @@ _EOF_
 fi
 
 # Start TextTagger
+if test -z "$nouser" -a -z "$nospeech" -a -z "$nospeechout"; then
+(sleep 5; \
+ $TRIPS_BASE/bin/TextTagger \
+     $port_opt \
+     -process-input-utterances yes \
+     -terms-file $TRIPS_BASE/etc/$TRIPS_SYSNAME/BlockNames.tsv \
+     -init-taggers terms-from-file,word-net \
+     -default-type '(or affixes words punctuation terms-input terms-from-file word-net)' \
+ 2>&1 | tee $logdir/TextTagger.err ) &
+(sleep 9; \
+ echo '(request :receiver TextTagger :content (load-input-terms :input-terms ((word :lex "<sil>"))))' \
+     | $TRIPS_BASE/bin/trips_cat ) &
+else
 (sleep 5; \
  $TRIPS_BASE/bin/TextTagger \
      $port_opt \
@@ -315,6 +331,7 @@ fi
      -init-taggers terms-from-file,misspellings,word-net \
      -default-type '(or affixes words punctuation terms-from-file misspellings word-net)' \
  2>&1 | tee $logdir/TextTagger.err) &
+fi
 
 # GraphMatcher
 if test -n "$testmode" ; then

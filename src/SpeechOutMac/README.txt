@@ -92,3 +92,21 @@ Zarvox     n    1 That looks like a peaceful planet.
 
 Victoria and Vicki are the best female voices. Bruce is the best male
 voice.
+
+Thu Aug  2 10:19:22 2018
+<lgalescu>
+Update on Mac voices
+
+Currently, the best female voice available seems to be Ava (US-En). Other good
+voices are Fiona (Scot-En), Karen (AU-En, the enhanced version). Samantha
+(US-En), Susan (US-En) and Serena (UK-En) are also reasonably good.
+
+There are fewer good male voices. Daniel (UK-En) is probably the best. Lee
+(AU-En) is good, too. Tom is the best US-En voice, but not as good as the
+others.
+
+***
+
+Of note: the code still works in MacOS 10.12 (Sierra), even though more
+functions are now deprecated. There's a good chance, however, that these
+functions will be completely removed in future MacOS updates.

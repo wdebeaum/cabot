@@ -2,7 +2,7 @@
  * @(#)SpeechController.java
  *
  * Dave Costello, costello@cs.rochester.edu, 19 Dec 1998
- * $Id: SpeechController.java,v 1.15 2011/11/15 18:10:34 ferguson Exp $
+ * $Id: SpeechController.java,v 1.16 2018/08/31 22:37:28 lgalescu Exp $
  */
 
 package TRIPS.SpeechController;
@@ -63,6 +63,7 @@ public class SpeechController extends StandardTripsModule
     protected static String EMPTY_SPEAKING_MSG = "            ";
     protected static String SPEAKING_MSG = "LISTENING...";
     protected static String SILENT_MSG = "SILENT";
+    protected static String SYS_SPEAKING_MSG = "SPEAKING...";
     protected static String STARTED_MSG = "STARTED";
     protected static String NOT_STARTED_MSG = "NOT STARTED";
     protected static String DEFAULT_GEOMETRY = "25x4-0-0";
@@ -99,7 +100,7 @@ public class SpeechController extends StandardTripsModule
     protected Vector inbuf = new Vector();
     JComboBox channelComboBox;
     String[] channelLabels = { "Phone", "Desktop" };
-    String channelDefault = "Phone";
+    String channelDefault = "Desktop";
     protected boolean showListeningTo = true;
     protected boolean showStatus = true;
     protected boolean showUttnum = true;
@@ -596,11 +597,13 @@ public class SpeechController extends StandardTripsModule
 	hideWindow();
     }
     protected void receiveTellSysStartedSpeaking() {
+	speakingLabel.setText(SYS_SPEAKING_MSG);
 	KQMLList content = new KQMLList();
 	content.add("interrupt-listening");
 	send("request", "SPEECH-IN", content);
     }
     protected void receiveTellSysStoppedSpeaking() {
+	speakingLabel.setText(SILENT_MSG);
 	KQMLList content = new KQMLList();
 	content.add("resume-listening");
 	send("request", "SPEECH-IN", content);

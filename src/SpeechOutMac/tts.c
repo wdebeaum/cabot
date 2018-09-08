@@ -2,7 +2,7 @@
  * tts.c
  *
  * George Ferguson, ferguson@cs.rochester.edu, 23 Sep 2002
- * Time-stamp: <Wed Apr  8 11:16:00 CDT 2009 lgalescu>
+ * Time-stamp: <Thu Aug  2 11:25:48 CDT 2018 lgalescu>
  */
 
 #include <stdio.h>
@@ -18,7 +18,7 @@ static sem_t *sem;
 
 static void
 errorMsg(char *msg, int theErr) {
-    fprintf(stderr, "speechout-mac: %s: error %d\n", theErr);
+    fprintf(stderr, "speechout-mac: error %d\n", theErr);
 }
 
 /*
@@ -69,11 +69,12 @@ getVoiceSpec(char *name, VoiceSpec *vspec)
 		theErr = GetVoiceDescription(vspec, &vdesc, sizeof(VoiceDescription));
 		if (theErr != noErr) {
 		    errorMsg("GetVoiceDescription failed", theErr);
-		} if (strncasecmp(name, vdesc.name+1, vdesc.name[0]) == 0) {
-		    DEBUG3("found voice %s: creator=%d, id=%d",
-			    name, vspec->creator, vspec->id);
-		    return 0;
-		}
+		} else
+		  if (strncasecmp(name, vdesc.name+1, vdesc.name[0]) == 0) {
+		      DEBUG3("found voice %s: creator=%d, id=%d",
+			     name, vspec->creator, vspec->id);
+		      return 0;
+		  }
 	    }
 	}
     }
