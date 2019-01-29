@@ -14,6 +14,7 @@ public class UnorderedRowFeature extends UnorderedGroupingFeature {
 	
 	public UnorderedRowFeature(String name) {
 		super(name);
+		endpointFeature = new UnorderedGroupingFeature(FeatureConstants.END);
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -54,7 +55,8 @@ public class UnorderedRowFeature extends UnorderedGroupingFeature {
 	{
 		double maxX = Double.MIN_VALUE;
 		double minX = Double.MAX_VALUE;
-		endpointFeature = new UnorderedGroupingFeature("endpoints");
+		
+		// If there are less than 3 elements the endpoints are just the elements
 		if (elements.size() < 3)
 		{
 			for (FeatureGroup element : elements)
@@ -91,6 +93,8 @@ public class UnorderedRowFeature extends UnorderedGroupingFeature {
 		endpointFeature.add(endFg);
 		
 		
+		
+		
 	}
 	
 	public UnorderedGroupingFeature getEndpointFeature()
@@ -103,6 +107,7 @@ public class UnorderedRowFeature extends UnorderedGroupingFeature {
 	public Map<String,Feature> getFeatures() {
 		HashMap<String,Feature> result = new HashMap<String,Feature>();
 		result.putAll(super.getFeatures());
+		result.put(endpointFeature.getName(),endpointFeature);
 		return result;
 	}
 }

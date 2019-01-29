@@ -1,6 +1,7 @@
 package models;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import utilities.KQMLUtilities;
 import environment.*;
@@ -17,19 +18,22 @@ public class ModelInstantiation {
 
 	private StructureInstance currentStructureInstance;
 	private HashMap<String,FeatureGroup> components;
-	public Set<Constraint> constraints;
+	public List<Constraint> constraints;
+	public ReferringExpression lastUnresolvedObjectReference;
 	private List<StructureInstance> positiveExamples;
 	private Set<ReferringExpression> referringExpressions;
 	String[] generalFeaturesToAsk = {FeatureConstants.HEIGHT, FeatureConstants.WIDTH};
 	String[] subFeaturesToAsk = {FeatureConstants.NUMBER};
+	public Constraint lastConstraint;
 	private boolean introduced;
 	
 	public ModelInstantiation() {
 		currentStructureInstance = new StructureInstance("placeholder", new ArrayList<Block>());
 		components = new HashMap<String,FeatureGroup>();
-		constraints = new HashSet<Constraint>();
+		constraints = new ArrayList<Constraint>();
 		positiveExamples = new ArrayList<StructureInstance>();
 		introduced = false;
+		lastConstraint = null;
 	}
 
 	public void addKQMLTerm(KQMLList term, KQMLList context)
@@ -140,10 +144,19 @@ public class ModelInstantiation {
 		for (String s : constrainedSubFeatureNames)
 			System.out.println(s);
 		Random rand = new Random();
-		int questionType = rand.nextInt(3);
+		int questionType = 0;
+		if (lastUnresolvedObjectReference != null)
+			questionType = 2;
+		questionType = rand.nextInt(3);
 		int index = rand.nextInt(255);
 		int steps = 0;
 		String featureName = "";
+		
+		if (Scene.currentScene == null || Scene.currentScene.integerBlockMapping == null)
+		{
+			System.out.println("No blocks seen");
+			return null;
+		}
 		
 		// Loop through features to ask about until we find one not described
 		// General Feature
@@ -185,11 +198,18 @@ public class ModelInstantiation {
 						ReferringExpression refExp;
 						// Ask where the top block can be
 						if (row.getBlocks().size() == 1)
+						{
 							refExp = new ReferringExpression(p,"ONT::THE","ONT::BLOCK");
+							PredicateConstraint pc = new PredicateConstraint(refExp);
+							return pc;
+						}
 						else
+						{
 							refExp = new ReferringExpression(p,"ONT::THE-SET","ONT::BLOCK");
-						PredicateConstraint pc = new PredicateConstraint(refExp);
-						return pc;
+							// Don't do anything for plural top rows
+						}
+						
+						
 						// Ask how many blocks can be in the top row
 						// If there is no row, skip down below
 					}
@@ -215,10 +235,16 @@ public class ModelInstantiation {
 			
 			if (foundConstraint)
 			{
-				Feature feature = currentStructureInstance.getFeature(featureName);
+				ReferringExpression refExp;
+				
+				if (lastUnresolvedObjectReference != null)
+					refExp = lastUnresolvedObjectReference;
+				else
+					refExp = sc.getSubject();
+				Feature feature = refExp.getPseudoInstance().getFeature(featureName);
 				FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
 						ComparisonType.VALUE);
-				ReferringExpression refExp = sc.getSubject();
+				
 				StructureConstraint toReturn = new StructureConstraint(refExp,fc);
 				return toReturn;
 			}
@@ -228,9 +254,9 @@ public class ModelInstantiation {
 		
 	}
 	
-	public int getConstraintsFromKQML(KQMLList eventTerm, KQMLList context)
+	public ConstraintBundle getConstraintsFromKQML(KQMLList eventTerm, KQMLList context)
 	{
-		int constraintsFound = 0;
+		
 		introduced = true;
 		
 		ReferringExpressionParser refExpParser = 
@@ -239,6 +265,7 @@ public class ModelInstantiation {
 		Map<String, ReferringExpression> refExps = 
 				refExpParser.extractReferringExpressions();
 		
+		ConstraintBundle cb = new ConstraintBundle();
 		
 		if (refExps.isEmpty())
 			System.out.println("No referring expressions found");
@@ -273,17 +300,28 @@ public class ModelInstantiation {
 		
 		Set<Constraint> featureConstraintsFound = featureParser.extractFeatures();
 		
-		constraintsFound += featureConstraintsFound.size();
-		constraints.addAll(featureConstraintsFound);
+		// Remove inferred constraints if we found others
+		if (featureConstraintsFound.size() > 1)
+		{
+			for (Constraint c : featureConstraintsFound)
+			{
+				if (!((FeatureConstraint)c).isInferred())
+					cb.add(c);
+			}
+		}
+		else
+			cb.addAll(featureConstraintsFound);
+		
+		//cb.addAll(featureConstraintsFound);
 
 		PredicateParser predicateParser = new PredicateParser(eventTerm, context,
 				refExpParser.getHeadReferringExpression());
-		Set<PredicateConstraint> predicateConstraintsFound = 
+		Set<Constraint> predicateConstraintsFound = 
 					predicateParser.extractPredicateConstraints();
-		constraintsFound += predicateConstraintsFound.size();
-		constraints.addAll(predicateConstraintsFound);
 		
-		if (constraintsFound == 0)
+		cb.addAll(predicateConstraintsFound);
+		
+		if (cb.size() == 0)
 		{
 			System.out.println("Adding predicated refexps to constraints");
 			for (ReferringExpression refExp : refExps.values())
@@ -292,15 +330,23 @@ public class ModelInstantiation {
 				System.out.println("Predicates: ");
 				for (Predicate p : refExp.predicates)
 				{
-					constraintsFound++;
-					constraints.add(new PredicateConstraint(refExp,p));
+					
+					PredicateConstraint pc = new PredicateConstraint(refExp,p);
+					cb.add(pc);
+					
 				}
 			}
 		}
 		
-		System.out.println("Found " + constraintsFound + " constraints");
+		// Keep this for generation
+		for (Constraint c : cb.getConstraints())
+			lastConstraint = c;
 		
-		return constraintsFound;
+		System.out.println("Found " + cb.getConstraints().size() + " constraints");
+		
+		constraints.addAll(cb.getConstraints());
+		
+		return cb;
 	}
 	
 	
@@ -378,8 +424,10 @@ public class ModelInstantiation {
 		
 		for (FeatureConstraint constraint : getFeatureConstraints())
 		{
-
+			System.out.println("Feature constraints:");
+			System.out.println(constraint);
 			boolean satisfied = constraint.isSatisfied(currentScene);
+			System.out.println("Feature value: " + constraint.getFeature().getValue());
 			if (!satisfied)
 				return false;
 		}
@@ -408,11 +456,19 @@ public class ModelInstantiation {
 	{
 		currentStructureInstance.setBlocks(new HashSet<Block>(newBlocks));
 		currentStructureInstance.generateFeatures();
+		
+		System.out.println("Structure Instance features tested:");
+		for (Entry<String, Feature> f: currentStructureInstance.getFeatures().entrySet())
+		{
+			System.out.println(f.getKey() + " : " + f.getValue().hashCode());
+		}
 		for (FeatureConstraint constraint : getFeatureConstraints())
 		{
 
-			System.out.println("Constraint:");
+			System.out.println("Feature Constraint:");
 			System.out.println(constraint);
+			System.out.println("Feature hash:");
+			System.out.println(constraint.getFeature().hashCode());
 			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
 			if (satisfied)
 				System.out.println(" is satisfied");
@@ -425,7 +481,7 @@ public class ModelInstantiation {
 		
 		for (StructureConstraint constraint : getStructureConstraints())
 		{
-			System.out.println("Constraint:");
+			System.out.println("Structure Constraint:");
 			System.out.println(constraint);
 
 			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
@@ -444,7 +500,7 @@ public class ModelInstantiation {
 		
 		for (PredicateConstraint constraint : getPredicateConstraints())
 		{
-			System.out.println("Constraint:");
+			System.out.println("Predicate Constraint:");
 			System.out.println(constraint);
 
 			boolean satisfied = constraint.isSatisfied(Scene.currentScene);
@@ -479,6 +535,10 @@ public class ModelInstantiation {
 		constraints.add(c);
 	}
 	
-	
+	public void forgetLastConstraint()
+	{
+		if (lastConstraint != null && constraints.contains(lastConstraint))
+			constraints.remove(lastConstraint);
+	}
 	
 }

@@ -2,10 +2,12 @@ package features;
 
 import java.util.*;
 import features.BlockFeatureGroup;
+import models.comparators.ValueComparator;
 
 import org.jblas.DoubleMatrix;
 
 import environment.Block;
+import environment.Scene;
 import environment.StructureInstance;
 
 
@@ -139,7 +141,7 @@ public class UnorderedGroupingFeature extends Feature<List> {
 				width = (Double)features.get(FeatureConstants.WIDTH).getValue();
 			
 			if (features.containsKey(FeatureConstants.LOCATION))
-				centerX = ((DoubleMatrix)features.get(FeatureConstants.LOCATION).getValue()).get(2);
+				centerX = ((DoubleMatrix)features.get(FeatureConstants.LOCATION).getValue()).get(0);
 
 
 			
@@ -207,8 +209,67 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		result.putAll(super.getFeatures());
 		result.put(count.name, count);
 		result.put(heightFeature.name, heightFeature);
+		result.put(FeatureConstants.WIDTH, widthFeature);
 		result.put(FeatureConstants.SIZE, count);
 		return result;
+	}
+	
+	public Feature getMaxFeatureValue(String featureName)
+	{
+		
+		Feature maxFeature = null;
+		
+		if (elements.size() > 1)
+		{
+			for (FeatureGroup element : elements)
+			{
+				if (element instanceof UnorderedGroupingFeature && 
+						element.getFeatures().containsKey(featureName))
+				{
+					Feature currentFeature = element.getFeatures().get(featureName);
+					if (maxFeature == null)
+						maxFeature = currentFeature;
+					Comparator comparator = new ValueComparator();
+					if (comparator.compare(currentFeature, maxFeature) >= 0)
+						maxFeature = currentFeature;
+				}
+			}
+			
+			return maxFeature;
+		}
+		else
+		{
+			
+			return getFeatures().get(featureName);
+		}
+	}
+	
+	public Feature getMinFeatureValue(String featureName)
+	{
+		Feature minFeature = null;
+		
+		if (elements.size() > 1)
+		{
+			for (FeatureGroup element : elements)
+			{
+				if (element instanceof UnorderedGroupingFeature && 
+						element.getFeatures().containsKey(featureName))
+				{
+					Feature currentFeature = element.getFeatures().get(featureName);
+					if (minFeature == null)
+						minFeature = currentFeature;
+					Comparator comparator = new ValueComparator();
+					if (comparator.compare(currentFeature, minFeature) <= 0)
+						minFeature = currentFeature;
+				}
+			}
+			
+			return minFeature;
+		}
+		else
+		{
+			return getFeatures().get(featureName);
+		}
 	}
 
 }

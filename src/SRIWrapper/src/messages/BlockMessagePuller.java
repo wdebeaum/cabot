@@ -1,8 +1,13 @@
 package messages;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import TRIPS.KQML.KQMLList;
@@ -73,6 +78,8 @@ public class BlockMessagePuller implements Runnable {
 			e2.printStackTrace();
 		}
 		
+		
+		
 		while(stop == false)
 		{
 			if (!pause)
@@ -84,7 +91,7 @@ public class BlockMessagePuller implements Runnable {
 		
 				//System.out.println("Reading block data");
 				JSONObject blockStateInfoObject = JsonReader.readURL("http://" + apiIp + ":" + NetworkConfiguration.apiPort + "/world-api/block-state.json");
-				if (blockMetadataInfoObject == null)
+				if (blockStateInfoObject == null)
 					System.out.println("Error reading apiInfo");
 //				else
 //					System.out.println(blockStateInfoObject.toJSONString());

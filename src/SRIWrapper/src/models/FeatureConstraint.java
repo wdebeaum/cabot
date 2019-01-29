@@ -8,10 +8,11 @@ import features.CountFeature;
 import features.DecimalFeature;
 import features.Feature;
 import features.FeatureConstants;
+import features.UnorderedGroupingFeature;
 
 public class FeatureConstraint implements Constraint {
 
-	public enum Operator {LESS,GREATER,GEQ,LEQ,EQUAL}
+	public enum Operator {LESS,GREATER,GEQ,LEQ,EQUAL,GREATEST,LEAST}
 	public enum ComparisonType {VALUE,DISTANCE,DEFAULT}
 	
 	Feature feature;
@@ -19,7 +20,7 @@ public class FeatureConstraint implements Constraint {
 	ComparisonType comparisonType;
 	double value;
 	Feature comparisonFeature;
-	
+	ReferringExpression comparisonSet;
 	
 	public FeatureConstraint(Feature feature, Operator operator, 
 										ComparisonType comparisonType, double value) {
@@ -72,11 +73,28 @@ public class FeatureConstraint implements Constraint {
 				return Operator.GEQ;
 			if (lex.equalsIgnoreCase("W::MAX"))
 				return Operator.LEQ;
+			if (lex.equalsIgnoreCase("W::MORE-THAN") || 
+					lex.equalsIgnoreCase("W::MORE"))
+				return Operator.GREATER;
+			if (lex.equalsIgnoreCase("W::LESS-THAN"))
+				return Operator.LESS;
+			if (lex.equalsIgnoreCase("W::EXACT"))
+				return Operator.EQUAL;
 		case FeatureConstants.HORIZONTAL:
 		case FeatureConstants.VERTICAL:
 		case FeatureConstants.LINE:
 			return Operator.GREATER;
+		case "ONT::MIN-VAL":
+			return Operator.LEAST;
+		case "ONT::MAX-VAL":
+			return Operator.GREATEST;
 		case "ONT::HAVE":
+		case "ONT::HAVE-PROPERTY":
+		case "ONT::BE":
+		case "ONT::OBJECT-COMPARE":
+		case "ONT::IDENTITY-VAL":
+		case "ONT::AS-MUCH-AS":
+		case "ONT::EQUAL":
 			return Operator.EQUAL;
 		default:
 			return null;
@@ -107,6 +125,10 @@ public class FeatureConstraint implements Constraint {
 			return comparator.compare(featureToTest,comparisonFeature) >= 0;
 		case LEQ:
 			return comparator.compare(featureToTest,comparisonFeature) <= 0;
+		case GREATEST:
+			return comparator.compare(featureToTest,comparisonFeature) > 0;
+		case LEAST:
+			return comparator.compare(featureToTest,comparisonFeature) < 0;
 		default:
 			return false;
 			
@@ -117,6 +139,8 @@ public class FeatureConstraint implements Constraint {
 	{
 		return isSatisfied(feature,s);	
 	}
+	
+	
 	
 	public String toString()
 	{
@@ -138,11 +162,16 @@ public class FeatureConstraint implements Constraint {
 	
 	public String reason()
 	{
-		
+		return reason(isSatisfied(Scene.currentScene));
+
+	}
+	
+	public String reason(boolean satisfied)
+	{
 		System.out.println("Feature " + feature.getPrettyName() + ": " + feature.getValue());
 		StringBuilder sb = new StringBuilder();
 		String negationString = "";
-		if (!isSatisfied(Scene.currentScene))
+		if (!satisfied)
 			negationString = "not";
 
 		sb.append(getPrettyFeatureName(feature.getName()));
@@ -249,5 +278,10 @@ public class FeatureConstraint implements Constraint {
 		comparisonFeature.setValue((int)value);
 		comparisonFeature.setConstant(true);
 		return true;
+	}
+	
+	public boolean isInferred()
+	{
+		return feature.isInferred() || comparisonFeature.isInferred();
 	}
 }

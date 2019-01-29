@@ -111,9 +111,9 @@ public class PredicateParser {
 	}
 	
 
-	public Set<PredicateConstraint> extractPredicateConstraints()
+	public Set<Constraint> extractPredicateConstraints()
 	{
-		HashSet<PredicateConstraint> constraints = new HashSet<PredicateConstraint>();
+		HashSet<Constraint> constraints = new HashSet<Constraint>();
 		// Get predicates from formal or neutral1 arguments
 		if (eventTerm.getKeywordArg(":FORMAL") != null && headReferringExpression != null)
 		{
@@ -138,8 +138,8 @@ public class PredicateParser {
 		}
 		else if (eventTerm.getKeywordArg(":GROUND") != null && headReferringExpression != null)
 		{
-			String formalVariable = eventTerm.getKeywordArg(":NEUTRAL1").stringValue();
-			
+			String formalVariable = eventTerm.getKeywordArg(":GROUND").stringValue();
+			System.out.println("Predicate ground: " + formalVariable);
 			Set<PredicateConstraint> predicateConstraints = 
 					PredicateParser.extractChildPredicateConstraints(headReferringExpression, 
 													formalVariable, context);

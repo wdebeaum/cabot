@@ -3,7 +3,7 @@
 # File: trips-cabot.sh
 # Creator: George Ferguson
 # Created: Wed Jun 20 10:38:13 2012
-# Time-stamp: <Wed Aug  1 20:40:53 CDT 2018 lgalescu>
+# Time-stamp: <Fri Sep  7 13:21:52 CDT 2018 lgalescu>
 #
 # trips-cabot: Run TRIPS/CABOT
 #
@@ -54,10 +54,8 @@ mode=continuous
 display="${TRIPS_DISPLAY}"
 usettsdic=''
 nospeech=''
-# disabled for now LG 2015/12/04
 nospeechin=''
 nospeechout=''
-speechonly=''
 nochat=''
 nobeep=''
 noapparatus=f
@@ -80,7 +78,7 @@ while test ! -z "$1"; do
 	-channel)	channel="$2";	shift;;
 	-display)	display="$2";	shift;;
 	-logdir)	logdir="$2";	shift;;
-    -apparatusip)   apparatusip="$2";   shift;;
+	-apparatusip)   apparatusip="$2";   shift;;
 	-debug)		debug=t;;
 	-nodebug)	debug='';;
 	-nouser)	nouser=t;;
@@ -91,7 +89,6 @@ while test ! -z "$1"; do
 	-nospeech)	nospeech=t;;
 	-nospeechin)	nospeechin=t;;
 	-nospeechout)	nospeechout=t;;
-	-speechonly)	speechonly=t;;
 	-nobeep)	nobeep=t;;
 	-quiet)		nospeech=t; nobeep=t;;
 	-noapparatus)	noapparatus=t;;
@@ -284,13 +281,6 @@ fi
 # SpeechOut
 # TODO: use $port_opt?
 if test -z "$nouser" -a -z "$nospeech" -a -z "$nospeechout"; then
-# cat - <<_EOF_ >>/tmp/trips$$
-# (request
-#  :receiver facilitator
-#  :content (start-module
-# 	   :name SpeechOut-launcher
-# 	   :exec "$TRIPS_BASE/bin/SpeechOut"))
-# _EOF_
 (sleep 5; $TRIPS_BASE/bin/trips_exec -socket $TRIPS_SOCKET -register t -name speech-out $TRIPS_BASE/bin/SpeechOut ${voice:+-voice $voice} $TTSDIC >SpeechOut.err 2>&1) &
 else
     # We don't use speech-out at all (run SpeechOutNot for transcript)

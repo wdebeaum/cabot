@@ -35,6 +35,8 @@ public class FeatureConstants {
 	public static final String GAP = "ONT::PHYS-SHAPE";
 	public static final String OTHER = "ONT::OTHER";
 	public static final String REF_SEM = "ONT::REFERENTIAL-SEM";
+	
+	public static final String LAST = "ONT::LAST-VAL";
 	public FeatureConstants() {
 		// TODO Auto-generated constructor stub
 	}

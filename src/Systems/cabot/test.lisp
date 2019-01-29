@@ -35,6 +35,23 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;;;;;;;;;;; The following scripts are (or should be!) working ;;;;;;;;;;;;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+    (test-clarifyGoal-and-rephrase .
+     ;; system doesn't understand the user's answer in clarify-goal
+     ( ;;(TELL :content (SET-SYSTEM-GOAL :content (IDENTIFY :neutral WH-TERM :as (GOAL))
+			;;	       :context ((ONT::RELN ONT::PERFORM :what WH-TERM))))
+      (TELL :content (SET-SYSTEM-GOAL :id NIL :what NIL
+				      :context NIL))
+      "Put a block on the table."
+      ;; S: Are you trying to build something?
+      ;; > in clarify-goal
+       "ess"
+      ; "yeoooo" ; alternative path: im interpretation-failed
+      ;; S: Please rephrase.
+      ;; > back to clarify-goal
+      "yes"
+      ;; > right-guess-on-goal; invoke-ba
+      ))
     
     (test-multi-goal .
      ((TELL :content (SET-SYSTEM-GOAL :id G1 :what A1

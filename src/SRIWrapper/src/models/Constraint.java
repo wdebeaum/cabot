@@ -9,6 +9,7 @@ public interface Constraint {
 	public Feature getFeature();
 	public String getFeatureName();
 	public String reason();
+	public String reason(boolean satisfied);
 	public boolean isSatisfied(Scene s);
 	public boolean setValue(double value);
 }

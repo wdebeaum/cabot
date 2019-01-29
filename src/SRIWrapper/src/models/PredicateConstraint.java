@@ -41,9 +41,14 @@ public class PredicateConstraint implements Constraint {
 
 	@Override
 	public String reason() {
+		return reason(isSatisfied(Scene.currentScene));
+	}
+	
+	@Override
+	public String reason(boolean satisfied) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("the " + subject + " is ");
-		if (!isSatisfied(Scene.currentScene))
+		if (!satisfied)
 			sb.append("not ");
 		sb.append(predicate.prettyString());
 		if (!objects.isEmpty())

@@ -89,9 +89,16 @@ public class BlockMessageSender {
 	
 	public static void sendPostRequest(String content, String request) throws IOException
 	{
+		sendPostRequest(content,request,false);
+	}
+	
+	public static void sendPostRequest(String content, String request, boolean json) throws IOException
+	{
 
 		System.out.println("Sending:");
 		System.out.println(content);
+		System.out.println("to:");
+		System.out.println(request);
 		byte[] postData       = content.getBytes( StandardCharsets.UTF_8 );
 		int    postDataLength = postData.length;
 		URL    url            = new URL( request );
@@ -100,9 +107,11 @@ public class BlockMessageSender {
 		conn.setDoOutput( true );
 		//conn.setInstanceFollowRedirects( false );
 		conn.setRequestMethod( "POST" );
-		//conn.setRequestProperty( "Content-Type", "application/json"); 
-		conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
-		conn.setRequestProperty("Accept","*/*");
+		if (json)
+			conn.setRequestProperty( "Content-Type", "application/json"); 
+		else
+			conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
+		//conn.setRequestProperty("Accept","*/*");
 		//conn.setRequestProperty( "charset", "utf-8");
 		//conn.setRequestProperty( "Content-Length", Integer.toString( postDataLength ));
 		//conn.setUseCaches( false );
@@ -110,9 +119,14 @@ public class BlockMessageSender {
 		
 
 		OutputStream os = conn.getOutputStream();
-		os.write(postData);
-		os.flush();
-		os.close();
+		DataOutputStream dos = new DataOutputStream(os);
+		//os.write(postData);
+		dos.writeBytes(content);
+		dos.flush();
+		dos.close();
+		
+		//os.flush();
+		//os.close();
         
 		System.out.println("Response: " + conn.getResponseCode());
 		

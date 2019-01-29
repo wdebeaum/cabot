@@ -9,7 +9,7 @@ NAME = trips-cabot
 
 include ../Makefile-common
 
-CSM_DATA = events goals models goals-par
+CSM_DATA = events models goals-par
 
 SYS_DATA_DIR = $(etcdir)/cabot
 

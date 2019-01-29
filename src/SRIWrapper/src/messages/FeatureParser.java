@@ -13,6 +13,7 @@ import TRIPS.KQML.KQMLObject;
 import environment.StructureInstance;
 import features.CountFeature;
 import features.DecimalFeature;
+import features.DistanceFeature;
 import features.Feature;
 import features.FeatureConstants;
 import models.Constraint;
@@ -33,6 +34,7 @@ public class FeatureParser {
 	private KQMLList context;
 	private ReferringExpression headReferringExpression;
 	private StructureInstance currentStructureInstance;
+	private ArrayList<String> scales;
 	
 	public FeatureParser(KQMLList eventTerm, KQMLList context, 
 			Map<String, ReferringExpression> referringExpressions,
@@ -43,6 +45,7 @@ public class FeatureParser {
 		this.context = context;
 		this.headReferringExpression = headReferringExpression;
 		this.currentStructureInstance = currentStructureInstance;
+		this.scales = new ArrayList<String>();
 	}
 	
 	public int extractIntValue(KQMLList context) throws NumberFormatException
@@ -93,21 +96,37 @@ public class FeatureParser {
 		boolean foundValue = false;
 		double value = 0;
 		KQMLObject valueObject = content.getKeywordArg(":VALUE");
-		String valueVariable = valueObject.stringValue();
-		KQMLList valueTerm = KQMLUtilities.findTermInKQMLList(valueVariable, context);
-		KQMLObject valueTermValueObject = valueTerm.getKeywordArg(":VALUE");
-		
-		// TODO: Put some better processing in here 
-		if (valueTermValueObject != null)
+		if (valueObject != null)
 		{
-			try
+			String valueVariable = valueObject.stringValue();
+			KQMLList valueTerm = KQMLUtilities.findTermInKQMLList(valueVariable, context);
+			KQMLObject valueTermValueObject = valueTerm.getKeywordArg(":VALUE");
+			KQMLObject valueTermNumberObject = valueTerm.getKeywordArg(":NUMBER");
+			
+			// TODO: Put some better processing in here 
+			if (valueTermValueObject != null)
 			{
-				value = Double.parseDouble(valueTermValueObject.stringValue());
-				return value;
+				try
+				{
+					value = Double.parseDouble(valueTermValueObject.stringValue());
+					return value;
+				}
+				catch (NumberFormatException nfe)
+				{
+					
+				}
 			}
-			catch (NumberFormatException nfe)
+			else if (valueTermNumberObject != null)
 			{
-				
+				try
+				{
+					value = Double.parseDouble(valueTermNumberObject.stringValue());
+					return value;
+				}
+				catch (NumberFormatException nfe)
+				{
+					
+				}			
 			}
 		}
 				
@@ -134,7 +153,8 @@ public class FeatureParser {
 				{
 					try
 					{
-						value = Double.parseDouble(termList.getKeywordArg(":NUMBER").stringValue());
+						value = Double.parseDouble(KQMLUtilities.cleanOnt(
+									termList.getKeywordArg(":NUMBER").stringValue()));
 						return value;
 					}
 					catch (NumberFormatException nfe)
@@ -182,14 +202,57 @@ public class FeatureParser {
 			{
 				extractedFeature = structureInstance.getFeature(descriptorFeatureString);
 				System.out.println("Feature Scale: " + descriptorFeatureString);
+				
 			}
 		}
+		else if (term.getKeywordArg(":NEUTRAL") != null && term.getKeywordArg(":NEUTRAL1") != null)
+		{
+			String figureSymbol = term.getKeywordArg(":NEUTRAL").stringValue();
+			KQMLList figureTerm = 
+					KQMLUtilities.findTermInKQMLList(figureSymbol, context);
+			KQMLList neutralOneTerm = 
+					KQMLUtilities.findTermInKQMLList(term.getKeywordArg(":NEUTRAL1").stringValue(), context);
+			String descriptorFeatureString = figureTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+			String neutralOneDescriptorFeatureString = neutralOneTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+			if (structureInstance.hasFeature(descriptorFeatureString))
+			{
+				extractedFeature = structureInstance.getFeature(descriptorFeatureString);
+				System.out.println("Feature Scale: " + descriptorFeatureString);
+			}
+			else if (structureInstance.hasFeature(neutralOneDescriptorFeatureString))
+			{
+				extractedFeature = structureInstance.getFeature(neutralOneDescriptorFeatureString);
+				System.out.println("Feature Scale: " + neutralOneDescriptorFeatureString);
+			}
+			else if (neutralOneTerm.getKeywordArg(":SIZE") != null)
+			{
+				extractedFeature = structureInstance.getFeature(FeatureConstants.NUMBER);
+				System.out.println("Inferred number subject feature");
+			}
+			
+		}
+//		// Possessive scales e.g. "The column's height"
+//		else if (term.getKeywordArg(":ASSOC-POS") != null)
+//		{
+//			String figureSymbol = term.getKeywordArg(":ASSOC-POS").stringValue();
+//			KQMLList figureTerm = 
+//					KQMLUtilities.findTermInKQMLList(figureSymbol, context);
+//		}
 		else if (isIndirectNumber(term.getKeywordArg(":INSTANCE-OF").stringValue()))
 		{
 			extractedFeature = structureInstance.getFeature(FeatureConstants.NUMBER);
 			System.out.println("Inferred number subject feature");
 		}
 		
+		// If there's a scale detected somewhere, replace a NUMBER feature with the scale
+		if (extractedFeature != null &&
+				extractedFeature.getName() == FeatureConstants.NUMBER &&
+				!scales.isEmpty())
+			extractedFeature = structureInstance.getFeature(scales.get(0));
+		
+		if (headReferringExpression != null)
+			System.out.println("Feature refexp: " + headReferringExpression.toString());
+			
 		return extractedFeature;
 	}
 	
@@ -209,11 +272,24 @@ public class FeatureParser {
 			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
 			System.out.println("Ground: " + ground);
 		}
-	
+		else if (term.getKeywordArg(":NEUTRAL1") != null) // I think this is better than the below
+														// neutral1 option but maybe not
+		{
+			ground = term.getKeywordArg(":NEUTRAL1").stringValue();
+			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
+			System.out.println("Ground (neutral1): " + ground);
+		}
+		else if (term.getKeywordArg(":COMPAR") != null)
+		{
+			ground = term.getKeywordArg(":COMPAR").stringValue();
+			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
+			System.out.println("Ground (compar): " + ground);
+		}
 		
 		if (groundTerm != null)
 		{
 			// If the feature is for an object
+			// e.g. "...taller than the column..."
 			if (ReferringExpression.isReferredObject(groundTerm) && 
 					term.getKeywordArg(":SCALE") != null)
 			{
@@ -230,22 +306,42 @@ public class FeatureParser {
 				}
 				
 			}
+			// If the feature is a scale of an object
+			// e.g. "...equal to the height of the column"
+			else if (groundTerm.getKeywordArg(":SCALE") != null) 
+			{
+				String groundScale = groundTerm.getKeywordArg(":SCALE").stringValue();
+				
+				System.out.println("Ground Scale: " + groundScale);
+				
+				if (groundTerm.getKeywordArg(":FIGURE") != null)
+				{
+					String groundObject = groundTerm.getKeywordArg(":FIGURE").stringValue();
+					if (referringExpressions.containsKey(groundObject))
+					{
+						System.out.println("Ground object: " + groundObject);
+						groundFeature = referringExpressions.get(groundObject)
+								.getPseudoInstance().getFeature(groundScale);
+						groundFeature.setSource(referringExpressions.get(groundObject));
+						groundFeature.setConstant(false);
+					}
+				}
+				//groundFeature = structureInstance.getFeature(groundScale);
+				
+			}
 			else if (groundTerm.getKeywordArg(":INSTANCE-OF") != null)
 			{
 				
 				String groundScale = groundTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-				
-				System.out.println("Ground Scale: " + groundScale);
-				groundFeature = structureInstance.getFeature(groundScale);
-				
-			}
-			else if (groundTerm.getKeywordArg(":SCALE") != null)
-			{
-				String groundScale = groundTerm.getKeywordArg(":SCALE").stringValue();
-				System.out.println("Ground Scale: " + groundScale);
-				groundFeature = structureInstance.getFeature(groundScale);
+				if (structureInstance.getFeature(groundScale) != null && 
+						!groundScale.equalsIgnoreCase(FeatureConstants.NUMBER))
+				{
+					System.out.println("Ground Scale: " + groundScale);
+					groundFeature = structureInstance.getFeature(groundScale);
+				}
 				
 			}
+
 			if (groundTerm.getKeywordArg(":VALUE") != null && 
 					groundTerm.getKeywordArg(":INSTANCE-OF").stringValue()
 					.equalsIgnoreCase(FeatureConstants.NUMBER))
@@ -270,12 +366,43 @@ public class FeatureParser {
 				
 				if (sizeTerm.getKeywordArg(":VALUE") != null)
 				{
+					
+					groundFeature = new CountFeature(FeatureConstants.NUMBER);
+					int value = Integer.parseInt(sizeTerm.getKeywordArg(":VALUE").stringValue());
+					System.out.println("Number constraint: " + value);
+					groundFeature.setValue(value);
+					groundFeature.setConstant(true);
+					return groundFeature;
+				}
+			}
+			else if (neutralTerm.getKeywordArg(":SCALE") != null)
+			{
+				
+			}
+		}
+		
+		if (term.getKeywordArg(":FORMAL") != null)
+		{
+			
+			KQMLList neutralTerm = KQMLUtilities.findTermInKQMLList(
+					term.getKeywordArg(":FORMAL").stringValue(), context);
+			if (neutralTerm.getKeywordArg(":SIZE") != null)
+			{
+				KQMLList sizeTerm = KQMLUtilities.findTermInKQMLList(
+									neutralTerm.getKeywordArg(":SIZE").stringValue(), context);
+				
+				if (sizeTerm.getKeywordArg(":VALUE") != null)
+				{
 					groundFeature = new CountFeature(FeatureConstants.NUMBER);
 					int value = Integer.parseInt(sizeTerm.getKeywordArg(":VALUE").stringValue());
 					groundFeature.setValue(value);
 					groundFeature.setConstant(true);
 					return groundFeature;
 				}
+			}
+			else if (neutralTerm.getKeywordArg(":SCALE") != null)
+			{
+				
 			}
 		}
 		
@@ -353,6 +480,17 @@ public class FeatureParser {
 	public Set<Constraint> extractFeatures()
 	{
 		Set<Constraint> constraintsFound = new HashSet<Constraint>();
+		
+		for (KQMLObject term: context)
+		{
+			KQMLList termAsList = (KQMLList)term;
+			
+			if (termAsList.getKeywordArg(":SCALE") != null)
+			{
+				scales.add(termAsList.getKeywordArg(":SCALE").stringValue());
+			}
+		}
+		
 		for (KQMLObject term: context)
 		{
 			KQMLList termAsList = (KQMLList)term;
@@ -368,15 +506,32 @@ public class FeatureParser {
 			}
 			else // TODO : Get all ref exps, not just first one
 			{
-				
-				FeatureConstraint fc = extractFeature(
+				FeatureConstraint fc = null;
+				if (headReferringExpression != null)
+				{
+					fc = extractFeature(
 							headReferringExpression.getPseudoInstance(),
 							termAsList,context);
+				}
 				if (fc != null)
 				{
 					StructureConstraint sc = new StructureConstraint(headReferringExpression,fc);
 					constraintsFound.add(sc);
-					
+				}
+				else // If there is no head expression, just pick one
+				{
+//					for (ReferringExpression re : referringExpressions.values())
+//					{
+//						fc = extractFeature(
+//								re.getPseudoInstance(),
+//								termAsList,context);
+//						if (fc != null)
+//						{
+//							StructureConstraint sc = new StructureConstraint(re,fc);
+//							constraintsFound.add(sc);
+//							break;
+//						}
+//					}
 				}
 			}
 		}
@@ -393,6 +548,7 @@ public class FeatureParser {
 		String operatorString = null;
 		String descriptorFeatureString = null;
 		KQMLList groundTerm = null;
+		boolean inferred = false;
 		
 		if (term.getKeywordArg(":INSTANCE-OF") == null)
 			return null;
@@ -445,11 +601,21 @@ public class FeatureParser {
 				System.out.println("Inferring set size");
 				operator = Operator.EQUAL;
 			}
+			
+			groundFeature.setInferred();
 		}
 		
-		// Not currently working
-//		if (extractedFeature != null && operator != null && groundFeature == null)
-//		{
+		
+		if (extractedFeature != null && operator != null && groundFeature == null)
+		{
+			try {
+				double value = extractDoubleValue(term, context);
+				groundFeature = new DistanceFeature(FeatureConstants.NUMBER);
+				groundFeature.setValue(value);
+				groundFeature.setConstant(true);
+				groundFeature.setInferred();
+				System.out.println("Inferred number value of " + value);
+			} catch (NumberFormatException nfe) {};
 //			if (isIndirectNumber(term.getKeywordArg(":INSTANCE-OF").stringValue()))
 //			{
 //				try {
@@ -459,11 +625,51 @@ public class FeatureParser {
 //					groundFeature.setConstant(true);
 //				} catch (NumberFormatException nfe) {};
 //			}
-//		}
-
+		}
 		
-		if (extractedFeature == null || groundFeature == null || operator == null)
+
+
+		// Compare against the rest of the scene
+		if (extractedFeature != null && groundFeature == null && operator != null &&
+				(operator.equals(Operator.GREATEST) || operator.equals(Operator.LEAST)))
+		{
+			System.out.println("Calculating greatest or least feature");
+			ReferringExpression refExp = extractedFeature.getSource();
+			if (refExp == null)
+				refExp = headReferringExpression;
+			if (refExp == null && !referringExpressions.isEmpty())
+			{
+				for (ReferringExpression re : referringExpressions.values())
+				{
+					refExp = re;
+					break;
+				}
+			}
+			if (refExp == null)
+				return null;
+			
+			if (operator.equals(Operator.GREATEST))
+			{
+					
+			}
+		}
+		
+		if (extractedFeature == null)
+		{
+			System.out.println("No extracted feature");
 			return null;
+		}
+		if (groundFeature == null)
+		{
+			System.out.println("No ground feature");
+			return null;
+		}
+		if (operator == null)
+		{
+			System.out.println("No operator");
+			return null;
+		}
+
 		System.out.println("Ground Feature: " + groundFeature.getName());
 		if (groundFeature.isConstant())
 			System.out.println("Ground value: " + groundFeature.getValue());

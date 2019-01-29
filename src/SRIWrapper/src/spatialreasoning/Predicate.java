@@ -16,7 +16,8 @@ public class Predicate {
 	public static final double MAX_NEAR_DISTANCE = .4;
 	public static final double MAX_2D_NEAR_DISTANCE = .4;
 	public static final double MAX_SAME_HEIGHT_DISTANCE = .05;
-	public static final double HALF_SIDE_LENGTH = .09;
+	public static final double HALF_SIDE_LENGTH = .07;
+	
 	
 	
 	private PredicateType predicateType;
@@ -60,6 +61,10 @@ public class Predicate {
 		case RIGHT:
 		case RIGHTLOC:
 			return right(blockUGF, sceneComplement);
+		case SIDE:
+		case SIDELOC:
+		case SIDEPRED:
+			return (right(blockUGF, sceneComplement) || left(blockUGF, sceneComplement));
 		case MIDDLE:
 		case CENTER:
 		case BETWEEN:
@@ -139,6 +144,10 @@ public class Predicate {
 			return true;
 		case TOGETHER:
 			return isTogether(s);
+		case SIDE:
+		case SIDELOC:
+		case SIDEPRED:
+			return left(s, sceneComplement) || right(s, sceneComplement);
 		case MIDDLE:
 		case CENTER:
 		case BETWEEN:
@@ -333,6 +342,9 @@ public class Predicate {
 		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
 		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
 		
+		if (aabb1 == null || aabb2 == null)
+			return false;
+		
 		return aabb1.minZ + HALF_SIDE_LENGTH > aabb2.maxZ;
 	}
 	
@@ -341,6 +353,9 @@ public class Predicate {
 		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
 		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
 		
+		if (aabb1 == null || aabb2 == null)
+			return false;
+		
 		return aabb1.getCenter().get(0) < aabb2.getCenter().get(0) - HALF_SIDE_LENGTH;
 	}
 	
@@ -348,6 +363,9 @@ public class Predicate {
 	{
 		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
 		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
+		
+		if (aabb1 == null || aabb2 == null)
+			return false;
 		
 		return aabb1.getCenter().get(0) > aabb2.getCenter().get(0) + HALF_SIDE_LENGTH;
 	}
@@ -380,6 +398,9 @@ public class Predicate {
 		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
 		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
 		
+		if (aabb1 == null || aabb2 == null)
+			return false;
+		
 		return (aabb1.intersectsX(aabb2) && 
 				aabb1.intersectsY(aabb2) && 
 				aabb1.maxZ - HALF_SIDE_LENGTH < aabb2.minZ);
@@ -389,6 +410,9 @@ public class Predicate {
 	{
 		AxisAlignedBoundingBox aabb1 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s1.getBlockFeatureGroups());
 		AxisAlignedBoundingBox aabb2 = AxisAlignedBoundingBox.fromBlockFeatureGroups(s2.getBlockFeatureGroups());
+		
+		if (aabb1 == null || aabb2 == null)
+			return false;
 		
 		return (aabb1.intersectsX(aabb2) && 
 				aabb1.intersectsY(aabb2) && 

@@ -55,11 +55,18 @@ public class ModelBuilder {
 		return null;
 	}
 	
+	/**
+	 * After the system has asked a question, this function interprets the answer using
+	 * the context (the form of the constraint) of the original question
+	 * @param content
+	 * @param context
+	 * @return
+	 */
 	public KQMLList answerCurrentConstraint(KQMLList content, KQMLList context)
 	{
 		if (lastConstraintAsked == null)
 			return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
-					content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
+					content.getKeywordArg(":TO").stringValue(), "NIL", content.getKeywordArg(":AS"));
 		
 		if (lastConstraintAsked instanceof PredicateConstraint)
 		{
@@ -69,7 +76,7 @@ public class ModelBuilder {
 			{
 				TextToSpeech.say("Hmm, I don't quite understand.");
 				return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
-						content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
+						content.getKeywordArg(":TO").stringValue(), "NIL", content.getKeywordArg(":AS"));
 			}
 			
 			// TODO: Improve to take multiple predicates
@@ -93,16 +100,25 @@ public class ModelBuilder {
 		}
 		catch(NumberFormatException nfe)
 		{
+			KQMLList valueList = KQMLUtilities.findTermInKQMLList(valueObject.stringValue(),
+																context);
+			if (valueList != null && valueList.getKeywordArg(":QUAN") != null)
+			{
+				value = 10;
+			}
 			TextToSpeech.say("Hmm, I don't quite understand.");
 			return EvaluateHandler.unacceptableAnswerContent(content);
 		}
-		
+		System.out.println("Value from response: " + value);
 		lastConstraintAsked.setValue(value);
 		
 		if (getLastModelInstantiation() == null)
 			return EvaluateHandler.unacceptableAnswerContent(content);	
 		
 		getLastModelInstantiation().addConstraint(lastConstraintAsked);
+		
+		System.out.println("Filled constraint: ");
+		System.out.println(lastConstraintAsked);
 		
 		lastConstraintAsked = null;
 		TextToSpeech.say("Okay, got it.");
@@ -130,9 +146,14 @@ public class ModelBuilder {
 		else
 			featureName = constraintToAsk.getFeature().getPrettyName();
 		
+		if (getLastModelInstantiation().lastUnresolvedObjectReference != null)
+		{
+			// Add something here?
+		}
+		
 		lastConstraintAsked = constraintToAsk;
-		if (featureName.equals("NUMBER"))
-			sb.append("How many blocks can be in the ");
+		if (featureName.equals(FeatureConstants.NUMBER))
+			sb.append("What is the greatest number of blocks that can be in the ");
 		else if (constraintToAsk instanceof PredicateConstraint)
 		{
 			sb.append("Where can the ");
@@ -243,21 +264,9 @@ public class ModelBuilder {
 		return GoalMessages.proposeAdoptContent(lastGoal);
 	}
 	
-	private KQMLList askAboutExample(Goal currentGoal)
+	public KQMLList askAboutExample(Goal currentGoal)
 	{
-		GridModel2D satisfiedExample = null;
-		System.out.println("Creating random instances to test");
-		for (int i = 0; i < 300; i++)
-		{
-			GridModel2D currentGridModel = GridModel2D.randomSample(6);
-			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
-					currentGridModel.getBlocks()))
-			{
-				satisfiedExample = currentGridModel;
-				System.out.println("Found satisfied example");
-				break;
-			}
-		}
+		GridModel2D satisfiedExample = generateExample();
 		
 		if (satisfiedExample == null)
 			return null;
@@ -279,6 +288,22 @@ public class ModelBuilder {
 		
 		return GoalMessages.proposeAskIfContent(q);
 		
+	}
+	
+	public GridModel2D generateExample()
+	{
+		System.out.println("Creating random instances to test");
+		for (int i = 0; i < 300; i++)
+		{
+			GridModel2D currentGridModel = GridModel2D.randomSample(6);
+			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
+					currentGridModel.getBlocks()))
+			{
+				return currentGridModel;
+			}
+		}
+		
+		return null;
 	}
 	
 	private Query getQueryToAskAboutExample(Goal currentGoal)
@@ -330,6 +355,7 @@ public class ModelBuilder {
 		newQuery.setParent(currentGoal);
 		newQuery.addQuery(featureName, questionVariable);
 		newQuery.addContextElement(newTerm);
+		newQuery.addContextElement(whatTerm);
 
 		return newQuery;
 	}

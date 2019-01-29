@@ -36,7 +36,10 @@ public class ReferringExpressionParser {
 		{
 			KQMLList subjectTerm = KQMLUtilities.findTermInKQMLList(
 					eventTerm.getKeywordArg(":NEUTRAL").stringValue(), context);
-			if (ReferringExpression.isReferredObject(subjectTerm))
+			// This only picks a head referring expression if it's directly mentioning
+			// an object in the scene
+			if (ReferringExpression.isReferredObject(subjectTerm) || 
+					ReferringExpression.modifiesReferredObject(subjectTerm, context))
 			{
 				subjectVariable = subjectTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression subject = new ReferringExpression(subjectTerm,context);
@@ -82,6 +85,15 @@ public class ReferringExpressionParser {
 		for (ReferringExpression re : referringExpressions.values())
 			System.out.println(re);
 		
+//		if (referringExpressions.size() > 0 && headReferringExpression == null)
+//		{
+//			for (ReferringExpression re : referringExpressions.values())
+//			{
+//				headReferringExpression = re;
+//				break;
+//			}
+//		}
+		
 		resolveAnaphora();
 
 		return referringExpressions;
@@ -95,6 +107,7 @@ public class ReferringExpressionParser {
 	public void resolveAnaphora()
 	{
 		String inferredObjectType = FeatureConstants.BLOCK;
+		
 		// First try to find unresolved referring expressions in the current assertion
 		HashSet<ReferringExpression> unresolved = new HashSet<ReferringExpression>();
 		for (ReferringExpression re : referringExpressions.values())
@@ -113,7 +126,6 @@ public class ReferringExpressionParser {
 			if (!re.isUnderspecified()) {
 				inferredObjectType = re.getInstanceOf();
 				referent = re;
-				
 			}
 
 		}
@@ -122,10 +134,13 @@ public class ReferringExpressionParser {
 		{
 			for (ReferringExpression ure : unresolved)
 			{
+				boolean contrasted = ure.isContrasted();
 				ure.headTerm = KQMLUtilities.setKeywordArgTo(ure.headTerm, 
 										":INSTANCE-OF", 
 										new KQMLToken(referent.getInstanceOf()));
 				System.out.println("Inferred refexp as " + referent.getObjectTypeString());
+				if (contrasted)
+					ure.setContrastSet(referent);
 				
 			}
 			return;

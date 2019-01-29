@@ -106,6 +106,11 @@ public class StructureConstraint implements Constraint {
 	{
 		return subject + "'s " + featureConstraint.reason();
 	}
+	
+	public String reason(boolean satisfied)
+	{
+		return subject + "'s " + featureConstraint.reason(satisfied);
+	}
 
 	@Override
 	public String getDescription() {

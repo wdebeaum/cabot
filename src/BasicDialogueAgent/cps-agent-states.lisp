@@ -81,6 +81,23 @@
 	  :destination 'handle-csm-response
 	  :trigger t)
 
+	 (transition
+	  :description "ask-wh. eg: what drug should we use?"
+	  :pattern '((ONT::SPEECHACT ?!sa (? s-act ONT::ASK-WHAT-IS) :what ?!what :suchthat -)
+		     (?!spec ?!what ?!object-type)
+		     (ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))  ; note: ?!what instead of ?!st because there is no :suchthat
+		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
+		     -propose-goal-via-question-no-suchthat>
+		     (RECORD CPS-HYPOTHESIS (ONT::ASK-WHAT-IS :content ?!what :context ?akrl-context :active-goal ?goal))
+		     (INVOKE-CSM :msg (INTERPRET-SPEECH-ACT
+				      :content (ONT::ASK-WHAT-IS :content ?!what
+								 ;:suchthat ?!st
+								 :context ?akrl-context
+								 :active-goal ?goal)))
+		     )
+	  :destination 'handle-csm-response
+	  :trigger t)
+	 
 	 ;; (not any more) This should go after the previous (-propose-goal-via-question>)
 	 (transition
 	  :description "ask-if. eg: Does the BRAF-NRAS complex vanish?"
@@ -323,7 +340,7 @@ ONT::INTERACT
 
 	 (transition
 	  :description "acceptance, e.g., yes"
-	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT ONT::POS)
+	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT (? ans ONT::POS ONT::UNSURE-POS))
 		     (ont::eval (find-attr :result (?prop :content ?!content :context ?!context) 
 				 :feature PROPOSAL-ON-TABLE))
 		     (ont::eval (extract-feature-from-act :result nil :expr ?!content :feature :query))
@@ -345,7 +362,7 @@ ONT::INTERACT
 
 	 (transition
 	  :description "rejectance, e.g., no"
-	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT ONT::NEG)
+	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT (? ans ONT::NEG ONT::UNSURE-NEG))
 		     (ont::eval (find-attr :result (?prop :content ?!content :context ?!context) 
 				 :feature PROPOSAL-ON-TABLE))
 		     (ont::eval (extract-feature-from-act :result nil :expr ?!content :feature :query))
@@ -381,7 +398,7 @@ ONT::INTERACT
 	 
 	 (transition
 	  :description "yes as an answer to an ask-if (could also be an ask-wh)"
-	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT (? ans ONT::POS))
+	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT (? ans ONT::POS ONT::UNSURE-POS))
 		     (ont::eval (find-attr :result (?prop :content ?!content :context ?!context) 
 				 :feature PROPOSAL-ON-TABLE))
 		     (ont::eval (extract-feature-from-act :result ?!query :expr ?!content :feature :query))
@@ -399,7 +416,7 @@ ONT::INTERACT
 
 	 (transition
 	  :description "no as an answer to an ask-if (could also be an ask-wh)"
-	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT (? ans ONT::NEG))
+	  :pattern '((ONT::SPEECHACT ?!sa ONT::ANSWER :WHAT (? ans ONT::NEG ONT::UNSURE-NEG))
 		     (ont::eval (find-attr :result (?prop :content ?!content :context ?!context) 
 				 :feature PROPOSAL-ON-TABLE))
 		     (ont::eval (extract-feature-from-act :result ?!query :expr ?!content :feature :query))
@@ -453,10 +470,10 @@ ONT::INTERACT
 	  )
 
 	 (transition
-	  :description "green; the green block; How about me?"
-	  :pattern '((ONT::SPEECHACT ?!sa (? t ONT::ANSWER ONT::IDENTIFY ONT::REQUEST-COMMENT) :what ?!ans)
-		     ;(?!spec ?!ans (? !t ONT::SITUATION-ROOT)) 
-		     (?!spec ?!ans (? !t ONT::EVENT-OF-CHANGE)) ; allow EVENT-TYPE but exclude commands 
+	  :description "green; the green block; How about me?; to the right"
+	  :pattern '((ONT::SPEECHACT ?!sa (? t ONT::ANSWER ONT::IDENTIFY ONT::REQUEST-COMMENT ONT::FRAGMENT) :what ?!ans)
+		     ;(?!spec ?!ans (? !t2 ONT::SITUATION-ROOT)) 
+		     (?!spec ?!ans (? !t2 ONT::EVENT-OF-CHANGE)) ; allow EVENT-TYPE but exclude commands 
 		     (ont::eval (find-attr :result ?!query :feature QUERY-ON-TABLE)) ; must have an outstanding query
 		     (ont::eval (generate-AKRL-context :what ?!ans :result ?akrl-context))
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
@@ -1536,6 +1553,17 @@ ONT::INTERACT
 	  :destination 'what-next-initiative-on-new-goal)  ;;  wondering if we should be waiting to see how user responds to the answer??
 
 	 (transition
+	  :description "acknowledge"
+	  :pattern '((BA-RESPONSE X PERFORM :psact (?! x  ACK))
+		     -acknowledge1>
+		     (GENERATE :content (ONT::ACK))
+					;(GENERATE :content (ONT::REQUEST :content (ONT::PROPOSE-GOAL :agent ONT::USER)))
+		     (nop)
+		     )
+	  :destination 'segmentend
+	  )
+
+	  (transition
 	  :description "default: do nothing, just wait"
 	  :pattern '((?!spec ?sa ?t)
 		     -default6

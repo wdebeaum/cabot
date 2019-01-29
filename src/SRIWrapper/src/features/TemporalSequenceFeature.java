@@ -5,12 +5,14 @@ import java.util.*;
 import org.jblas.DoubleMatrix;
 
 import features.*;
+import spatialreasoning.Predicate;
 import environment.Block;
 
 public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 
 	protected DirectionFeature direction;
 	protected PointFeature origin;
+	
 	
 	public TemporalSequenceFeature(String name) {
 		super(name);
@@ -19,7 +21,22 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		origin = new PointFeature(FeatureConstants.ORIGIN);
 		origin.setValue(new DoubleMatrix(new double[]{0,0,Block.BLOCK_WIDTH/2}));
 		
-		
+	}
+	
+	// Should this be persisted? Not sure
+	public Map<String,Feature> getOrdinalFeatures()
+	{
+		HashMap<String,Feature> features = new HashMap<String,Feature>();
+		for (int i = 0; i < elements.size(); i++)
+		{
+			if (elements.get(i) instanceof Feature)
+			{
+				features.put("" + (i+1),(Feature)(elements.get(i)));
+			}
+		}
+		features.put(FeatureConstants.LAST, (Feature)(elements.get(elements.size()-1)));
+		features.put(FeatureConstants.END, (Feature)(elements.get(elements.size()-1)));
+		return features;
 	}
 	
 	public TemporalSequenceFeature projectOnto(DirectionFeature original, DirectionFeature newDirection)
@@ -145,6 +162,12 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 	
 	public Collection<FeatureGroup> sortedPositions(DirectionFeature direction)
 	{
+		return sortedPositions(elements,direction);
+	}
+	
+	public static Collection<FeatureGroup> sortedPositions(Collection<FeatureGroup> elements, 
+														DirectionFeature direction)
+	{
 		int maxAxis = direction.getMaxAxis();
 
 		TreeMap<Double,FeatureGroup> toSort = new TreeMap<Double,FeatureGroup>();
@@ -160,6 +183,11 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 				TemporalSequenceFeature tsf = (TemporalSequenceFeature)fg;
 				toSort.put(tsf.getOrigin().getValue().get(maxAxis), tsf);
 			}
+			else if (fg instanceof UnorderedGroupingFeature)
+			{
+				UnorderedGroupingFeature ugf = (UnorderedGroupingFeature)fg;
+				toSort.put(ugf.getCenterFeature().getValue().get(maxAxis), ugf);
+			}
 		}
 		if (direction.getValue().get(maxAxis) > 0)
 			return toSort.values();
@@ -167,10 +195,6 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 			return toSort.descendingMap().values();
 	}
 	
-	public void directionalCompare(DirectionFeature direction)
-	{
-		
-	}
 	
 	public void setSequence(List<FeatureGroup> sequence)
 	{
@@ -362,6 +386,23 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 	{
 		return direction;
 	}
+	
+	// Provide a Temporal Sequence Feature (sequence of columns from a collection of blocks
+	// (left to right)
+	public static TemporalSequenceFeature temporalSequenceFromBlocks(Collection<Block> blocks)
+	{
+		TemporalSequenceFeature tsf = new TemporalSequenceFeature("scene");
+		Collection<ColumnFeature> columns = ColumnFeature.columnsFromBlocks(blocks);
+		ArrayList<FeatureGroup> columnsAsFgs = new ArrayList<FeatureGroup>(columns);
+		columnsAsFgs.addAll(columns);
+		DirectionFeature leftToRight = new DirectionFeature("lefttoright");
+		leftToRight.setValue(new DoubleMatrix(new double[]{1,0,0}));
+		Collection<FeatureGroup> orderedColumns = sortedPositions(columnsAsFgs, leftToRight);
+		//System.out.println(columns.size() + " columns extracted");
+		for (FeatureGroup fg : orderedColumns)
+			tsf.add(fg);
+		return tsf;
+	}
 
 	@Override
 	public Map<String,Feature> getFeatures() {
@@ -369,6 +410,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		result.putAll(super.getFeatures());
 		result.put(origin.name,origin);
 		result.put(direction.name, direction);
+		result.putAll(getOrdinalFeatures());
 		return result;
 	}
 	

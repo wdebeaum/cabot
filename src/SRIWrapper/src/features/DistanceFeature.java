@@ -21,7 +21,7 @@ public class DistanceFeature extends DecimalFeature {
 	public String toString()
 	{
 		DecimalFormat decimalFormattter = new DecimalFormat("###.#");
-		return "" + decimalFormattter.format((value / Block.BLOCK_WIDTH) * 2);
+		return "" + decimalFormattter.format(value);
 	}
 	// Moved to ModelInstantiation, leaving old version just in case
 	

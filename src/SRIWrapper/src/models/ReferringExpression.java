@@ -1,6 +1,7 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,10 +19,13 @@ import features.ColumnFeature;
 import features.Feature;
 import features.FeatureConstants;
 import features.FeatureGroup;
+import features.TemporalSequenceFeature;
 import features.UnorderedGroupingFeature;
 import features.UnorderedRowFeature;
 import geometry.AxisAlignedBoundingBox;
 import goals.GoalStateHandler;
+import messages.LanguageGeneration;
+import models.comparators.ValueComparator;
 import spatialreasoning.Predicate;
 import spatialreasoning.PredicateType;
 import utilities.KQMLUtilities;
@@ -40,10 +44,11 @@ public class ReferringExpression {
 	private StructureInstance pseudoInstance; // Use to attach features
 	private StructureInstance inverseInstance;
 	UnorderedGroupingFeature inverseGroupingFeature;
-	public static String[] definiteHeadTermIndicators = {"ONT::THE", "ONT::THE-SET"};
+	public static String[] definiteHeadTermIndicators = {"ONT::THE", "ONT::THE-SET", "ONT::QUANTIFIER"};
 	public static String[] indefiniteHeadTermIndicators = {"ONT::A", "ONT::INDEF-SET"};
 	static String lastReferredObjectType = null;
 	boolean restricted = false;
+	boolean ordinal = false;
 	private ReferringExpression contrastSet;
 	
 	
@@ -93,6 +98,8 @@ public class ReferringExpression {
 			return false;
 		if (headTerm.get(0).stringValue().contains("-SET"))
 			return true;
+		if (headTerm.get(0).stringValue().equalsIgnoreCase("ONT::QUANTIFIER"))
+			return true;
 		return false;
 		
 	}
@@ -127,9 +134,30 @@ public class ReferringExpression {
 		return false;
 	}
 	
+	public static boolean modifiesReferredObject(KQMLList term, KQMLList context)
+	{
+		if (term.getKeywordArg(":ASSOC-POS") != null)
+		{
+			String posTerm = term.getKeywordArg(":ASSOC-POS").stringValue();
+			if (isReferredObject(KQMLUtilities.findTermInKQMLList(posTerm, context)))
+				return true;
+		}
+		if (term.getKeywordArg(":FIGURE") != null)
+		{
+			String figTerm = term.getKeywordArg(":FIGURE").stringValue();
+			if (isReferredObject(KQMLUtilities.findTermInKQMLList(figTerm, context)))
+				return true;			
+		}
+		
+		return false;
+	}
+	
 	public static boolean isUnderspecifiedReferredObject(KQMLList term)
 	{
 		if (term.getKeywordArg(":INSTANCE-OF") == null)
+			return false;
+		
+		if (term.getKeywordArg(":ELEMENT-TYPE") != null)
 			return false;
 
 		String instanceOf = term.getKeywordArg(":INSTANCE-OF").stringValue();
@@ -173,7 +201,7 @@ public class ReferringExpression {
 				lex = locationTerm.getKeywordArg(":LEX").stringValue();
 			
 			PredicateType result = PredicateType.fromString(ontType, lex);
-			if (result != null)
+			if (result != null && !PredicateType.isBinary(result))
 				predicates.add(new Predicate(result));
 			return result;
 		}
@@ -206,6 +234,30 @@ public class ReferringExpression {
 						.equalsIgnoreCase(getVariableName()))
 				{
 					subSelections.add(ontType);
+				}
+			}
+			
+			if (termList.getKeywordArg(":ORDINAL") != null)
+			{
+				System.out.println("Found ordinal subselection");
+				subSelections.add(termList.getKeywordArg(":ORDINAL").stringValue());
+				ordinal = true;
+			}
+		}
+		
+		KQMLObject modList = headTerm.getKeywordArg(":MODS");
+		if (modList != null && modList instanceof KQMLList)
+		{
+			for (KQMLObject symbol : (KQMLList)(modList))
+			{
+				KQMLList modTerm = KQMLUtilities.findTermInKQMLList(
+												symbol.stringValue(), tree);
+				
+				if (modTerm != null && modTerm.getKeywordArg(":INSTANCE-OF") != null)
+				{
+					if (modTerm.getKeywordArg(":INSTANCE-OF").stringValue()
+							.equalsIgnoreCase(FeatureConstants.LAST))
+						subSelections.add(modTerm.getKeywordArg(":INSTANCE-OF").stringValue());
 				}
 			}
 		}
@@ -255,6 +307,68 @@ public class ReferringExpression {
 		}
 	}
 	
+	public Feature getMaxFeatureValue(String featureName, Scene s)
+	{
+		UnorderedGroupingFeature result = evaluate(s);
+		Feature maxFeature = null;
+		
+		if (isPlural())
+		{
+			for (FeatureGroup element : result.getValue())
+			{
+				if (element instanceof UnorderedGroupingFeature && 
+						element.getFeatures().containsKey(featureName))
+				{
+					Feature currentFeature = element.getFeatures().get(featureName);
+					if (maxFeature == null)
+						maxFeature = currentFeature;
+					Comparator comparator = new ValueComparator();
+					if (comparator.compare(currentFeature, maxFeature) >= 0)
+						maxFeature = currentFeature;
+				}
+			}
+			
+			return maxFeature;
+		}
+		else
+		{
+			evaluate(s);
+			return pseudoInstance.getFeature(featureName);
+		}
+	}
+	
+	public Feature getMinFeatureValue(String featureName, Scene s)
+	{
+		UnorderedGroupingFeature result = evaluate(s);
+		Feature minFeature = null;
+		
+		if (isPlural())
+		{
+			for (FeatureGroup element : result.getValue())
+			{
+				if (element instanceof UnorderedGroupingFeature && 
+						element.getFeatures().containsKey(featureName))
+				{
+					Feature currentFeature = element.getFeatures().get(featureName);
+					if (minFeature == null)
+						minFeature = currentFeature;
+					Comparator comparator = new ValueComparator();
+					if (comparator.compare(currentFeature, minFeature) <= 0)
+						minFeature = currentFeature;
+				}
+			}
+			
+			return minFeature;
+		}
+		else
+		{
+			evaluate(s);
+			return pseudoInstance.getFeature(featureName);
+		}
+	}
+	
+	
+	
 	public String getInstanceOf()
 	{
 		if (headTerm.getKeywordArg(":INSTANCE-OF") != null)
@@ -286,7 +400,7 @@ public class ReferringExpression {
 	
 	public UnorderedGroupingFeature evaluate(Scene s)
 	{
-		Set<UnorderedGroupingFeature> matches = new HashSet<UnorderedGroupingFeature>();
+		Set<UnorderedGroupingFeature> objectTypeMatches = new HashSet<UnorderedGroupingFeature>();
 		
 		if (contrastSet != null)
 		{
@@ -296,19 +410,27 @@ public class ReferringExpression {
 				System.out.println("Self referential reference loop");
 				return null;
 			}
-				
+			
 			contrastSet.evaluate(s);
 			return contrastSet.inverseGroupingFeature;
 			
 		}
 		if (isRow())
 		{
-			matches.addAll(UnorderedRowFeature.rowsFromBlocks(
+			objectTypeMatches.addAll(UnorderedRowFeature.rowsFromBlocks(
 												s.integerBlockMapping.values()));
 		}
 		else if (isColumn())
 		{
-			matches.addAll(ColumnFeature.columnsFromBlocks(
+			// If we will refer to this using ordinals, put it into a temporal sequence
+			// feature to be chosen with subselection
+			if (ordinal)
+			{
+				objectTypeMatches.add(TemporalSequenceFeature.temporalSequenceFromBlocks(
+												s.integerBlockMapping.values()));
+			}
+			else
+				objectTypeMatches.addAll(ColumnFeature.columnsFromBlocks(
 					s.integerBlockMapping.values()));
 		}
 		else if (isBlock())
@@ -317,7 +439,7 @@ public class ReferringExpression {
 			{
 				UnorderedGroupingFeature ugf = new UnorderedGroupingFeature("block");
 				ugf.add(new BlockFeatureGroup(b));
-				matches.add(ugf);
+				objectTypeMatches.add(ugf);
 			}
 		}
 		// TODO: Add spaces at ground level between blocks
@@ -333,21 +455,21 @@ public class ReferringExpression {
 				newSpaceCenter.put(2, newZ);
 				UnorderedGroupingFeature ugf = new UnorderedGroupingFeature("space");
 				ugf.add(new BlockFeatureGroup(new Space(newSpaceCenter)));
-				matches.add(ugf);
+				objectTypeMatches.add(ugf);
 				
 			}
 		}
 		
 		
-		List<UnorderedGroupingFeature> results = filterByUnaryPredicates(matches);
+		List<UnorderedGroupingFeature> results = filterByUnaryPredicates(objectTypeMatches);
 		// Start generating the inverse set (objects which don't match)
 		if (isPlural())
-			matches.removeAll(results);
+			objectTypeMatches.removeAll(results);
 		else if (results.size() > 0)
-			matches.remove(results.get(0));
+			objectTypeMatches.remove(results.get(0));
 		
 		inverseGroupingFeature = new UnorderedGroupingFeature("inverse");
-		for (UnorderedGroupingFeature inverseMatch : matches)
+		for (UnorderedGroupingFeature inverseMatch : objectTypeMatches)
 		{
 			inverseGroupingFeature.add(inverseMatch);
 		}
@@ -399,6 +521,9 @@ public class ReferringExpression {
 	}
 	
 	
+	
+	// Return a list of UnorderedGroupingFeatures that are filtered by
+	// Unary predicates and subselections
 	private List<UnorderedGroupingFeature> filterByUnaryPredicates(
 								Set<UnorderedGroupingFeature> matches)
 	{
@@ -438,9 +563,17 @@ public class ReferringExpression {
 			if (ugf.getFeatures().get(selection) != null)
 			{
 				Feature f = ugf.getFeatures().get(selection);
+				System.out.println("Pulling subselection of " + selection);
 				if (f instanceof UnorderedGroupingFeature)
 					return (UnorderedGroupingFeature)f;
+				else
+				{
+					UnorderedGroupingFeature newUGF = new UnorderedGroupingFeature("subselection");
+					newUGF.add(f);
+					return newUGF;
+				}
 			}
+			
 		}
 		return ugf;
 	}
@@ -476,6 +609,20 @@ public class ReferringExpression {
 		
 		for (Predicate p : predicates)
 			sb.append(p.toString());
+		
+		for (String subselection : subSelections)
+		{
+			int ordinal = -1;
+			try {
+				ordinal = Integer.parseInt(subselection);
+			}
+			catch (NumberFormatException nfe)
+			{
+				continue;
+			}
+			if (ordinal != -1)
+				sb.append(LanguageGeneration.ordinalString(ordinal));
+		}
 
 		sb.append(" " + getObjectTypeString());
 		if ((headTerm.getKeywordArg(":SPEC") != null &&

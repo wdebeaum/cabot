@@ -177,7 +177,8 @@
   (compute-length-score (entry-size e)))
 
 (defun compute-length-score (size)
-  "computes a factor based on average prob. of a constituent of length L"
+  "computes a factor based on average prob. of a constituent of length L:
+      MUST return a score between 0 and 1"
   (let* ((number-constit (/ (or size 1) *word-length*))
 	 (raw-factor (compute-log-factor number-constit))
 	 (over-one (- raw-factor 1))
@@ -186,26 +187,27 @@
 		     (if (> *score-length-multiplier* 0)
 			 (+ 1 (* *score-length-multiplier* over-one))
 			 1))))
-    (max factor 1))
-  )
-
+    (min (- (max factor 1) 1) 1)
+  ))
 
 (defun compute-log-factor (n)
   (if (< n 2.7) 1
-      (let ((ll (- (log n) 1)))
-	(+ 1 (/ ll 3)))))
+      (log n)))
+    #||  (let ((ll (- (log n) 1)))
+	(+ 1 (/ ll 3)))))||#
 
 (defun corner-score (i)
   )
-
 
 (defun calculate-score (i)
   "This function computes the score for AGENDA_ITEM I for placement in the agenda. You may modify this to
      experiment with different scoring functions"
   (cond
    ((eql (agenda-item-start i) (agenda-item-end i)) 1) ;;  insurance check
-   (t (min (* (probability-score i) 
-	      (arc-length-score i)) 1))))
+   (t (min #|(* (probability-score i) 
+	      (arc-length-score i)) 1))))|#
+       (+ (probability-score i) 
+	  (* (- 1 (probability-score i)) (arc-length-score i))) 1))))
 
 (defun calculate-entry-score (e)
   "This is used for final output, so need not be efficient"
@@ -1014,11 +1016,13 @@
 (defun filter-sequences (msgs)
   "we are looking for sequences using punctuation that are not domain known entities already"
   (let ((sequences (remove-if-not #'(lambda (x)
-				      (and (not (message-domain-specific-info x))
-					   (member (message-pos x) '(w::NAME W::N))
+				      (progn
+					;(format t "~%~%message domain-specific-info:~S pos:~S word:~S" (message-domain-specific-info x) (message-pos x) (message-word x))
+					(and (not (message-domain-specific-info x))
+					     (intersection (message-pos x) '(W::NAME w::N))
 					   (let ((w  (coerce (message-word x) 'list)))
 					     (and (> (list-length w) 1)
-						  (intersection *sequence-separators* w  :test #'string-equal)))))
+						  (intersection *sequence-separators* w  :test #'string-equal))))))
 				  msgs)))
     (format t "~%~%SEQUENCES FOUND ARE ~S" sequences)
     (if (null sequences)

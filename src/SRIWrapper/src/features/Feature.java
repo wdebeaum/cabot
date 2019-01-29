@@ -14,6 +14,7 @@ public abstract class Feature<T> implements FeatureGroup{
 	protected String prettyName;
 	protected boolean constant;
 	private ReferringExpression source;
+	private boolean inferred;
 	
 	public Feature(String name)
 	{
@@ -21,6 +22,7 @@ public abstract class Feature<T> implements FeatureGroup{
 		prettyName = KQMLUtilities.cleanConcept(name);
 		constant = false;
 		source = null;
+		inferred = false;
 	}
 	
 	public abstract T getValue();
@@ -101,6 +103,14 @@ public abstract class Feature<T> implements FeatureGroup{
 		this.source = source;
 	}
 	
+	public void setInferred()
+	{
+		inferred = true;
+	}
 	
+	public boolean isInferred()
+	{
+		return inferred;
+	}
 	
 }

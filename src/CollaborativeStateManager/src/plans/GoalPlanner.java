@@ -115,6 +115,11 @@ public class GoalPlanner {
 	
 	}
 	
+	public void clearActiveGoal()
+	{
+		activeGoal = null;
+	}
+	
 	public Goal getGoalUnderDiscussion()
 	{
 		return underDiscussion;
@@ -295,7 +300,8 @@ public class GoalPlanner {
 			System.out.println("Set goal: " + newGoal.getVariableName() + " as active goal");
 			activeGoal = newGoal;
 		}
-		removeGoal(oldGoal.getVariableName());
+		
+		GoalRemover.removeGoal(this,oldGoal.getVariableName());
 		if (parent == null)
 			addGoal(newGoal,null);
 		else
@@ -304,24 +310,7 @@ public class GoalPlanner {
 		return true;
 	}
 	
-	public boolean removeGoal(String variableName)
-	{
-		String upperCaseVariableName = variableName.toUpperCase();
-		if (variableGoalMapping.containsKey(upperCaseVariableName))
-		{
-			Goal goalToRemove = variableGoalMapping.get(upperCaseVariableName);
-			if (activeGoal == goalToRemove)
-				activeGoal = null;
-			variableGoalMapping.remove(upperCaseVariableName);
-			if (idGoalMapping.containsKey(goalToRemove.getId()))
-				idGoalMapping.remove(goalToRemove.getId());
-			goalConnections.remove(goalToRemove);
-			return true;
-			// TODO: Remove child goals of removed parent
-		}
-		
-		return false;
-	}
+
 	
 	public Goal rollback()
 	{
@@ -832,6 +821,14 @@ public class GoalPlanner {
 
 	public HashMap<String, Goal> getIdGoalMapping() {
 		return idGoalMapping;
+	}
+
+	public HashMap<String, Goal> getVariableGoalMapping() {
+		return variableGoalMapping;
+	}
+
+	public HashMap<Goal, Goal> getGoalConnections() {
+		return goalConnections;
 	}
 	
 	

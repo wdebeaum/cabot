@@ -34,7 +34,7 @@ public class GoalStateHandler {
 	private GoalState goalState;
 	public SystemState systemState;
 	private ModelBuilder modelBuilder;
-	private SRIWrapper sriWrapper;
+	public SRIWrapper sriWrapper;
 	private static int nextId = 1;
 	private boolean checkingForGoalCompletion = false;
 	public String lastReplyWith = "";
@@ -268,6 +268,7 @@ public class GoalStateHandler {
 			return GoalMessages.suggestSomething(context);
 		}
 		
+		// The typical state for the latest version of the system
 		if (goalState == GoalState.ACCEPTED && (systemState == SystemState.LEARNING_DEMONSTRATION ||
 												systemState == SystemState.LEARNING_CONSTRAINTS))
 		{
@@ -382,6 +383,11 @@ public class GoalStateHandler {
 		
 	}
 	
+	/**
+	 * This preemptively checks a model being built against the known model to suggest 
+	 * that it may be done.
+	 * @param s
+	 */
 	public void checkNewScene(Scene s)
 	{
 		
@@ -405,13 +411,9 @@ public class GoalStateHandler {
 		String affectedResultVariable = affectedResult.stringValue();
 		KQMLList affectedResultTerm = 
 				KQMLUtilities.findTermInKQMLList(affectedResultVariable, currentContext);
-		String instanceType = affectedResultTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+
 		String lexName = affectedResultTerm.getKeywordArg(":LEX").stringValue();
 		
-		if (lexName.equalsIgnoreCase("W::COLUMN"))
-		{
-			
-		}
 		
 		ModelInstantiation mi = modelBuilder.getModelInstantiation(lexName);
 		if (mi == null)
@@ -463,7 +465,6 @@ public class GoalStateHandler {
 		String id = evaluateContent.getKeywordArg(":ID").stringValue();
 		KQMLObject asObject = evaluateContent.getKeywordArg(":AS");
 		KQMLList goalLF = KQMLUtilities.findTermInKQMLList(what, context);
-		String goalType = goalLF.getKeywordArg(":INSTANCE-OF").stringValue();
 		
 		Goal newGoal = new Goal(what, id, goalLF);
 		goalState = GoalState.ACCEPTED;

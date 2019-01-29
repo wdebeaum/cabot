@@ -18,10 +18,13 @@ import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
 import TRIPS.KQML.KQMLToken;
 import models.Constraint;
+import models.ConstraintBundle;
 import models.FeatureConstraint;
 import models.FeatureProjection;
+import models.GridModel2D;
 import models.ModelBuilder;
 import models.ModelInstantiation;
+import models.Response;
 import models.StructureConstraint;
 
 public class EvaluateHandler {
@@ -90,7 +93,7 @@ public class EvaluateHandler {
 		boolean satisfied = modelBuilder.getModelInstantiation(modelName)
 					.testModelOnStructureInstance(Scene.currentScene.integerBlockMapping.values());
 		
-		StringBuilder response = new StringBuilder();
+		
 		
 		if (modelBuilder.getModelInstantiation(modelName).getConstraints().isEmpty())
 		{
@@ -102,47 +105,7 @@ public class EvaluateHandler {
 					true,context);
 		}
 		
-		if (satisfied)
-			response.append("I think so, because ");
-		else
-			response.append("I don't think so, because ");
-		
-		int reasonNumber = 0;
-		for (Constraint c : modelBuilder.getModelInstantiation(modelName).getConstraints())
-		{
-			boolean constraintSatisfied = c.isSatisfied(Scene.currentScene);
-			if (reasonNumber > 0)
-			{
-				if (satisfied)
-				{
-					response.append(" and ");
-				}
-				else {
-					if (constraintSatisfied)
-						response.append(" even though ");
-					else
-						response.append(" but ");
-				}
-			}
-			if (c instanceof StructureConstraint)
-			{
-				if (((StructureConstraint)c).getSubject().isRestricted())
-				{
-					if (constraintSatisfied)
-						response.append("only ");
-					else
-						response.append("more than one of ");
-				}
-					
-				
-					
-			}
-			response.append("the ");
-			response.append(c.reason());
-			reasonNumber++;
-		}
-		response.append(".");
-		TextToSpeech.say(response.toString());
+		Response.isSatisfied(modelBuilder.getModelInstantiation(modelName), satisfied);
 		
 		return answerContent(content.getKeywordArg(":ID").stringValue(),
 							content.getKeywordArg(":QUERY").stringValue(),satisfied,context);
@@ -156,7 +119,7 @@ public class EvaluateHandler {
 		String eventLFSymbol = content.getKeywordArg(":QUERY").stringValue();
 		KQMLList eventLF = KQMLUtilities.findTermInKQMLList(eventLFSymbol, context);
 		
-		String propertySymbol = eventLF.getKeywordArg(":NEUTRAL").stringValue();
+		String propertySymbol = eventLF.getKeywordArg(":NEUTRAL1").stringValue();
 		KQMLList propertyTerm = KQMLUtilities.findTermInKQMLList(propertySymbol, context);
 		String property = propertyTerm.getKeywordArg(":INSTANCE-OF").stringValue();
 		
@@ -187,9 +150,18 @@ public class EvaluateHandler {
 		}
 		
 		StructureInstance structure = Scene.currentScene.getWholeStructureInstance("temp");
-		String result = structure.getFeature(property).toString();
 		
-		TextToSpeech.say("The " + KQMLUtilities.cleanConcept(property) + " is " + result + "blocks");
+		String result = "NIL";
+		if (structure != null && structure.hasFeature(property))
+		{
+			result = "" + Math.round((double)(structure.getFeature(property).getValue()));
+			
+			TextToSpeech.say("The " + KQMLUtilities.cleanConcept(property) + " is " + result + " blocks");
+		}
+		else
+		{
+			TextToSpeech.say("I'm sorry, I don't know what that property is.");
+		}
 		
 		return answerContent(result,context);
 	}
@@ -367,6 +339,8 @@ public class EvaluateHandler {
 		//if (modelBuilder.currentModel != null)
 		//	assertedObjectName = modelBuilder.currentModel.name;
 
+		
+		// This is for figuring out broadly what the object being described is
 		KQMLList assertionContentTerm = null;
 		KQMLList neutralList = null;
 		for (KQMLObject assertionObject : assertions)
@@ -396,23 +370,52 @@ public class EvaluateHandler {
 		
 		System.out.println("Model to learn: " + assertedObjectName);
 		ModelInstantiation currentInstantiation = modelBuilder.getModelInstantiation(assertedObjectName);
+		ConstraintBundle cb = null;
 		
 		if (currentInstantiation == null)
 		{
 			modelBuilder.processNewModel(assertedObjectName);
 			currentInstantiation = modelBuilder.getModelInstantiation(assertedObjectName);
 		}
-		int constraintsFound = 0;
+		
 		if (neutralList != null)
-			constraintsFound = currentInstantiation.getConstraintsFromKQML(assertionContentTerm, context);
+		{
+			cb = currentInstantiation.getConstraintsFromKQML(assertionContentTerm, context);
+			
+		}
 		else
 			System.out.println("No Neutral term to learn assertions");
 		
-		if (constraintsFound > 0 ||
+		if (cb != null && cb.size() > 0)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.append("Ok. It should be true that ");
+			int currentConstraint = 0;
+			for (Constraint c : cb.getConstraints())
+			{
+				sb.append(c.reason(true));
+				currentConstraint += 1;
+				if (cb.size() > currentConstraint)
+					sb.append(" and ");
+			}
+			TextToSpeech.say(sb.toString());
+			try {
+				Thread.sleep(1200);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			modelBuilder.processAssertion(content,context);
+		}
+		else if (proposedGoalType != null &&
 				proposedGoalType.equalsIgnoreCase("SHOW-EXAMPLE"))
 		{
 			TextToSpeech.say("Ok.");
 			modelBuilder.processAssertion(content,context);
+		}
+		else if (cb != null && cb.getReferringExpressions().size() > 0)
+		{
+			currentInstantiation.lastUnresolvedObjectReference = cb.getReferringExpressions().get(0);
 		}
 		else
 		{
@@ -446,6 +449,31 @@ public class EvaluateHandler {
 		// I want to show/teach you what a tower is
 		if (goalType.equalsIgnoreCase("ONT::SHOW") || goalType.equalsIgnoreCase("ONT::TEACH-TRAIN"))
 		{
+			if (goalLF.getKeywordArg(":NEUTRAL") != null)
+			{
+				String neutralSymbol = goalLF.getKeywordArg(":NEUTRAL").stringValue();
+				KQMLList neutralTerm = KQMLUtilities.findTermInKQMLList(neutralSymbol,
+												context);
+				if (neutralTerm.getKeywordArg(":INSTANCE-OF").stringValue().
+											equalsIgnoreCase("ONT::EXAMPLE"))
+				{
+					GridModel2D example = modelBuilder.generateExample();
+					if (example != null)
+					{
+						try {
+							BlockMessageSender.sendPostRequest(example.getBlocks());
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+						return goalStateHandler.generateGoal(content, context);
+					}
+					
+					
+				}
+			}
+			
 			if (goalType.equalsIgnoreCase("ONT::SHOW"))
 				goalStateHandler.systemState = SystemState.LEARNING_DEMONSTRATION;
 			else
@@ -476,9 +504,15 @@ public class EvaluateHandler {
 						}
 					}
 				}
+				
 			}
-			modelBuilder.processNewModel(whatPhraseTerm,context);
+			else {
+				return unacceptableContent(goalType, "ADOPT", id, goal, asObject);
+			
+			}
+			//
 			//modelBuilder.processNewModel(newModelName);
+			modelBuilder.processNewModel(whatPhraseTerm,context);
 			
 		}
 		

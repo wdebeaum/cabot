@@ -39,6 +39,8 @@ SRCS = 	SRIWrapper.java \
 	src/goals/Goal.java \
 	src/goals/GoalStateHandler.java \
 	src/messages/EvaluateHandler.java \
+	src/models/ModelInstantiation.java \
+	src/models/Response.java \
 	
 
 CLASSES = $(SRCS:.java=.class) \

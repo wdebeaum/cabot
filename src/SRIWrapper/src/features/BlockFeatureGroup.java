@@ -35,7 +35,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 	private void generateWidthFeature()
 	{
 		DistanceFeature result = new DistanceFeature("ONT::WIDTH");
-		DistanceFeature resultScale = new DistanceFeature("ONT::WIDTH-SCALE");
+		DistanceFeature resultScale = new DistanceFeature(FeatureConstants.WIDTH);
 		result.setValue(Block.BLOCK_WIDTH);
 		resultScale.setValue(Block.BLOCK_WIDTH);
 		setFeature(result);
@@ -44,7 +44,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 	
 	private void generateHeightFeature()
 	{
-		DistanceFeature result = new DistanceFeature("ONT::HEIGHT-SCALE");
+		DistanceFeature result = new DistanceFeature(FeatureConstants.HEIGHT);
 		result.setValue(Block.BLOCK_WIDTH);
 		setFeature(result);	
 	}

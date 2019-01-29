@@ -55,7 +55,7 @@ public class ColumnFeature extends UnorderedGroupingFeature {
 			
 			columns.add(column);
 		}
-		//System.out.println(columns.size() + " columns extracted");
+		System.out.println(columns.size() + " columns extracted");
 		return columns;
 	}
 	

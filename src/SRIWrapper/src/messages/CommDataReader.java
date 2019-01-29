@@ -12,6 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.json.simple.JSONArray;
@@ -19,6 +26,7 @@ import org.json.simple.JSONObject;
 
 import environment.Block;
 import environment.Scene;
+import goals.GoalStateHandler;
 import utilities.JsonReader;
 import utilities.TextToSpeech;
 
@@ -26,27 +34,55 @@ public class CommDataReader implements Runnable {
 
 	public volatile boolean stop = false;
 	private String apiIp;
+	private GoalStateHandler gsh;
 	
-	public CommDataReader(String apiIp)
+	public CommDataReader(String apiIp, GoalStateHandler gsh)
 	{
 		this.apiIp = apiIp;
+		this.gsh = gsh;
 	}
 	
 	@Override
 	public void run() {
+		
 		JSONObject streamInfoObject = JsonReader.readURL("http://" + apiIp + ":" + 
 				NetworkConfiguration.apiPort + "/human-comm-api/stream-info.json");
+		String url = null;
+		String hostName = null;
+		int portNumber = NetworkConfiguration.subscriptionPort;
 		if (streamInfoObject == null)
+		{
 			System.out.println("Error reading apiInfo");
+			hostName = "http://" + apiIp + "/human-comm-api/comm-data.json";
+			System.out.println("Hostname set to: " + hostName );
+		}
 		else
+		{
+			url = (String)streamInfoObject.get("streaming_url");
+			hostName = url.split(":")[0];
+			portNumber = Integer.parseInt(url.split(":")[1]);
 			System.out.println(streamInfoObject.toJSONString());
+		}
 		
-		String url = (String)streamInfoObject.get("streaming_url");
-		String hostName = url.split(":")[0];
-		int portNumber = Integer.parseInt(url.split(":")[1]);
+		try {
+			System.out.println("Starting server");
+			HttpServer server = HttpServer.create(new InetSocketAddress(NetworkConfiguration.subscriptionPort), 0);
+	        server.createContext("/human-comm-api/comm-data.json", new CommMessageHandler(gsh.sriWrapper));
+	        server.setExecutor(null); // creates a default executor
+	        server.start();
+	        System.out.println("Server started");
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		System.out.println("Sending subscription");
+		NetworkConfiguration.sendDefaultSubscriptionMessage();
 	
 		try (
-                Socket commSocket = new Socket(hostName, portNumber);
+				
+                //Socket commSocket = new Socket(hostName, portNumber);
+				Socket commSocket = new Socket(hostName, 1236);
                 BufferedReader in = new BufferedReader(
                     new InputStreamReader(commSocket.getInputStream()));
             ) {
@@ -76,7 +112,7 @@ public class CommDataReader implements Runnable {
                 		}
                 		
                 	}
-                	
+                	System.out.println("Text:" + (String)ASR.get("value"));
                 	handleSpeech((String)ASR.get("value"), targets);
                 }
             } catch (UnknownHostException e) {

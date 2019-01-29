@@ -6,7 +6,7 @@ import features.Feature;
 
 public class ValueComparator implements Comparator<Feature> {
 
-	public static double EQUALS_EPSILON = .1;
+	public static double EQUALS_EPSILON = .4;
 	
 	public ValueComparator() {
 		// TODO Auto-generated constructor stub

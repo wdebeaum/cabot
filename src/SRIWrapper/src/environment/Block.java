@@ -12,8 +12,8 @@ import TRIPS.KQML.KQMLList;
 
 public class Block implements BoundedVolume{
 
-	public final static double MAX_GROUND_HEIGHT = .09;
-	public final static double BLOCK_WIDTH = 0.171;
+	public final static double MAX_GROUND_HEIGHT = .1;
+	public final static double BLOCK_WIDTH = 0.15;
 	public final static double BLOCK_DIAMETER = .242; // BLOCK_WIDTH * sqrt(2)
 	int id;
 

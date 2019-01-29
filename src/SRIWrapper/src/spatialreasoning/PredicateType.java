@@ -16,6 +16,9 @@ public enum PredicateType {
 	BOTTOM("ONT::BOTTOM-LOCATION-VAL"),
 	TOP("ONT::TOP-LOCATION-VAL"),
 	MIDDLE("ONT::MIDDLE-LOCATION-VAL"),
+	SIDE("ONT::SIDE-LOCATION-VAL"),
+	SIDELOC("ONT::SIDE-LOCATION"),
+	SIDEPRED("ONT::PREDICATE", "W::ON-THE-SIDE"),
 	BETWEEN("ONT::BETWEEN"),
 	CENTER("ONT::CENTER"),
 	LEFT("ONT::LEFT"),
@@ -53,5 +56,20 @@ public enum PredicateType {
 		}
 		
 		return null;
+	}
+	
+	public static boolean isBinary(PredicateType pt)
+	{
+		switch (pt)
+		{
+		case ONTOPOF:
+		case HIGHER:
+		case LOWER:
+		case BETWEEN:
+		case BELOW:
+			return true;
+		default:
+			return false;	
+		}
 	}
 }
