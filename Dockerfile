@@ -22,7 +22,7 @@ RUN wget -nv http://nlp.stanford.edu/software/stanford-corenlp-full-2016-10-31.z
 RUN unzip stanford-corenlp-full-2016-10-31.zip
 
 RUN apt install -y openjdk-8-jdk perl
-WORKDIR /cogent/src/
+WORKDIR /cabot/src/
 
 RUN apt install -y build-essential
 # Set the locale
