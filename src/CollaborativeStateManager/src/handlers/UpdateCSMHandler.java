@@ -527,19 +527,10 @@ public class UpdateCSMHandler extends MessageHandler implements Runnable {
 		}
 		else if (acceptContent.get(0).stringValue().toUpperCase().contains("ASK"))
 		{
-			String query = null;
-			
-			if (acceptContent.getKeywordArg(":QUERY") != null)
-				query = acceptContent.getKeywordArg(":QUERY").stringValue();
-			
-			if (query == null)
-				query = acceptContent.getKeywordArg(":OF").stringValue();
 
-			
 			String what = "";
 			if (whatObject != null)
 				what = whatObject.stringValue();
-			String mapping = query + what;
 			
 			Goal foundQuery = goalPlanner.getGoalById(id);
 			if (foundQuery != null)

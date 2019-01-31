@@ -41,6 +41,7 @@ SRCS = 	SRIWrapper.java \
 	src/messages/EvaluateHandler.java \
 	src/models/ModelInstantiation.java \
 	src/models/Response.java \
+	src/messages/CommMessageHandler.java \
 	
 
 CLASSES = $(SRCS:.java=.class) \

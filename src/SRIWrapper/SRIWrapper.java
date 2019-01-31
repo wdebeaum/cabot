@@ -58,6 +58,7 @@ public class SRIWrapper extends StandardTripsModule  {
     private Thread blockMessageReaderThread;
     private Plan plan;
     private ModelBuilder modelBuilder;
+    private int uttnum = 1;
     
     private boolean connectToApparatus = true;
 	
@@ -215,13 +216,6 @@ public class SRIWrapper extends StandardTripsModule  {
 	}
 	try {
 	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (utterance . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
-	try {
-	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (TURN-FINISHED . *)))");
 	    send(perf);
 	} catch (IOException ex) {
@@ -230,20 +224,6 @@ public class SRIWrapper extends StandardTripsModule  {
 	try {
 	    KQMLPerformative perf =
 		KQMLPerformative.fromString("(subscribe :content (tell &key :content (START-CONVERSATION . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
-	try {
-	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (STARTED-SPEAKING . *)))");
-	    send(perf);
-	} catch (IOException ex) {
-	    error("Yow! Subscription failed: " + ex);
-	}
-	try {
-	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (STOPPED-SPEAKING . *)))");
 	    send(perf);
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
@@ -329,17 +309,15 @@ public class SRIWrapper extends StandardTripsModule  {
 		System.out.println("Connecting to block messages from apparatus...");
 		blockMessagePullerThread.start();
 	}
-	if (!NetworkConfiguration.simulated)
-	{
-	    commDataReader = new CommDataReader(NetworkConfiguration.apiIp);
-	    commDataReaderThread = new Thread(commDataReader);
-	    
-	    if (connectToApparatus)
-	    {
-	    	System.out.println("Connecting to comm messages from apparatus...");
-	    	commDataReaderThread.start();
-	    }
-	}
+	
+    commDataReader = new CommDataReader(NetworkConfiguration.apiIp, goalStateHandler);
+    commDataReaderThread = new Thread(commDataReader);
+    
+    if (connectToApparatus)
+    {
+    	System.out.println("Connecting to comm messages from apparatus...");
+    	commDataReaderThread.start();
+    }
     
     blockMessageReaderThread = null;
 	// Tell the Facilitator we are ready
@@ -676,6 +654,43 @@ public class SRIWrapper extends StandardTripsModule  {
 	{
 		//System.out.println("Sending performative: " + performative);
 		send(performative);
+	}
+	
+	public void sendText(String text)
+	{
+		try {
+		KQMLPerformative startedSpeaking = 
+				KQMLPerformative.fromString(
+						String.format("(tell :content (started-speaking :channel Desktop"
+								+ " :direction input :mode text :uttnum %d))",uttnum));
+		
+		sendKQMLPerformative(startedSpeaking);
+		
+		KQMLPerformative stoppedSpeaking = 
+				KQMLPerformative.fromString(
+						String.format("(tell :content (stopped-speaking :channel Desktop"
+								+ " :direction input :mode text :uttnum %d))",uttnum));
+		sendKQMLPerformative(stoppedSpeaking);
+		
+		KQMLPerformative word = 
+				KQMLPerformative.fromString(
+						String.format("(tell :content (word \"%s\" :index 1 :uttnum %d))",text, uttnum));
+		
+		sendKQMLPerformative(word);
+		
+		KQMLPerformative utterance = 
+				KQMLPerformative.fromString(
+						String.format("(tell :content (utterance :channel Desktop "
+								+ ":direction input :mode text :uttnum %d :text \"%s\"))",uttnum, text));
+		
+		sendKQMLPerformative(utterance);
+		}
+		catch (IOException ioe)
+		{
+			ioe.printStackTrace();
+		}
+		uttnum++;
+		
 	}
     
 	

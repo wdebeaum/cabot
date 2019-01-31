@@ -545,6 +545,7 @@ public class GoalPlanner {
 		
 	}
 	
+	// Not currently used?
 	public boolean createAskFromAct(String cpsa, KQMLList act, KQMLList context)
 	{
 		if (act.getKeywordArg(":WHAT") == null && act.getKeywordArg(":QUERY") == null)
@@ -733,23 +734,25 @@ public class GoalPlanner {
 			else
 				addGoal(newGoal,parent);
 			
+			queryMapping.put(newGoal.getId(), (Query)newGoal);
 			
 			// Hacky crap
-			String query = null;
-			if (act.getKeywordArg(":QUERY") != null)
-				query = act.getKeywordArg(":QUERY").stringValue();
-			if (query == null && act.getKeywordArg(":OF") != null)
-				query = act.getKeywordArg(":OF").stringValue();
-			
-			KQMLObject whatObject = act.getKeywordArg(":WHAT");
-			if (query == null)
-				query = "";
-			String what = "";
-			if (whatObject != null)
-				what = whatObject.stringValue();
-			String mapping = query + what;
-			queryMapping.put(mapping, (Query)newGoal);
-			queryMapping.put(query, (Query)newGoal);
+			// IP: Taken out because we should have IDs now
+//			String query = null;
+//			if (act.getKeywordArg(":QUERY") != null)
+//				query = act.getKeywordArg(":QUERY").stringValue();
+//			if (query == null && act.getKeywordArg(":OF") != null)
+//				query = act.getKeywordArg(":OF").stringValue();
+//			
+//			KQMLObject whatObject = act.getKeywordArg(":WHAT");
+//			if (query == null)
+//				query = "";
+//			String what = "";
+//			if (whatObject != null)
+//				what = whatObject.stringValue();
+//			String mapping = query + what;
+//			queryMapping.put(mapping, (Query)newGoal);
+//			queryMapping.put(query, (Query)newGoal);
 		}
 		
 		if (cpsa.equals("ACCEPT"))

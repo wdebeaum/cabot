@@ -38,14 +38,14 @@ SPEECH_LIBS = \
 include config/speech-out/defs.mk
 
 SPEECH_PROGRAMS = \
-	SpeechOutNot \
-	Sphinx3 \
-	SpeechIn3 \
-	SpeechLM \
-	SpeechController \
-	SpeechOut \
-	$(SPEECH_OUT_COMPONENT) \
-	SpeechOutServer
+#	SpeechOutNot \
+#	Sphinx3 \
+#	SpeechIn3 \
+#	SpeechLM \
+#	SpeechController \
+#	SpeechOut \
+#	$(SPEECH_OUT_COMPONENT) \
+#	SpeechOutServer
 
 JAVA_PROGRAMS = \
 	Facilitator \
@@ -53,8 +53,8 @@ JAVA_PROGRAMS = \
 	KeyboardManager \
 	JavaWrapper \
 	Conceptualizer \
-	CollaborativeStateManager
-#	SRIWrapper 
+	CollaborativeStateManager \
+	SRIWrapper 
 
 OTHER_PROGRAMS = \
 	TextPP \

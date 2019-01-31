@@ -42,7 +42,7 @@ public class Query extends Goal {
 		else if (parent != null)
 			querySymbol = parent.getId();
 		else
-			querySymbol = null;
+			querySymbol = "-";
 		
 		String what;
 		queryWhat = null;
