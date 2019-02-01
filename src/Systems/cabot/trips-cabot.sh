@@ -40,7 +40,7 @@ TRIPS_VOICE_DEFAULT=Daniel
 #
 # Command-line
 
-usage="trips-$TRIPS_SYSNAME [-debug] [-port 6200] [-logdir DIR] [-nouser] [-nolisp] [-nocsm] [-nochat] [-showgen] [-showtraffic] [-display tty] [-apparatusip <ip address>]"
+usage="trips-$TRIPS_SYSNAME [-debug] [-port 6200] [-logdir DIR] [-nouser] [-nolisp] [-nocsm] [-nochat] [-showgen] [-showtraffic] [-display tty] [-apparatusip <ip address>] [-docker]"
 
 debug=false
 port=''
@@ -60,6 +60,7 @@ nochat=''
 nobeep=''
 noapparatus=f
 sriba=f
+docker=f
 # dev options
 nouser=''
 nolisp=''
@@ -93,6 +94,7 @@ while test ! -z "$1"; do
 	-quiet)		nospeech=t; nobeep=t;;
 	-noapparatus)	noapparatus=t;;
 	-sriba)      sriba=t;;
+	-docker)	docker=t;;
 	-showgen)	showgen=t;;
 	-showtraffic)	showtraffic=t;;
 	-testmode)	testmode=t;;
@@ -207,21 +209,8 @@ cat - <<_EOF_ >>/tmp/trips$$
 			  "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
 			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
 			  "$TRIPS_BASE/src/SRIWrapper/src")
-	   :argv ($port_opt $noapparatus $sriba $apparatusip)))
-(request
- :receiver facilitator
- :content (start-module
-	:name Conceptualizer
-	    :class TRIPS.Conceptualizer.Conceptualizer
-	:urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.Conceptualizer.jar"
-		       "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-		       "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-		       "$TRIPS_BASE/etc/java/TRIPS.util.jar"
-		       "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
-		       "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
-		       "$TRIPS_BASE/src/Conceptualizer/src")
-	:argv ($port_opt $TRIPS_SYSNAME)))
-_EOF_
+	   :argv ($port_opt $noapparatus $sriba $docker $apparatusip)))
+
 
 # CSM
 if test -z "$nocsm"; then

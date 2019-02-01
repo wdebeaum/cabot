@@ -99,8 +99,16 @@ public class SRIWrapper extends StandardTripsModule  {
 	    	}
 	    	if (argv.length > 4)
 	    	{
-			System.out.println("Apparatus IP specified as: |" + argv[4] + "|");
-	    		NetworkConfiguration.apiIp = argv[4];
+	    		if (argv[4].contains("t"))
+	    		{
+	    			System.out.println("Docker enabled");
+		    	    NetworkConfiguration.docker = true;
+	    		}
+	    	}
+	    	if (argv.length > 5)
+	    	{
+	    		System.out.println("Apparatus IP specified as: |" + argv[5] + "|");
+	    		NetworkConfiguration.apiIp = argv[5];
 	    	}
     }
 

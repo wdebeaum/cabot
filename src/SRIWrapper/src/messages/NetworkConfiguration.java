@@ -17,16 +17,24 @@ public class NetworkConfiguration {
 	public static final String ttsIp = "localhost";
 	public static final int ttsPort = 1528;
 	public static boolean simulated = true;
+	public static boolean docker = false;
 	
 	public static void sendSubscriptionMessage(String type, List<String> subscriptions)
 	{
 		JSONObject subscriptionRequest = new JSONObject();
 		
 		subscriptionRequest.put("type", type);
-		try {
-			subscriptionRequest.put("address", InetAddress.getLocalHost().getHostAddress());
-		} catch (UnknownHostException e1) {
-			subscriptionRequest.put("address", "");
+		if (docker)
+		{
+			subscriptionRequest.put("address", "localhost");
+		}
+		else
+		{
+			try {
+				subscriptionRequest.put("address", InetAddress.getLocalHost().getHostAddress());
+			} catch (UnknownHostException e1) {
+				subscriptionRequest.put("address", "");
+			}
 		}
 		subscriptionRequest.put("port", NetworkConfiguration.subscriptionPort);
 		JSONArray jsonSubscriptions = new JSONArray();
