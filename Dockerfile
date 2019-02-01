@@ -44,4 +44,4 @@ RUN ./configure --with-lisp=sbcl
 RUN make
 RUN make install
 
-CMD ['/cabot/bin/trips-cabot', '-nochat', '-sriba', '-apparatusip', 'host.docker.internal']
+CMD ["/cabot/bin/trips-cabot", "-display", "tty", "-sriba", "-docker", "-apparatusip", "host.docker.internal"]
