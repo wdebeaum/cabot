@@ -210,7 +210,20 @@ cat - <<_EOF_ >>/tmp/trips$$
 			  "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
 			  "$TRIPS_BASE/src/SRIWrapper/src")
 	   :argv ($port_opt $noapparatus $sriba $docker $apparatusip)))
-
+(request
+ :receiver facilitator
+ :content (start-module
+	:name Conceptualizer
+	    :class TRIPS.Conceptualizer.Conceptualizer
+	:urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.Conceptualizer.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
+		       "$TRIPS_BASE/etc/java/TRIPS.util.jar"
+		       "$TRIPS_BASE/etc/java/json-simple-1.1.1.jar"
+		       "$TRIPS_BASE/etc/java/jblas-1.2.3.jar"
+		       "$TRIPS_BASE/src/Conceptualizer/src")
+	:argv ($port_opt $TRIPS_SYSNAME)))
+_EOF_
 
 # CSM
 if test -z "$nocsm"; then
