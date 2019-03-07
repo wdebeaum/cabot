@@ -288,7 +288,8 @@
 
 (define-type ont::pay-attention
  :parent ont::cogitation
- :wordnet-sense-keys ("watch%2:39:01" "attend%2:39:00")
+ :wordnet-sense-keys ("attend%2:39:00")
+ :comment "focus attention on something"
 )
 
 ;(define-type ONT::mental-action
@@ -701,7 +702,8 @@
  :parent ONT::event-of-causation
  :sem (F::Situation (:required (F::trajectory -))(:default (F::Cause F::agentive) (F::aspect F::dynamic) (F::time-span F::extended)))
  :arguments ((:REQUIRED ONT::Agent (F::Phys-obj (f::origin f::living)))
-             (:REQUIRED ONT::Affected (F::Phys-obj (F::mobility F::movable) (F::form F::substance) (f::object-function f::comestible)))   
+             (:REQUIRED ONT::Affected (F::Phys-obj (F::mobility F::movable) ;(F::form F::substance) ; allows f::solid-object also (e.g., animals)
+						   (f::object-function f::comestible)))   
              )
  )
 
@@ -714,7 +716,7 @@
 (define-type ONT::eat
  :wordnet-sense-keys ("eat%2:34:00" "eat%2:34:02")
  :parent ONT::consume
-  :arguments ((:REQUIRED ONT::Affected (F::Phys-obj (F::Form f::solid))))
+  :arguments ((:REQUIRED ONT::Affected (F::Phys-obj (F::Form (? f f::solid f::solid-object)))))
  )
 
 
@@ -828,7 +830,7 @@
  :sem (F::Situation (F::Aspect F::static) (F::Time-span F::extended) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::neutral )
 	     ;; this is still here until we decide what to do with the formal-pred mappings for be
-	     (:optional ONT::formal (F::Abstr-obj))
+	     (:essential ONT::formal (F::Abstr-obj (f::type (? cbd ont::domain-property ont::position-reln))))
 ;             (:ESSENTIAL ONT::PROPERTY ((? oc2 F::abstr-obj))) ;; only properties (preds) -- for event nouns use ont::have-experience or ont::participating
              )
  )

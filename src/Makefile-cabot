@@ -1,6 +1,6 @@
 # Makefile-cabot
 #
-# Time-stamp: <Wed Jul 25 18:13:57 CDT 2018 lgalescu>
+# Time-stamp: <Tue Feb  5 22:39:01 CST 2019 lgalescu>
 #
 # Author: Lucian Galescu <lgalescu@ihmc.us>, 14 Oct 2015
 #
@@ -52,7 +52,6 @@ JAVA_PROGRAMS = \
 	GroundingModule \
 	KeyboardManager \
 	JavaWrapper \
-	Conceptualizer \
 	CollaborativeStateManager \
 	SRIWrapper 
 

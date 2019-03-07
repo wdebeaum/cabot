@@ -6,6 +6,7 @@ public class FeatureConstants {
 	public static final String WIDTH = "ONT::WIDTH-SCALE";
 	public static final String SIZE = "ONT::SIZE-SCALE";
 	public static final String CENTER = "ONT::CENTER";
+	public static final String CENTEROFMASS = "ONT::LOC-AS-POINT";
 	public static final String LOCATION = "ONT::LOCATION";
 	public static final String ORIGIN = "ONT::STARTPOINT";
 	public static final String END = "ONT::ENDPOINT";

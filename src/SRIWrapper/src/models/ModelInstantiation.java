@@ -290,27 +290,28 @@ public class ModelInstantiation {
 			KQMLList termList = (KQMLList)term;
 			
 			// Cases of "only" as in "only the left column has a height greater than one"
-			if (termList.getKeywordArg(":INSTANCE-OF").stringValue().
-					equalsIgnoreCase("ONT::RESTRICTION") && 
+			if (isRestricted(termList.getKeywordArg(":INSTANCE-OF").stringValue()) && 
 					refExpParser.getHeadReferringExpression() != null)
 			{
 				refExpParser.getHeadReferringExpression().setRestricted(true);
 			}
 		}
 		
-		Set<Constraint> featureConstraintsFound = featureParser.extractFeatures();
+		Set<Constraint> constraintsFound = featureParser.extractFeatures();
 		
 		// Remove inferred constraints if we found others
-		if (featureConstraintsFound.size() > 1)
+		if (constraintsFound.size() > 1)
 		{
-			for (Constraint c : featureConstraintsFound)
+			for (Constraint c : constraintsFound)
 			{
-				if (!((FeatureConstraint)c).isInferred())
+				if (c instanceof FeatureConstraint && !((FeatureConstraint)c).isInferred())
+					cb.add(c);
+				if (c instanceof StructureConstraint && !((StructureConstraint)c).isInferred())
 					cb.add(c);
 			}
 		}
 		else
-			cb.addAll(featureConstraintsFound);
+			cb.addAll(constraintsFound);
 		
 		//cb.addAll(featureConstraintsFound);
 
@@ -539,6 +540,12 @@ public class ModelInstantiation {
 	{
 		if (lastConstraint != null && constraints.contains(lastConstraint))
 			constraints.remove(lastConstraint);
+	}
+	
+	public static boolean isRestricted(String instanceType)
+	{
+		return (instanceType.equalsIgnoreCase("ONT::RESTRICTION") ||
+				instanceType.equalsIgnoreCase("ONT::EVAL-WRT-EXPECTATION"));
 	}
 	
 }

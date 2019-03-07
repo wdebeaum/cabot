@@ -3,6 +3,7 @@ package models;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,7 @@ public class ReferringExpressionParser {
 			{
 				subjectVariable = subjectTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression subject = new ReferringExpression(subjectTerm,context);
+				
 				headReferringExpression = subject;
 				referringExpressions.put(subjectVariable,subject);
 				
@@ -78,6 +80,17 @@ public class ReferringExpressionParser {
 				String variable = headTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression newRef = new ReferringExpression(headTerm,context);
 				referringExpressions.put(variable, newRef);
+			}
+		}
+		
+		// Remove "structure" if there is a legit referring expression
+		if (referringExpressions.size() > 1 && referringExpressions.containsKey("structure"))
+		{
+			referringExpressions.remove("structure");
+			for (ReferringExpression re : referringExpressions.values())
+			{
+				headReferringExpression = re;
+				break;
 			}
 		}
 		

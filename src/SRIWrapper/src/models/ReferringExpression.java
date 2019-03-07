@@ -461,7 +461,7 @@ public class ReferringExpression {
 		}
 		
 		
-		List<UnorderedGroupingFeature> results = filterByUnaryPredicates(objectTypeMatches);
+		List<UnorderedGroupingFeature> results = filterByUnaryPredicates(objectTypeMatches,s);
 		// Start generating the inverse set (objects which don't match)
 		if (isPlural())
 			objectTypeMatches.removeAll(results);
@@ -525,7 +525,7 @@ public class ReferringExpression {
 	// Return a list of UnorderedGroupingFeatures that are filtered by
 	// Unary predicates and subselections
 	private List<UnorderedGroupingFeature> filterByUnaryPredicates(
-								Set<UnorderedGroupingFeature> matches)
+								Set<UnorderedGroupingFeature> matches, Scene s)
 	{
 		List<UnorderedGroupingFeature> results = 
 				new ArrayList<UnorderedGroupingFeature>();
@@ -547,7 +547,7 @@ public class ReferringExpression {
 			
 			for (Predicate predicate : predicates)
 			{
-				if (predicate.evaluate(element))
+				if (predicate.evaluate(element,s))
 					results.add(getSubselection(element));
 			}
 		}

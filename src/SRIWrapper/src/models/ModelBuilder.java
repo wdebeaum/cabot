@@ -93,7 +93,8 @@ public class ModelBuilder {
 					content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
 
 		double value;
-
+			
+		
 		try 
 		{
 			value = FeatureParser.extractDoubleValue(content, context);
@@ -105,9 +106,13 @@ public class ModelBuilder {
 			if (valueList != null && valueList.getKeywordArg(":QUAN") != null)
 			{
 				value = 10;
+				
 			}
-			TextToSpeech.say("Hmm, I don't quite understand.");
-			return EvaluateHandler.unacceptableAnswerContent(content);
+			else
+			{
+				TextToSpeech.say("Hmm, I don't quite understand.");
+				return EvaluateHandler.unacceptableAnswerContent(content);
+			}
 		}
 		System.out.println("Value from response: " + value);
 		lastConstraintAsked.setValue(value);
@@ -346,6 +351,8 @@ public class ModelBuilder {
 		
 		KQMLList whatTerm = new KQMLList();
 		whatTerm.add("ONT::WH-TERM");
+		whatTerm.add(":INSTANCE-OF");
+		whatTerm.add("ONT::REFERENTIAL-SEM");
 		whatTerm.add(whatVariable);
 		
 		

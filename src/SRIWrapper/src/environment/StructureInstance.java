@@ -170,32 +170,54 @@ public class StructureInstance implements FeatureGroup {
 		averagePosition.muli(new DoubleMatrix(new double[]{1,1,0}));
 		for (Block b : blocks)
 		{
-			
-			System.out.println("Block:");
-			System.out.println(b.position);
+
 			if (b.position.get(2) > maxHeight)
 				maxHeight = b.position.get(2);
 			
 			if (b.getZ() < Block.MAX_GROUND_HEIGHT) {
+				
 				DoubleMatrix groundPosition = b.position.mul(new DoubleMatrix(new double[]{1,1,0}));
+				
 				double distance = averagePosition.distance2(groundPosition);
 				if (distance > maxDistanceFromCenter)
 					maxDistanceFromCenter = distance;
 			}
 		}
-		System.out.println("Widthscale before: " + widthScaleFeature.getValue());
-		widthFeature.setValue(maxDistanceFromCenter * 2 / Block.BLOCK_WIDTH + 1);
-		widthScaleFeature.setValue(maxDistanceFromCenter * 2 / Block.BLOCK_WIDTH + 1);
+		//System.out.println("Widthscale before: " + widthScaleFeature.getValue());
+		widthFeature.setValue(generateWidthFeature());
+		widthScaleFeature.setValue(generateWidthFeature());
 		radiusFeature.setValue(maxDistanceFromCenter / Block.BLOCK_WIDTH + .5);
 		diameterFeature.setValue(maxDistanceFromCenter * 2 / Block.BLOCK_WIDTH + 1);
 		heightFeature.setValue((maxHeight + Block.BLOCK_WIDTH / 2) / Block.BLOCK_WIDTH);
-		System.out.println("Widthscale after: " + widthScaleFeature.getValue());
-		System.out.println("Heightscale after: " + heightFeature.getValue());
+		//System.out.println("Widthscale after: " + widthScaleFeature.getValue());
+		//System.out.println("Heightscale after: " + heightFeature.getValue());
 		setFeature(heightFeature);
 		setFeature(widthFeature);
 		setFeature(widthScaleFeature);
 		setFeature(radiusFeature);
 		setFeature(diameterFeature);
+	}
+	
+
+	
+	private double generateWidthFeature()
+	{
+		double maxX = Double.MIN_VALUE;
+		double minX = Double.MAX_VALUE;
+		for (Block b : blocks)
+		{
+
+			
+			if (b.getX() - Block.BLOCK_WIDTH / 2 < minX)
+				minX = b.getX() - Block.BLOCK_WIDTH / 2;
+			
+			if (b.getX() + Block.BLOCK_WIDTH / 2 > maxX)
+				maxX = b.getX() + Block.BLOCK_WIDTH / 2;
+			
+		}
+
+		return (maxX - minX) / Block.BLOCK_WIDTH;
+		
 	}
 	
 	public DoubleMatrix getAveragePosition()

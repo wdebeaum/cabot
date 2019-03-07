@@ -47,7 +47,7 @@ public class StructureConstraint implements Constraint {
 	
 	public boolean isSatisfied(Scene s, ReferringExpression newSubject)
 	{
-		newSubject.evaluate(s);
+		UnorderedGroupingFeature referredBlocks = newSubject.evaluate(s);
 		
 		System.out.println(this);
 		System.out.println("has " + 
@@ -58,7 +58,11 @@ public class StructureConstraint implements Constraint {
 		for (ReferringExpression object : objects)
 			object.evaluate(s);
 		
-		if (featureConstraint != null && !featureConstraint.isSatisfied(s))
+		Scene subjectScene = new Scene();
+		subjectScene.addBlocks(referredBlocks.getBlocks());
+		
+		//if (featureConstraint != null && !featureConstraint.isSatisfied(s))
+		if (featureConstraint != null && !featureConstraint.isSatisfied(subjectScene))
 			return false;
 		
 		// If restricted, check all other referring expressions of the same type
@@ -91,6 +95,11 @@ public class StructureConstraint implements Constraint {
 	public boolean isSatisfied()
 	{
 		return isSatisfied(Scene.currentScene);
+	}
+	
+	public boolean isInferred()
+	{
+		return featureConstraint.isInferred();
 	}
 	
 	public String toString()

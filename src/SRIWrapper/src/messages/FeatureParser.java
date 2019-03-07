@@ -248,7 +248,17 @@ public class FeatureParser {
 		if (extractedFeature != null &&
 				extractedFeature.getName() == FeatureConstants.NUMBER &&
 				!scales.isEmpty())
-			extractedFeature = structureInstance.getFeature(scales.get(0));
+		{
+			for (String replacementScale : scales)
+			{
+				 if (structureInstance.hasFeature(replacementScale))
+				 {
+					 System.out.println("Replacing NUMBER with scale: " + replacementScale);
+					 extractedFeature = structureInstance.getFeature(replacementScale);
+				 }
+			}
+			
+		}
 		
 		if (headReferringExpression != null)
 			System.out.println("Feature refexp: " + headReferringExpression.toString());
@@ -351,6 +361,7 @@ public class FeatureParser {
 				int value = Integer.parseInt(groundTerm.getKeywordArg(":VALUE").stringValue());
 				groundFeature.setValue(value);
 				groundFeature.setConstant(true);
+				System.out.println("Ground value: " + value);
 			}
 		}
 		

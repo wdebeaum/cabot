@@ -400,7 +400,7 @@ public class EvaluateHandler {
 			}
 			TextToSpeech.say(sb.toString());
 			try {
-				Thread.sleep(1200);
+				Thread.sleep(1600);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -507,6 +507,7 @@ public class EvaluateHandler {
 				
 			}
 			else {
+				TextToSpeech.say("Sorry, I'm having trouble doing that.");
 				return unacceptableContent(goalType, "ADOPT", id, goal, asObject);
 			
 			}

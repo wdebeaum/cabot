@@ -74,7 +74,7 @@
 	      (create-fake-WF-result-from-ont-type w ont-sense-tags pos-list score)))
 	 (wf-entry (and wf-string (stringp wf-string) (read-from-string wf-string)))
 	 senselist res)
-    (print-debug "WF returns ~S~%" wf-entry )
+    (print-debug "WF retrieval yields ~S~%" wf-entry )
     
     ;; filter these if we are filtering by ont::type
     (when (and (found-wordp wf-entry) (not (null wf-entry)))
@@ -120,7 +120,7 @@
 			     (eq (cadr word) (vocabulary-entry-particle (third x)))))
 			 (getworddefs (car word) *lexicon-data*))
       (getworddefs word *lexicon-data*)))
-      
+
 (defun get-senses-for-words (w words-to-replicate lf pos)
   (let (filtered-words templates-to-replicate senses-to-replicate)
     (dolist (word-pair words-to-replicate)
@@ -138,19 +138,24 @@
 	      (if (eq (sense-definition-lf-parent sense) lf)
 		  (pushnew (list (sense-definition-templ sense) (sense-definition-params sense)) templates-to-replicate  :test #'equal))
 	      )))))
-    ;; create the replicated senses
-    (print-debug "~% templates to replicate = ~S" templates-to-replicate)
-    (dolist (template templates-to-replicate)
-      (pushnew (make-sense-definition :pos pos :lf (list :* lf w) :nonhierarchy-lf nil
-								  :pref *no-kr-probability*
-								  :lf-form (if (listp w) (make-into-symbol w) w)
-								  :lf-parent lf
-								  :templ (first template)
-								  :params (second template)
-								  :boost-word nil) senses-to-replicate :test #'equal))
-    senses-to-replicate)
-  )
-
+    (if templates-to-replicate
+	(progn
+	  ;; create the replicated senses
+	  (print-debug "~% templates to replicate = ~S" templates-to-replicate)
+	  (dolist (template templates-to-replicate)
+	    (pushnew (make-sense-definition :pos pos :lf (list :* lf w) :nonhierarchy-lf nil
+					    :pref *no-kr-probability*
+					    :lf-form (if (listp w) (make-into-symbol w) w)
+					    :lf-parent lf
+					    :templ (first template)
+					    :params (second template)
+					    :boost-word nil) senses-to-replicate :test #'equal))
+	  senses-to-replicate)
+	;;  sense had no words associated with it, try a subtype
+	(let ((children (om::get-children lf)))
+	  (when children
+	    (get-senses-for-words w (get-words-from-lf (car children)) (car children) pos) 
+	)))))
 
 (defun make-default-sense (w lf pos)
   (let ((lfform (if (listp w) (make-into-symbol w) w))
@@ -426,9 +431,11 @@
 	;			(eq (second (fourth x)) 'w::word))
 	;		     (get-word-def w nil)))
 	 (entries (remove-if-not #'(lambda (x)
-				(eq (second (fourth x)) 'w::n))
-			     (get-word-def w nil)))
-	 (c (cddr (fourth (first entries))))
+				     (and (eq (second (fourth x)) 'w::n)
+					  (equal (second x) w))) ; remove multi-words that are returned with the single word lookup
+				 (get-word-def w nil)))
+	 (entries-sorted (sort entries #'> :key #'third))
+	 (c (cddr (fourth (first entries-sorted))))
 	 (lf (parser::get-fvalue c 'w::lf)))
     (second lf)))
     
@@ -619,7 +626,7 @@
   (let ((this-entry (make-replica-entry word lf pos trips-sense-list))
 	sense-defs maps res roles)
 	 (when this-entry
-	   (print-debug "generating senses for entry ~S~%" this-entry)
+	  ;; (print-debug "generating senses for entry ~S~%" this-entry)
 	   (setq sense-defs (make-word-sense-definitions this-entry (lexicon-db-synt-table *lexicon-data*)))
 	   (when sense-defs
 	     (dolist (this-sense sense-defs)
@@ -627,7 +634,7 @@
 	       (setq roles (word-sense-definition-roles this-sense))
 	       (if (consistent-features (word-sense-definition-syntax this-sense) syntax)
 		   (let* ((new-entry (make-word-sense-definition
-				      :name wid
+				      :name (gentemp (symbol-name wid))
 				      :pos pos
 				      :lf `(:* ,lf ,lfform)
 				      :sem sem

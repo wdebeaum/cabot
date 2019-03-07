@@ -579,29 +579,6 @@ ONT::INTERACT
 	  :destination 'propose-cps-act-response
 	  )
 
-	 (transition
-	  :description "CSM returns a successful proposal interpretation"
-	  :pattern '((BA-RESPONSE X REPORT
-		      :psact (? act ADOPT ASSERTION ASSERT ASK-WH ASK-IF SELECT)
-		      :id ?!goal :as ?as 
-		      :content ?content :context ?new-akrl :alternative ?alt-as)
-		     ;;(BA-RESPONSE X ?!X :content ((? act ADOPT ASSERTION) :what ?!goal :as ?as :alternative ?alt-as) :context ?new-akrl)
-		     (ont::eval (find-attr :result nil :feature possible-goal))
-		     -successful-interp1>
-		     (UPDATE-CSM (PROPOSED :content ?content
-				  :context ?new-akrl))
-		     (RECORD PROPOSAL-ON-TABLE (ONT::PROPOSE-GOAL
-						:content ?content
-						:context ?new-akrl))
-		     (RECORD ACTIVE-GOAL ?!goal)
-		     (RECORD ALT-AS ?alt-as)
-		     (RECORD ACTIVE-CONTEXT ?new-akrl)
-		     (INVOKE-BA :msg (EVALUATE 
-				      :content ?content
-				      :context ?new-akrl))
-		     )
-	  :destination 'propose-cps-act-response
-	  )
 
 
 	 (transition
@@ -629,6 +606,34 @@ ONT::INTERACT
 		     )
 	  :destination 'confirm-goal-with-BA
 	  )
+
+	 (transition
+	  :description "CSM returns a successful proposal interpretation"
+	  :pattern '((BA-RESPONSE X REPORT
+		      :psact (? act ADOPT ASSERTION ASSERT ASK-WH ASK-IF SELECT)
+		      :id ?!goal :as ?as 
+		      :content ?content :context ?new-akrl :alternative ?alt-as)
+		     ;;(BA-RESPONSE X ?!X :content ((? act ADOPT ASSERTION) :what ?!goal :as ?as :alternative ?alt-as) :context ?new-akrl)
+		     ;(ont::eval (find-attr :result nil :feature possible-goal))
+		     -successful-interp1>
+		     (UPDATE-CSM (PROPOSED :content ?content
+				  :context ?new-akrl))
+		     (RECORD PROPOSAL-ON-TABLE (ONT::PROPOSE-GOAL
+						:content ?content
+						:context ?new-akrl))
+		     (RECORD POSSIBLE-GOAL nil)
+		     (RECORD POSSIBLE-GOAL-ID nil)
+		     (RECORD POSSIBLE-GOAL-CONTEXT nil)
+		     (RECORD ACTIVE-GOAL ?!goal)
+		     (RECORD ALT-AS ?alt-as)
+		     (RECORD ACTIVE-CONTEXT ?new-akrl)
+		     (INVOKE-BA :msg (EVALUATE 
+				      :content ?content
+				      :context ?new-akrl))
+		     )
+	  :destination 'propose-cps-act-response
+	  )
+
 	 
 	 (transition
 	  :description "CSM returns a successful ANSWER interpretation"  
@@ -1149,7 +1154,7 @@ ONT::INTERACT
 	))
 
 (add-state 'clarify-abandon
- (state :action '(GENERATE :content (ONT::CLARIFY-ABANDON :content (V abandon-id) :context (V possible-res-context))) ; "do you still want to do abandon-id?
+ (state :action '(GENERATE :content (ONT::CLARIFY-ABANDON :content (V abandon-id)) :context (V possible-res-context)) ; "do you still want to do abandon-id?
 	:preprocessing-ids '(yes-no)
 	:implicit-confirm t
 	:transitions

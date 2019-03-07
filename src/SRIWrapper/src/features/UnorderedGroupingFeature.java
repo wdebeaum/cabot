@@ -18,6 +18,7 @@ public class UnorderedGroupingFeature extends Feature<List> {
 	protected DistanceFeature heightFeature;
 	protected DistanceFeature widthFeature;
 	protected PointFeature centerFeature;
+	protected PointFeature centerOfMassFeature;
 	
 	public UnorderedGroupingFeature(String name) {
 		super(name);
@@ -25,6 +26,7 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		heightFeature = new DistanceFeature(FeatureConstants.HEIGHT);
 		widthFeature = new DistanceFeature(FeatureConstants.WIDTH);
 		centerFeature = new PointFeature(FeatureConstants.CENTER);
+		centerOfMassFeature = new PointFeature("W::CENTER-OF-MASS");
 		elements = new ArrayList<FeatureGroup>();
 	}
 
@@ -85,6 +87,49 @@ public class UnorderedGroupingFeature extends Feature<List> {
 	
 	private void generateCenterFeature()
 	{
+		double maxX = Double.MIN_VALUE;
+		double minX = Double.MAX_VALUE;
+		double maxHeight = 0;
+		for (BlockFeatureGroup fg : getBlockFeatureGroups())
+		{
+			double width = 0;
+			double height = 0;
+			double centerX = 0;
+			double centerZ = 0;
+
+			
+			Map<String, Feature> features = ((BlockFeatureGroup)fg).getFeatures();
+
+			if (features.containsKey(FeatureConstants.WIDTH))
+				width = (Double)features.get(FeatureConstants.WIDTH).getValue();
+			
+			if (features.containsKey(FeatureConstants.HEIGHT))
+				height = (Double)features.get(FeatureConstants.HEIGHT).getValue();
+			
+			if (features.containsKey(FeatureConstants.LOCATION))
+			{
+				centerX = ((DoubleMatrix)features.get(FeatureConstants.LOCATION).getValue()).get(0);
+				centerZ = ((DoubleMatrix)features.get(FeatureConstants.LOCATION).getValue()).get(2);
+			}
+
+			
+			if (centerX - width / 2 < minX)
+				minX = centerX - (width / 2);
+			
+			if (centerX + width / 2 > maxX)
+				maxX = centerX + (width / 2);
+			
+			if (centerZ + height / 2 > maxHeight)
+				maxHeight = centerZ + (height / 2);
+			
+		}
+		double totalCenter = (maxX - minX) / 2;
+		DoubleMatrix center = new DoubleMatrix(new double[] {totalCenter,0,maxHeight / 2});
+		centerFeature.setValue(center);
+	}
+	
+	private void generateCenterOfMassFeature()
+	{
 		DoubleMatrix center = DoubleMatrix.zeros(3);
 		List<Block> blocks = getBlocks();
 		for (Block b : blocks)
@@ -94,8 +139,9 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		
 		center.divi(blocks.size());
 		
-		centerFeature.setValue(center);
+		centerOfMassFeature.setValue(center);
 	}
+	
 	
 	private void generateHeightFeature()
 	{
@@ -193,6 +239,7 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		generateHeightFeature();
 		generateWidthFeature();
 		generateCenterFeature();
+		generateCenterOfMassFeature();
 		generateCountFeature();
 	}
 	
