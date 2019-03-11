@@ -48,6 +48,7 @@ public class ReferringExpression {
 	public static String[] indefiniteHeadTermIndicators = {"ONT::A", "ONT::INDEF-SET"};
 	static String lastReferredObjectType = null;
 	boolean restricted = false;
+	boolean universal = false;
 	boolean ordinal = false;
 	private ReferringExpression contrastSet;
 	
@@ -90,6 +91,11 @@ public class ReferringExpression {
 		unaryPredicates.add(predicate);
 		
 		
+	}
+	
+	public ReferringExpression(ReferringExpression toCopy)
+	{
+		this(toCopy.headTerm,toCopy.tree);
 	}
 	
 	public boolean isPlural()
@@ -265,10 +271,15 @@ public class ReferringExpression {
 	
 	private void findModifiers()
 	{
-		if (headTerm.getKeywordArg(":QUAN") != null &&
-				headTerm.getKeywordArg(":QUAN").stringValue()
+		if (headTerm.getKeywordArg(":QUAN") != null)
+		{
+			if (headTerm.getKeywordArg(":QUAN").stringValue()
 					.equalsIgnoreCase("ONT::ONLY"))
-			restricted = true;
+				restricted = true;
+			else if (headTerm.getKeywordArg(":QUAN").stringValue()
+					.equalsIgnoreCase("ONT::EVERY"))
+				universal = true;
+		}
 		
 		if (headTerm.getKeywordArg(":MOD") != null)
 		{
@@ -417,7 +428,15 @@ public class ReferringExpression {
 		}
 		if (isRow())
 		{
-			objectTypeMatches.addAll(UnorderedRowFeature.rowsFromBlocks(
+			// If we will refer to this using ordinals, put it into a temporal sequence
+			// feature to be chosen with subselection
+			if (ordinal)
+			{
+				objectTypeMatches.add(TemporalSequenceFeature.temporalSequenceVerticalFromBlocks(
+						s.integerBlockMapping.values()));
+			}
+			else
+				objectTypeMatches.addAll(UnorderedRowFeature.rowsFromBlocks(
 												s.integerBlockMapping.values()));
 		}
 		else if (isColumn())
@@ -463,7 +482,7 @@ public class ReferringExpression {
 		
 		List<UnorderedGroupingFeature> results = filterByUnaryPredicates(objectTypeMatches,s);
 		// Start generating the inverse set (objects which don't match)
-		if (isPlural())
+		if (isPlural() || universal)
 			objectTypeMatches.removeAll(results);
 		else if (results.size() > 0)
 			objectTypeMatches.remove(results.get(0));
@@ -477,7 +496,7 @@ public class ReferringExpression {
 
 		if (results.size() > 0)
 		{
-			if (isPlural())
+			if (isPlural() || universal)
 			{
 				UnorderedGroupingFeature combinedResult = new UnorderedGroupingFeature("result");
 				for (UnorderedGroupingFeature result : results)
@@ -623,6 +642,9 @@ public class ReferringExpression {
 			if (ordinal != -1)
 				sb.append(LanguageGeneration.ordinalString(ordinal));
 		}
+		
+		if (universal)
+			sb.append(" every ");
 
 		sb.append(" " + getObjectTypeString());
 		if ((headTerm.getKeywordArg(":SPEC") != null &&

@@ -403,6 +403,23 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 			tsf.add(fg);
 		return tsf;
 	}
+	
+	// Provide a Temporal Sequence Feature (sequence of columns from a collection of blocks
+	// (left to right)
+	public static TemporalSequenceFeature temporalSequenceVerticalFromBlocks(Collection<Block> blocks)
+	{
+		TemporalSequenceFeature tsf = new TemporalSequenceFeature("scene");
+		Collection<UnorderedRowFeature> rows = UnorderedRowFeature.rowsFromBlocks(blocks);
+		ArrayList<FeatureGroup> rowsAsFgs = new ArrayList<FeatureGroup>(rows);
+		rowsAsFgs.addAll(rows);
+		DirectionFeature bottomToTop = new DirectionFeature("bottomtotop");
+		bottomToTop.setValue(new DoubleMatrix(new double[]{0,0,1}));
+		Collection<FeatureGroup> orderedRows = sortedPositions(rowsAsFgs, bottomToTop);
+		//System.out.println(columns.size() + " columns extracted");
+		for (FeatureGroup fg : orderedRows)
+			tsf.add(fg);
+		return tsf;
+	}
 
 	@Override
 	public Map<String,Feature> getFeatures() {

@@ -54,9 +54,13 @@ public class StructureConstraint implements Constraint {
 				newSubject.getPseudoInstance().getFeature(FeatureConstants.NUMBER) + 
 				" blocks");
 	
+		if (referredBlocks == null)
+			return false;
 		
 		for (ReferringExpression object : objects)
 			object.evaluate(s);
+		
+		// TODO: Plural handling here?
 		
 		Scene subjectScene = new Scene();
 		subjectScene.addBlocks(referredBlocks.getBlocks());

@@ -67,7 +67,7 @@ public class ReferringExpressionParser {
 			{
 				String variable = headTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression newRef = new ReferringExpression(headTerm,context);
-				referringExpressions.put(variable, newRef);
+				referringExpressions.put(variable.trim(), newRef);
 			}
 		}
 		
@@ -79,7 +79,7 @@ public class ReferringExpressionParser {
 			{
 				String variable = headTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression newRef = new ReferringExpression(headTerm,context);
-				referringExpressions.put(variable, newRef);
+				referringExpressions.put(variable.trim(), newRef);
 			}
 		}
 		

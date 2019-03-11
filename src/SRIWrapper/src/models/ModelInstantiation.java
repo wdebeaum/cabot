@@ -240,7 +240,7 @@ public class ModelInstantiation {
 				if (lastUnresolvedObjectReference != null)
 					refExp = lastUnresolvedObjectReference;
 				else
-					refExp = sc.getSubject();
+					refExp = new ReferringExpression(sc.getSubject());
 				Feature feature = refExp.getPseudoInstance().getFeature(featureName);
 				FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
 						ComparisonType.VALUE);
