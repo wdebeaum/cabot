@@ -351,6 +351,17 @@ public class FeatureParser {
 				}
 				
 			}
+			
+			if (groundTerm.getKeywordArg(":NUMBER") != null && 
+					groundTerm.getKeywordArg(":INSTANCE-OF").stringValue()
+					.equalsIgnoreCase(FeatureConstants.NUMBER))
+			{
+				groundFeature = new CountFeature(FeatureConstants.NUMBER);
+				int value = Integer.parseInt(groundTerm.getKeywordArg(":NUMBER").stringValue());
+				groundFeature.setValue(value);
+				groundFeature.setConstant(true);
+				System.out.println("Ground value: " + value);				
+			}
 
 			if (groundTerm.getKeywordArg(":VALUE") != null && 
 					groundTerm.getKeywordArg(":INSTANCE-OF").stringValue()
@@ -507,6 +518,7 @@ public class FeatureParser {
 			KQMLList termAsList = (KQMLList)term;
 			if (referringExpressions.isEmpty())
 			{
+				System.out.println("No Referring expressions");
 				FeatureConstraint fc = extractFeature(currentStructureInstance,
 													termAsList,context);
 				if (fc != null)
@@ -518,8 +530,10 @@ public class FeatureParser {
 			else // TODO : Get all ref exps, not just first one
 			{
 				FeatureConstraint fc = null;
+				
 				if (headReferringExpression != null)
 				{
+					System.out.println("Head RE: " + headReferringExpression);
 					fc = extractFeature(
 							headReferringExpression.getPseudoInstance(),
 							termAsList,context);
@@ -531,6 +545,7 @@ public class FeatureParser {
 				}
 				else // If there is no head expression, just pick one
 				{
+					System.out.println("No head RE");
 //					for (ReferringExpression re : referringExpressions.values())
 //					{
 //						fc = extractFeature(

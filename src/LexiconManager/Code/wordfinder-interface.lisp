@@ -90,7 +90,8 @@
 	    #||  ;; check for hidden names: tagged as N, not penn taged as NNS and starts with a capital  (not sure what problem this solved - isit obsolete?)
 	      (if (and (eq pos 'w::n) (not (member 'w::nns penntag))
 		       (is-instance this-wf-entry)) (setq pos 'w::name))||#
-	      (let* ((score (get-wf-score this-wf-entry))
+	      (let* ((wfscore (get-wf-score this-wf-entry))
+		     (score (if score (/ (+ wfscore score) 2) wfscore))
 		     (feats (get-wf-feats this-wf-entry))
 		     (wf-word (get-wf-word this-wf-entry))
 		     (domain-info (get-wf-domain-info this-wf-entry))
@@ -269,10 +270,10 @@
 	   (w::AGR (? agr (w::1S w::2S w::3S w::1P w::2P w::3P)))))
 	((and (member 'w::VB penn-tags) (member 'w::VBP penn-tags))
 	 '((w::VFORM (? vf (w::BASE w::PRES)))
-	   (w::AGR (? agr (w::1S w::2S w::1P w::2P w::3P)))))
+	   (w::AGR (? agr (w::1S w::2S w::3s w::1P w::2P w::3P)))))
 	((and (member 'w::VBD penn-tags) (member 'w::VBN penn-tags))
 	 '((w::VFORM (? vf (w::PAST w::PASTPART)))
-	   (w::AGR (? agr (w::1S w::2S w::1P w::2P w::3P)))))
+	   (w::AGR (? agr (w::1S w::2S w::3s w::1P w::2P w::3P)))))
 	;; individual tags
 	((case (base-penn-tag penn-tags)
     ;  EX   (PRO)	; Existential there
@@ -442,7 +443,7 @@
 (defun make-unknown-word-entry (word pos score feats wid lflist trips-sense-list penn-tag tagged-ont-types domain-info)
   "make an underspecified lexical entry for the unknown word"
     (declare (ignore tagged-ont-types))
-  (print-debug  "~%MAKE-UNKNOWN-WORD-ENTRY: generating word entry for ~S with ~S and ~S ~%" word pos lflist)
+  ;;(print-debug  "~%MAKE-UNKNOWN-WORD-ENTRY: generating word entry for ~S with ~S and ~S ~%" word pos lflist)
   (let* ((lfform (if (listp word) (make-into-symbol word) word))
 	(lf (car lflist))
 	(pos (if (listp pos) (car pos) pos))
@@ -590,7 +591,7 @@
      ;; if we failed to make an entry above, we do a generic one here
      
      (when (not res) ;; (find pos '(w::v w::adv w::name w::n))) 
-       (print-debug "making word sense for word ~S with pos ~S lf ~S sem ~S domain-info ~S~%" word pos lf sem domain-info)
+       (print-debug "making word sense for word ~S with pos ~S lf ~S sem ~S ~%     score=~S domain-info ~S~%" word pos lf sem score domain-info)
        (let* ((entry (make-word-sense-definition
 		      :name wid
 		      :pos pos

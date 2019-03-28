@@ -779,7 +779,7 @@
            (lex ?hlex) (headcat ?hcat) ;; aug-trips
 	   (dobjvar ?dobjvar)
            ))
-    (not-bound (arg1 ?dobjvar))
+    ;(not-bound (arg1 ?dobjvar)) ; can't have this for "Are there any genes it is upstream of?": dobj is bound but the pp inside the dobj has a gap
     )
    
    ;;  e.g., (the train) going to avon, (the train) loaded with oranges 
@@ -3587,11 +3587,10 @@
    
    ;; conjoined vps w/ same subject
    ;; test: the dog barked and chased the cat.
-   ((s (stype ?st) (var ?v3) (sem ?sem)
+   ((s (stype ?st) (var ?v3) (sem ?sem) (lex ?lex)
      (lf (% prop (var ?v3) 
 	    (class ?class)
 	    (constraint (& (operator ?op)
-			   (lex ?lex)
 			   (sequence (?v1 ?v2))))
 	    (tma ?tma)))
      )
@@ -3609,11 +3608,10 @@
 
   ;; conjoined vps w same subject AND object!
    ;; test: the dog chased and caught the cat.
-   ((s (stype ?st) (var ?v3) (sem ?sem)
+   ((s (stype ?st) (var ?v3) (sem ?sem) (lex ?lex)
      (lf (% prop (var ?v3) 
         (class ?class)
         (constraint (& (operator ?op)
-		       (lex ?lex)
 		       (sequence (?v1 ?v2))))
 	(tma ?tma)))
      )
@@ -3631,26 +3629,28 @@
 
    
    ;; sentential conjunction
-   ;; both ss must be of the same type, decl or imperative
+   ;; both ss must be of the same type, decl or imperative <-- not anymore: I ate a pizza but what did Peter eat?
+   ;; stype can also be whq: "... and what did the dog chase?" (cf. "what chased the cat" can be decl)
    ;; he did this and/or/but he did that; do this and/or/but do that
    ;; test: bark and chase the cat.
-   ((s (sseq +) (stype ?st) (var *)  (sem ?sem)
+   ((s (sseq +) (stype ?st) (var *)  (sem ?sem) (wh-var (?wh-var1 ?wh-var2))
+       (lex ?lex)
      (lf (% prop (var *) (class ont::?class) 
 	    (constraint 
 	     (&  (operator (? lx ont::or ont::and ont::but ont::however ont::plus ont::otherwise ont::so))
-		 (lex ?lex)
-		 (sequence (?v1 ?v2))))))
+		 (sequence (?v1 ?v2))
+		 ))))
      )
     -s-conj2>
-    (head (s (stype (? st decl imp)) (subj ?subj1) (var ?v1) (sem ?s1)
+    (head (s (stype (? st decl imp whq)) (subj ?subj1) (var ?v1) (sem ?s1)
 	   (lf (% prop (class ?c1) (tma ?tma1)))
-	   (advbl-needed -)
+	   (advbl-needed -) (wh-var ?wh-var1)
 	   ))
     (conj (lf (? lx ont::or ont::and ont::but ont::however ont::plus ont::otherwise ont::so))
      (lex ?lex))
-    (s (stype (? st decl imp)) (subj ?subj2) (var ?v2) 
+    (s (stype (? st2 decl imp whq)) (subj ?subj2) (var ?v2)
      (advbl-needed -) (sem ?s2)
-     (lf (% prop (class ?c2) (tma ?tma2))))
+     (lf (% prop (class ?c2) (tma ?tma2))) (wh-var ?wh-var2))
     (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
     (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class))
     )
@@ -3697,10 +3697,9 @@
 
    ;; Ending the SSEQ 
    ;; both Ss must be of the same type, decl or imperative
-   ((s (stype ?st) (var *) (sseq +) (sem ?sem)
+   ((s (stype ?st) (var *) (sseq +) (sem ?sem) (lex ?lex)
      (LF (% prop (var *) (class ?class) 
 	    (constraint (&  (OPERATOR ?lx)
-			    (lex ?lex)
 			    (SEQUENCE ?newlf)))
 	    ))
      )
@@ -3728,7 +3727,6 @@
    ((s (stype ?st) (var *) 
      (sem ?sem) (lex ?lex)
      (LF (% prop (var *) (class ?class) (constraint (&  (OPERATOR ?clf)
-							(lex ?lex)
 							(SEQUENCE (?v1 ?v2))))))
      )
     -s-double-conj>
@@ -3749,7 +3747,6 @@
    ;; and the VP version e.g., to either stay or go
    ((VP (var *) (LF (% prop (var *) (class ?class) 
 		       (constraint (&  (OPERATOR ?clf)
-				       (lex ?lex)
 				       (SEQUENCE (?v1 ?v2))))))
      (agr ?agr) (lex ?lex) (vform ?vform) (gap ?g) (subj ?subj) (sem ?sem)
 		       

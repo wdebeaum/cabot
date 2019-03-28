@@ -101,13 +101,30 @@ public class FeatureConstraint implements Constraint {
 		}
 	}
 	
-	
 	public boolean isSatisfied(Feature featureToTest, Scene s)
 	{
+		return isSatisfied(featureToTest, s, s);
+	}
+	
+	public boolean isSatisfied(Feature featureToTest, Scene subjectScene, Scene totalScene)
+	{
 		if (featureToTest.getSource() != null)
-			featureToTest.getSource().evaluate(s);
+			featureToTest.getSource().evaluate(subjectScene);
 		if (comparisonFeature.getSource() != null)
-			comparisonFeature.getSource().evaluate(s);
+		{
+			ReferringExpression source = comparisonFeature.getSource();
+			source.evaluate(totalScene);
+			if (source.getPseudoInstance() != null && 
+					source.getPseudoInstance().hasFeature(comparisonFeature.getName()))
+			{
+				System.out.println("Pseudoinstance being tested has " + source.getPseudoInstance().blocks.size() + " blocks.");
+				System.out.println("Setting source " + source + " feature value " + comparisonFeature + 
+						" to " + source.getPseudoInstance().getFeature(comparisonFeature.getName()).getValue());
+				comparisonFeature.setValue(source.getPseudoInstance().getFeature(comparisonFeature.getName()).getValue());
+				
+			}
+			
+		}
 		Comparator comparator;
 		if (comparisonType.equals(ComparisonType.DISTANCE))
 			comparator = new DistanceComparator();
@@ -135,9 +152,15 @@ public class FeatureConstraint implements Constraint {
 		}
 	}
 	
+	public boolean isSatisfied(Scene subjectScene, Scene totalScene)
+	{
+		return isSatisfied(feature,subjectScene,totalScene);	
+	}
+	
+	@Override
 	public boolean isSatisfied(Scene s)
 	{
-		return isSatisfied(feature,s);	
+		return isSatisfied(s,s);
 	}
 	
 	
@@ -162,7 +185,7 @@ public class FeatureConstraint implements Constraint {
 	
 	public String reason()
 	{
-		return reason(isSatisfied(Scene.currentScene));
+		return reason(isSatisfied(Scene.currentScene, Scene.currentScene));
 
 	}
 	
@@ -284,4 +307,8 @@ public class FeatureConstraint implements Constraint {
 	{
 		return feature.isInferred() || comparisonFeature.isInferred();
 	}
+
+
+
+
 }

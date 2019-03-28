@@ -37,6 +37,11 @@ public class FeatureConstants {
 	public static final String OTHER = "ONT::OTHER";
 	public static final String REF_SEM = "ONT::REFERENTIAL-SEM";
 	
+	public static final String MIN = "W::MIN";
+	public static final String MAX = "W::MAX";
+	public static final String MORETHAN = "W::MORE-THAN";
+	public static final String LESSTHAN = "W::LESS-THAN";
+	
 	public static final String LAST = "ONT::LAST-VAL";
 	public FeatureConstants() {
 		// TODO Auto-generated constructor stub

@@ -2,6 +2,7 @@ package models;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import TRIPS.KQML.KQMLList;
 import environment.Scene;
@@ -39,9 +40,9 @@ public class StructureConstraint implements Constraint {
 		return null;
 	}
 	
-	public boolean isSatisfied(Scene s)
+	public boolean isSatisfied(Scene subjectScene, Scene totalScene)
 	{
-		return isSatisfied(s,subject);
+		return isSatisfied(subjectScene,subject);
 		
 	}
 	
@@ -61,29 +62,79 @@ public class StructureConstraint implements Constraint {
 			object.evaluate(s);
 		
 		// TODO: Plural handling here?
+		// TODO: Universal handling?
 		
-		Scene subjectScene = new Scene();
-		subjectScene.addBlocks(referredBlocks.getBlocks());
+		List<FeatureGroup> individualInstances = referredBlocks.getValue();
 		
-		//if (featureConstraint != null && !featureConstraint.isSatisfied(s))
-		if (featureConstraint != null && !featureConstraint.isSatisfied(subjectScene))
-			return false;
+		int numberOfReferredInstances = 1;
+		// Check if this UGF is holding the right types of objects to check quantifier constraints
+		// Note this just checks for at least one matching element
+		boolean subStructures = false;
+		for (FeatureGroup instance : individualInstances)
+		{
+			if (instance instanceof Feature)
+			{
+				if (((Feature)instance).getName().equalsIgnoreCase(newSubject.getInstanceOf()))
+				{
+					numberOfReferredInstances = individualInstances.size();
+					subStructures = true;
+					break;
+				}
+						
+			}
+		}
+		int satisfactions = 0;
+		// Check here for errors
+		if (subStructures) {
+			for (FeatureGroup instance : individualInstances)
+			{
+				if (!(instance instanceof UnorderedGroupingFeature))
+					continue;
+				UnorderedGroupingFeature instanceUGF = (UnorderedGroupingFeature)instance;
+				Scene subjectScene = new Scene();
+				subjectScene.addBlocks(instanceUGF.getBlocks());
+				
+				if (featureConstraint != null && featureConstraint.isSatisfied(subjectScene, s))
+					satisfactions++;
+			}
+			
+			if (!newSubject.getQuantifier().validSatisfactionCount(satisfactions, numberOfReferredInstances))
+				return false;
+			
+			
+		}
+		else
+		{
+			Scene subjectScene = new Scene();
+			subjectScene.addBlocks(referredBlocks.getBlocks());
+			
+			//if (featureConstraint != null && !featureConstraint.isSatisfied(s))
+			if (featureConstraint != null && !featureConstraint.isSatisfied(subjectScene, s))
+				return false;
+		}
 		
 		// If restricted, check all other referring expressions of the same type
 		// and make sure they don't fit
 		if (newSubject.isRestricted())
 		{
 			UnorderedGroupingFeature inverse = newSubject.inverseGroupingFeature;
-			System.out.println("Testing other instances for restriction:");
+			System.out.println("Testing other instances for restriction of feature: " +
+								featureConstraint.feature.getName());
 			for (FeatureGroup other: inverse.getValue())
 			{
+				System.out.println("Inverse Other features:");
+				for (Entry<String,Feature> entry : other.getFeatures().entrySet())
+				{
+					System.out.println("Feature: " + entry.getKey());
+					System.out.println("Value: " + entry.getValue());
+				}
 				String featureNameToTest = featureConstraint.feature.getName();
 				if (other.getFeatures().containsKey(featureNameToTest))
 				{
 					Feature otherFeature = other.getFeatures().get(featureNameToTest);
 					System.out.println("Other grouping has " + featureNameToTest + " of "
 							+ otherFeature.getValue());
-					if (featureConstraint.isSatisfied(otherFeature, s))
+					if (featureConstraint.isSatisfied(otherFeature, s, s))
 					{
 						System.out.println("Another matching object type satisfied the"
 								+ " restricted feature constraint");
@@ -98,7 +149,13 @@ public class StructureConstraint implements Constraint {
 	
 	public boolean isSatisfied()
 	{
-		return isSatisfied(Scene.currentScene);
+		return isSatisfied(Scene.currentScene, Scene.currentScene);
+	}
+	
+	@Override
+	public boolean isSatisfied(Scene s)
+	{
+		return isSatisfied(s,s);
 	}
 	
 	public boolean isInferred()

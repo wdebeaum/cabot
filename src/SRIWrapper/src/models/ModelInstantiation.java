@@ -425,12 +425,15 @@ public class ModelInstantiation {
 		
 		for (FeatureConstraint constraint : getFeatureConstraints())
 		{
-			System.out.println("Feature constraints:");
+			//System.out.println("Feature constraints:");
 			System.out.println(constraint);
 			boolean satisfied = constraint.isSatisfied(currentScene);
-			System.out.println("Feature value: " + constraint.getFeature().getValue());
+			//System.out.println("Feature value: " + constraint.getFeature().getValue());
 			if (!satisfied)
+			{
+				//System.out.println("Not satisfied");
 				return false;
+			}
 		}
 		
 		for (StructureConstraint constraint : getStructureConstraints())
@@ -438,7 +441,13 @@ public class ModelInstantiation {
 			boolean satisfied = constraint.isSatisfied(currentScene);
 			
 			if (!satisfied)
+			{
+				//System.out.println("Constraint" + constraint + " not satisfied");
 				return false;
+			}
+
+			//System.out.println("Constraint" + constraint + " satisfied");
+
 			
 				
 		}
@@ -448,7 +457,12 @@ public class ModelInstantiation {
 			boolean satisfied = constraint.isSatisfied(currentScene);
 			
 			if (!satisfied)
-				return false;	
+			{
+				//System.out.println("Constraint" + constraint + " not satisfied");
+				return false;
+			}
+
+			System.out.println("Constraint" + constraint + " satisfied");
 		}
 		return true;
 	}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jblas.DoubleMatrix;
@@ -44,13 +45,15 @@ public class ReferringExpression {
 	private StructureInstance pseudoInstance; // Use to attach features
 	private StructureInstance inverseInstance;
 	UnorderedGroupingFeature inverseGroupingFeature;
-	public static String[] definiteHeadTermIndicators = {"ONT::THE", "ONT::THE-SET", "ONT::QUANTIFIER"};
+	List<UnorderedGroupingFeature> subselectionInverse;
+	public static String[] definiteHeadTermIndicators = {"ONT::THE", "ONT::THE-SET", "ONT::QUANTIFIER", "ONT::BARE"};
 	public static String[] indefiniteHeadTermIndicators = {"ONT::A", "ONT::INDEF-SET"};
 	static String lastReferredObjectType = null;
 	boolean restricted = false;
 	boolean universal = false;
 	boolean ordinal = false;
 	private ReferringExpression contrastSet;
+	private Quantifier quantifier;
 	
 	
 	public ReferringExpression(String headSymbol, KQMLList tree) {
@@ -70,9 +73,11 @@ public class ReferringExpression {
 		if (isReferredObject(headTerm))
 			lastReferredObjectType = headTerm.getKeywordArg(":INSTANCE-OF").stringValue();
 		
+		quantifier = Quantifier.extractQuantifier(headTerm, tree);
 		contrastSet = null;
 		ground = null;
 		inverseGroupingFeature = null;
+		subselectionInverse = null;
 		findModifiers();
 		findLocation();
 		findSubSelection();
@@ -105,6 +110,8 @@ public class ReferringExpression {
 		if (headTerm.get(0).stringValue().contains("-SET"))
 			return true;
 		if (headTerm.get(0).stringValue().equalsIgnoreCase("ONT::QUANTIFIER"))
+			return true;
+		if (getInstanceOf().equals("ONT::SET"))
 			return true;
 		return false;
 		
@@ -156,6 +163,24 @@ public class ReferringExpression {
 		}
 		
 		return false;
+	}
+	
+	public static String getReferredObject(KQMLList term, KQMLList context)
+	{
+		if (term.getKeywordArg(":ASSOC-POS") != null)
+		{
+			String posTerm = term.getKeywordArg(":ASSOC-POS").stringValue();
+			if (isReferredObject(KQMLUtilities.findTermInKQMLList(posTerm, context)))
+				return posTerm;
+		}
+		if (term.getKeywordArg(":FIGURE") != null)
+		{
+			String figTerm = term.getKeywordArg(":FIGURE").stringValue();
+			if (isReferredObject(KQMLUtilities.findTermInKQMLList(figTerm, context)))
+				return figTerm;			
+		}
+		
+		return null;
 	}
 	
 	public static boolean isUnderspecifiedReferredObject(KQMLList term)
@@ -239,7 +264,9 @@ public class ReferringExpression {
 				if (termList.getKeywordArg(":FIGURE").stringValue()
 						.equalsIgnoreCase(getVariableName()))
 				{
-					subSelections.add(ontType);
+					// Don't grab scales like "height of the column"
+					if (termList.getKeywordArg(":SCALE") == null)
+						subSelections.add(ontType);
 				}
 			}
 			
@@ -388,19 +415,30 @@ public class ReferringExpression {
 		return null;
 	}
 	
+	public String getElementType()
+	{
+		if (headTerm.getKeywordArg(":ELEMENT-TYPE") != null)
+			return headTerm.getKeywordArg(":ELEMENT-TYPE").stringValue();
+		else
+			return getInstanceOf();
+	}
+	
 	public boolean isRow()
 	{
-		return getInstanceOf().equalsIgnoreCase(FeatureConstants.ROW);
+		return getInstanceOf().equalsIgnoreCase(FeatureConstants.ROW) || 
+				getElementType().equalsIgnoreCase(FeatureConstants.ROW);
 	}
 	
 	public boolean isColumn()
 	{
-		return getInstanceOf().equalsIgnoreCase(FeatureConstants.COLUMN);
+		return getInstanceOf().equalsIgnoreCase(FeatureConstants.COLUMN) || 
+				getElementType().equalsIgnoreCase(FeatureConstants.COLUMN);
 	}
 	
 	public boolean isBlock()
 	{
-		return getInstanceOf().equalsIgnoreCase(FeatureConstants.BLOCK);
+		return getInstanceOf().equalsIgnoreCase(FeatureConstants.BLOCK) || 
+				getElementType().equalsIgnoreCase(FeatureConstants.BLOCK);
 	}
 	
 	public boolean isSpace()
@@ -409,8 +447,17 @@ public class ReferringExpression {
 				getInstanceOf().equalsIgnoreCase(FeatureConstants.GAP) ;
 	}
 	
+	public Quantifier getQuantifier()
+	{
+		return quantifier;
+	}
+	
 	public UnorderedGroupingFeature evaluate(Scene s)
 	{
+		System.out.println("Scene has " + s.integerBlockMapping.size() + " blocks.");
+		System.out.println("Evaluating " + toString());
+		if (pseudoInstance != null)
+			System.out.println("Pseudoinstance has " + pseudoInstance.blocks.size() + " blocks.");
 		Set<UnorderedGroupingFeature> objectTypeMatches = new HashSet<UnorderedGroupingFeature>();
 		
 		if (contrastSet != null)
@@ -445,8 +492,23 @@ public class ReferringExpression {
 			// feature to be chosen with subselection
 			if (ordinal)
 			{
+				TemporalSequenceFeature result = TemporalSequenceFeature.temporalSequenceFromBlocks(
+						s.integerBlockMapping.values());
+				int i = 1;
+				for (Object columnObject : result.getValue())
+				{
+					UnorderedGroupingFeature column = (UnorderedGroupingFeature)columnObject;
+					System.out.println("Column " + i + " has " + column.getBlocks().size() + " blocks");
+					i++;
+				}
+				for (Entry<String,Feature> entry : result.getFeatures().entrySet())
+				{
+					System.out.println("Feature: " + entry.getKey());
+					System.out.println("Value: " + entry.getValue());
+				}
 				objectTypeMatches.add(TemporalSequenceFeature.temporalSequenceFromBlocks(
 												s.integerBlockMapping.values()));
+				
 			}
 			else
 				objectTypeMatches.addAll(ColumnFeature.columnsFromBlocks(
@@ -484,15 +546,31 @@ public class ReferringExpression {
 		// Start generating the inverse set (objects which don't match)
 		if (isPlural() || universal)
 			objectTypeMatches.removeAll(results);
-		else if (results.size() > 0)
+		else if (!ordinal && results.size() > 0)
 			objectTypeMatches.remove(results.get(0));
+		else if (ordinal && !objectTypeMatches.isEmpty())
+		{
+			UnorderedGroupingFeature originalTemporalResult = null;
+			for (UnorderedGroupingFeature originalResult : objectTypeMatches)
+				originalTemporalResult = originalResult;
+			objectTypeMatches.clear();
+			for (FeatureGroup fg: originalTemporalResult.getValue())
+			{
+				if (!results.contains(fg) && fg instanceof UnorderedGroupingFeature)
+					objectTypeMatches.add((UnorderedGroupingFeature)fg);
+			}
+		}
 		
 		inverseGroupingFeature = new UnorderedGroupingFeature("inverse");
+		
+
 		for (UnorderedGroupingFeature inverseMatch : objectTypeMatches)
 		{
 			inverseGroupingFeature.add(inverseMatch);
 		}
+
 		inverseInstance.setBlocks(inverseGroupingFeature.getBlocks());
+		
 
 		if (results.size() > 0)
 		{
@@ -504,6 +582,8 @@ public class ReferringExpression {
 					combinedResult.add(result);
 				}
 				pseudoInstance.setBlocks(combinedResult.getBlocks());
+				System.out.println("Pseudoinstance now has " + pseudoInstance.blocks.size() + " blocks");
+				
 				return combinedResult;
 			}
 			else
@@ -511,6 +591,8 @@ public class ReferringExpression {
 				UnorderedGroupingFeature result = results.get(0);
 				System.out.println("Blocks in result: " + result.getBlocks().size());
 				pseudoInstance.setBlocks(result.getBlocks());
+				System.out.println("Pseudoinstance now has " + pseudoInstance.blocks + " blocks");
+				
 				return results.get(0);
 			}
 		}
@@ -549,11 +631,16 @@ public class ReferringExpression {
 		List<UnorderedGroupingFeature> results = 
 				new ArrayList<UnorderedGroupingFeature>();
 		
-		if (predicates.isEmpty())
+		if (predicates.isEmpty() )
 		{
 			for (UnorderedGroupingFeature element: matches)
 			{
-				results.add(getSubselection(element));
+				UnorderedGroupingFeature result = getSubselection(element);
+				if (result != null)
+				{
+					results.add(result);
+				}
+
 			}
 			
 			return results;
@@ -577,6 +664,10 @@ public class ReferringExpression {
 	
 	private UnorderedGroupingFeature getSubselection(UnorderedGroupingFeature ugf)
 	{
+		// There are no subselections, so use the whole set
+		if (subSelections.isEmpty())
+			return ugf;
+		
 		for (String selection : subSelections)
 		{
 			if (ugf.getFeatures().get(selection) != null)
@@ -594,8 +685,12 @@ public class ReferringExpression {
 			}
 			
 		}
-		return ugf;
+		
+		
+		return null;
 	}
+	
+
 	
 	@Override
 	public boolean equals(Object other)
@@ -660,6 +755,19 @@ public class ReferringExpression {
 
 	public void setRestricted(boolean restricted) {
 		this.restricted = restricted;
+	}
+	
+	public boolean isDefinite()
+	{
+		for (String indicator : definiteHeadTermIndicators)
+		{
+			System.out.println("Indicator: |" + indicator + "|");
+			System.out.println("Indicator: |" + headTerm.get(KQMLUtilities.ONT_REF).stringValue() + "|");
+			if (headTerm.get(KQMLUtilities.ONT_REF).stringValue().equalsIgnoreCase(indicator))
+				return true;
+		}
+		
+		return false;
 	}
 	
 	public static String getLastReferredObjectType()

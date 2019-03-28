@@ -1074,7 +1074,7 @@
        ;;(post-subcat +)
        (no-postmodifiers +) ;; add an extra feature to say "no further postmodifiers". If we say "The bulb in 1 is in the same path as the battery in 1", we don't want "in 1" to attach to "the path"
       )
-     -N1-post-onesubcat-b> 0.98
+     -N1-post-onesubcat-b> 0.97
      (ADJ1 (atype (? at attributive-only central)) (ALLOW-POST-N1-SUBCAT -) ; "-" here so it's mutually exclusive with -N1-post-onesubcat>
       (LF ?qual) (lex ?lex1)
       (ARG ?v) (VAR ?adjv)
@@ -1867,9 +1867,9 @@
 
    
    ;; the standard "than PP" is the typical case
-   ((COMPAR (var ?v))
+   ((COMPAR (var ?v) (sem ?sem))
     -compar-than-pp> 1
-    (PP (var ?v) (ptype THAN)))
+    (PP (var ?v) (ptype THAN) (sem ?sem)))
 
    ;; e.g.,  It is larger than expected
    ((compar (Var ?v))
@@ -2429,18 +2429,19 @@
 
 (parser::augment-grammar 
       '((headfeatures
-         (NP CASE MASS NAME agr SEM PRO CLASS Changeagr ARGUMENT argument-map SUBCAT role lex orig-lex headcat transform postadvbl refl gerund abbrev derived-from-name
-	  subj dobj subcat-map comp3-map)) ; no gap
+         (NP CASE NAME agr SEM PRO CLASS Changeagr ARGUMENT argument-map SUBCAT role lex orig-lex headcat transform postadvbl refl gerund abbrev derived-from-name
+	  subj dobj subcat-map comp3-map)) ; no gap/mass
 
 	;;  special rule for proteins that are tagged as common nouns but used as names
 	((NP (LF (% Description (STATUS ONT::definite) (VAR ?v) (SORT INDIVIDUAL)
 	            (CLASS ?c) (CONSTRAINT ?constraint) (sem ?sem) (transform ?transform)))
              (SORT PRED) (VAR ?v)
              (BARE-NP +) (name-or-bare ?nob)
-	     (simple +)
+	     (simple +) (mass ?mass) ; amount of Ras (mass)
 	     )
          -protein-name-constructor> 0.995
-         (head (N (SORT PRED) (MASS  count) (gerund -) (complex -) 
+         (head (N (SORT PRED) ;(MASS  count)
+		  (gerund -) (complex -) 
 		   (name-or-bare ?nob) (lex ?lex)
 		   (derived-from-name -)  ;; names already can become NPs by simpler derivations
 		   (AGR 3s) (VAR ?v)
@@ -2760,7 +2761,7 @@
 	            (CLASS ?c) (CONSTRAINT ?r) (sem ?sem) (transform ?transform)))
              (SORT PRED) (VAR ?v)
              )
-         -bare-plural-mass>
+         -bare-plural-mass> .988   ;; just a hair less than the COUNT for cases where ther 
          (head (N1 (SORT PRED) (mass mass) (MASS ?m) 
 		(AGR 3p) (VAR ?v) (CLASS ?c) (RESTR ?r) (rate-activity-nom -) (agent-nom -)
 		(sem ?sem) (transform ?transform)
@@ -3761,7 +3762,10 @@
     ((SPEC (LF ONT::INDEFINITE) ;(LF wh-quantity)
 	   (Lex (How ?l)) (headcat QUAN) (STATUS WH) (AGR ?a)
           (ARG ?arg) (MASS ?m) (WH Q) (WH-VAR *) (QUANT +) (VAR ?v)
-          (RESTR (& (SIZE (% *PRO* (STATUS WH) (VAR *) (CLASS ont::QUANTITY) (CONSTRAINT (& (QUAN ?lf) (suchthat ?arg)))))))
+          (RESTR (& (SIZE (% *PRO* (STATUS WH) (VAR *) (CLASS ont::QUANTITY)
+			     (CONSTRAINT (& (QUAN ?lf)
+					    ;(suchthat ?arg)
+					    ))))))
           (SUBCAT (% PP ))
           )
      -how-many-etc>
@@ -3771,7 +3775,10 @@
     ((SPEC (LF ONT::SM) ;(LF wh-quantity)
 	   (Lex (How ?l)) (headcat QUAN) (STATUS WH) (AGR ?a)
           (ARG ?arg) (MASS ?m) (WH Q) (WH-VAR *) (QUANT +) (VAR ?v)
-          (RESTR (& (QUANTITY (% *PRO* (STATUS WH) (VAR *) (CLASS ont::QUANTITY) (CONSTRAINT (& (QUAN ?lf) (suchthat ?arg)))))))
+          (RESTR (& (QUANTITY (% *PRO* (STATUS WH) (VAR *) (CLASS ont::QUANTITY)
+				 (CONSTRAINT (& (QUAN ?lf)
+						;(suchthat ?arg)
+						))))))
           (SUBCAT (% PP ))
           )
      -how-much>
@@ -4687,6 +4694,7 @@
 	    ))
      ?part
      )
+
     ;; swift 11/28/2007 there is no more gname status
     ;; Myrosia 2/12/99: changed the rule so that class in LF comes from class
     ;; Added "postadvbl -" to handle things like "elmwood at genesee"
@@ -4700,12 +4708,13 @@
                 (transform ?transform)  (generated ?gen)
 		(constraint ?con)
                 ))
-      (mass count) (name +) (simple +) (time-converted ?tc) (generated ?gen)
+	 (mass ?mass) ; amount of Ras (mass)
+	 (name +) (simple +) (time-converted ?tc) (generated ?gen)
       (postadvbl ?gen) ;; swift -- setting postadvl to gen as part of eliminating gname rule but still allowing e.g. truck 1
       )
      -np-name> 0.995
      (head (name (lex ?l) (sem ?sem) (var ?v) (agr ?agr) (lf ?lf) (class ?class)
-		 (sort ?sort)
+		 (sort sort) (sem ($ (? !s F::time)))
 		 (full-name ?fname) (time-converted ?tc)
 		 ;; swift 11/28/2007 removing gname rule & passing up generated feature (instead of restriction (generated -))
 		 (generated ?gen)  (transform ?transform) (title -)
@@ -5312,12 +5321,12 @@
        (time-converted ?tc1) ;; MD 2008/03/06 Introduced restriction that only items with the same time-converted status can combine - i.e. don't mix number notation for times or non-times. 
        )
       (punc (lex punc-comma))
-      (conj (SEQ +) (LF ?op) (SUBCAT NP) (var ?v)) ;; (status ?status))
-      (head (NP (VAR ?v2) (SEM ?s2) (ATTACH ?a) (lf ?lf2) (LF (% ?d (class ?c2) (status ?status))) (CASE ?case2) (mass ?m2) (constraint ?con)
-		(generated ?generated2)
-		(sort (? !sort unit-measure)) ;; no unit-measure here since they form sub-NPs & we want the whole one
+      (head (conj (SEQ +) (LF ?op) (SUBCAT NP) (var ?v))) ;; (status ?status))
+      (NP (VAR ?v2) (SEM ?s2) (ATTACH ?a) (lf ?lf2) (LF (% ?d (class ?c2) (status ?status))) (CASE ?case2) (mass ?m2) (constraint ?con)
+       (generated ?generated2)
+       (sort (? !sort unit-measure)) ;; no unit-measure here since they form sub-NPs & we want the whole one
 		(time-converted ?tc1) 
-		))
+		)
       (punc (lex punc-comma))      
       (conj (but-not +))
       (np (var ?exception))
@@ -5345,13 +5354,14 @@
       (time-converted ?tc1) ;; MD 2008/03/06 Introduced restriction that only items with the same time-converted status can combine - i.e. don't mix number notation for times or non-times. 
       )
      (punc (lex punc-comma))
-     (conj (SEQ +) (LF ?op) (SUBCAT NP) (var ?v) (status ?status))
-     (head (NP (VAR ?v2) (SEM ?s2) (ATTACH ?a) (lf ?lf2) (LF (% ?d (class ?c2))) (CASE ?case2) (mass ?m1) ;(mass ?m2)
+     (head (conj (SEQ +) (LF ?op) (SUBCAT NP) (var ?v) (status ?status)))
+    
+      (NP (VAR ?v2) (SEM ?s2) (ATTACH ?a) (lf ?lf2) (LF (% ?d (class ?c2))) (CASE ?case2) (mass ?m1) ;(mass ?m2)
 	       (constraint ?con)
 	    (generated ?generated2) 
 	    (sort (? !sort unit-measure)) ;; no unit-measure here since they form sub-NPs & we want the whole one
 	    (time-converted ?tc1) 
-	    ))
+       )
      (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
      (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class))
      (simple-cons (in1 ?v2) (in2 ?lf1) (out ?members))
@@ -5425,7 +5435,7 @@
      (NP (SEM ?s1) (VAR ?v1) (agr ?agr)  (complex -) (expletive -) ;;(bare-np ?bnp)
 	    (generated ?gen1)  (time-converted ?tc1) (gerund ?ger) (wh ?wh); ok: which cats and which dogs; ok: which <cats and dogs> (use -two-n1-conjunct>); not ok: <which cat> and dog 
 	    ;; (bare-sequence -)
-	    (LF (% ?sort (class ?c1) (status ?status))) (CASE ?c) (constraint ?con) (mass ?m2) ;; allowing mismatch on mass
+	    (LF (% ?sort (class ?c1) (status ?status))) (CASE ?c) (constraint ?con) (mass ?m1) ;; allowing mismatch on mass
 	    (sort (? !sort unit-measure)) ;; no unit measure here since they form sub-NPs [500 mb] & we want the top-level [500 mb of ram] 	    
 	    )
       (head (conj (SEQ +) (LF ?op) (var ?v) )) ;;(status ?status))
@@ -5433,7 +5443,7 @@
        (bare-np -)  ;; bare-NP should go through N!-conjunct, not NP-conjunct
        (generated ?gen2)  (time-converted ?tc1)  (gerund ?ger) (wh ?wh)
        ;; (bare-sequence -)
-       (LF (% ?sort (class ?c2) (status ?status2))) (CASE ?c) (constraint ?con2) (mass ?m1) ;; allowing mismatch on mass -- e.g. "fatigue and weakness"
+       (LF (% ?sort (class ?c2) (status ?status2))) (CASE ?c) (constraint ?con2) (mass ?m2) ;; allowing mismatch on mass -- e.g. "fatigue and weakness"
        (sort (? !sort unit-measure)))
       (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
       (class-least-upper-bound (in1 ?c1) (in2 ?c2) (out ?class))
@@ -5809,7 +5819,7 @@
 	 (SEM ?sem) (gerund ?ger) 
       (Status ?status-out)
       (class ?class)
-      (restr (& (operator ?op) (lex ?lex)
+      (restr (& (operator ?op) 
 		(sequence ((% *PRO* (status ?status-out) (var ?v1) (class ?c1) (constraint ?con) (sem ?s1) (lex ?lex1))
 			   (% *PRO* (status ?status-out) (var ?v2) (class ?c2) (constraint ?con2) (sem ?s2) (lex ?lex2))))))
       (CASE ?c)
@@ -5948,7 +5958,7 @@
 
 (parser::augment-grammar	 
   '((headfeatures
-     (N1 lf lex orig-lex headcat transform set-restr refl abbrev subcat subcat-map)
+     (N1 lf headcat transform set-restr refl abbrev subcat subcat-map) ; no lex/orig-lex
      )
 
     ;; this rule handles rate/activity constructions - e.g., the binding rate of ras on raf
@@ -5958,7 +5968,7 @@
 	  (gap -) (var ?v) (agr ?agr) (gerund ?ger)
 	  (sem ?sem) (mass ?mass) (pre-arg-already ?npay)
 	  (case ?case)
-	  (class ?class)
+	  (class ?class) (lex ?lex) (orig-lex ?orig-lex)
 	  (restr ?restr)
 	  (subj ?subj)
 	  (subj-map ?subjmap)
@@ -5966,16 +5976,16 @@
 	  (dobj-map ?dobjmap) ;; eliminate the dobj-map so we can't assign another
 	  (comp3 ?comp3)
 	  (comp3-map ?comp-map)
-	  (rate-activity-nom ?ratelf)
+	  (rate-activity-nom ?ratelf) ; not passing up the orig-lex of this
 	  (nomobjpreps ?nop)
 	  (nomsubjpreps ?nsp)
       )
      -nom-rate> 1.0
 	 (head (n1  (var ?v) (gap -) (aux -)(case ?case) (gerund ?ger) (agr ?agr)
-		    (pre-arg-already ?npay) 
+		    (pre-arg-already ?npay)
 		    (headless -)
 		    (sem ?sem) (sem ($ F::SITUATION)) ; (f::type ont::event-of-change)))
-		    (class ?class) (transform ?transform)
+		    (class ?class) (transform ?transform) (lex ?lex) (orig-lex ?orig-lex)
 		    ;; these are dummy vars for trips-lcflex conversion, please don't delete
 		    ;;(subj ?subj) (comp3 ?comp3) (iobj ?iobj) (part ?part)
 		    (restr ?restr)
@@ -6003,8 +6013,9 @@
 	   (gap -) (var *) (agr ?agr) (gerund ?ger)
 	   (sem ?newsem) (mass ?mass) (pre-arg-already ?npay)
 	   (case ?case)
-	   (class ?!pred)
+	   (class ?!pred) (lex ?!pred-w)
 	   (restr (& (figure (% *PRO* (status ont::F) (var ?v) (class ?class)
+				(lex ?lex) (orig-lex ?orig-lex)
 				    (constraint ?restr) (sem ?sem)))))
 	   (subj ?subj)
 	   (subj-map ?subjmap)
@@ -6016,7 +6027,7 @@
 	  (head (n1  (var ?v) (gap -) (aux -)(case ?case) (gerund ?ger) (agr ?agr)
 		     (pre-arg-already ?npay) 
 		     (sem ?sem) (sem ($ F::SITUATION)) ; (f::type ont::event-of-change)))
-		     (class ?class) (transform ?transform)
+		     (class ?class) (transform ?transform) (lex ?lex) (orig-lex ?orig-lex)
 		     ;; these are dummy vars for trips-lcflex conversion, please don't delete
 		     ;;(subj ?subj) (comp3 ?comp3) (iobj ?iobj) (part ?part)
 		     (restr ?restr)
@@ -6024,6 +6035,7 @@
 		     (subj-map ?subjmap)
 		     (generated -)
 		     (rate-activity-nom ?!pred)
+		     (rate-activity-nom (:* ?!pred-t ?!pred-w)) ; this assumes the rate always has a w
 		     ))
 	  (compute-sem-features (lf ?!pred) (sem ?newsem))
 	  )

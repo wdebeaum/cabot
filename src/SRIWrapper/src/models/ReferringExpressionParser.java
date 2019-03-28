@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import TRIPS.KQML.KQMLList;
 import TRIPS.KQML.KQMLObject;
@@ -39,14 +40,25 @@ public class ReferringExpressionParser {
 					eventTerm.getKeywordArg(":NEUTRAL").stringValue(), context);
 			// This only picks a head referring expression if it's directly mentioning
 			// an object in the scene
-			if (ReferringExpression.isReferredObject(subjectTerm) || 
-					ReferringExpression.modifiesReferredObject(subjectTerm, context))
+			if (ReferringExpression.isReferredObject(subjectTerm) )
 			{
 				subjectVariable = subjectTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression subject = new ReferringExpression(subjectTerm,context);
-				
 				headReferringExpression = subject;
 				referringExpressions.put(subjectVariable,subject);
+				
+				// Don't store underspecified referents
+				if (!ReferringExpression.isUnderspecifiedReferredObject(subjectTerm))
+					lastObjectType = subject.getObjectTypeString();
+			}
+				 
+			else if (ReferringExpression.modifiesReferredObject(subjectTerm, context))
+			{
+				subjectVariable = subjectTerm.get(KQMLUtilities.VARIABLE).stringValue();
+				ReferringExpression subject = new ReferringExpression(subjectTerm,context);
+
+					
+				referringExpressions.put(subjectVariable.trim(),subject);
 				
 				// Don't store underspecified referents
 				if (!ReferringExpression.isUnderspecifiedReferredObject(subjectTerm))
@@ -68,6 +80,8 @@ public class ReferringExpressionParser {
 				String variable = headTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression newRef = new ReferringExpression(headTerm,context);
 				referringExpressions.put(variable.trim(), newRef);
+				if (headReferringExpression == null)
+					headReferringExpression = newRef;
 			}
 		}
 		
@@ -80,19 +94,56 @@ public class ReferringExpressionParser {
 				String variable = headTerm.get(KQMLUtilities.VARIABLE).stringValue();
 				ReferringExpression newRef = new ReferringExpression(headTerm,context);
 				referringExpressions.put(variable.trim(), newRef);
+				
+				// Remove refsets as the indef-set will then have the important info
+				if (headTerm.getKeywordArg(":REFSET") != null)
+				{
+					String refset = headTerm.getKeywordArg(":REFSET").stringValue();
+					referringExpressions.remove(refset.trim());
+				}
 			}
 		}
-		
+		/*
 		// Remove "structure" if there is a legit referring expression
-		if (referringExpressions.size() > 1 && referringExpressions.containsKey("structure"))
+		if (referringExpressions.size() > 1 )
 		{
-			referringExpressions.remove("structure");
-			for (ReferringExpression re : referringExpressions.values())
+			boolean resetHeadReferringExpression = false;
+			for (Entry<String,ReferringExpression> re : referringExpressions.entrySet())
 			{
-				headReferringExpression = re;
-				break;
+				System.out.println("RefExp: |" + re.getValue().toString().toLowerCase() + "|");
+				if (re.toString().toLowerCase().contains("structure"))
+				{
+					System.out.println("RE: " + re.getValue());
+					System.out.println("Head RE: " + headReferringExpression);
+					if (referringExpressions.get(re.getValue().getVariableName()) == headReferringExpression)
+						resetHeadReferringExpression = true;
+					referringExpressions.remove(re.getKey());
+				}
+				
+				
 			}
-		}
+			if (resetHeadReferringExpression)
+			{
+				headReferringExpression = null;
+				for (ReferringExpression re : referringExpressions.values())
+				{
+					// Prioritize definite referring expressions for the head term
+					if (re.isDefinite())
+					{
+						headReferringExpression = re;
+						break;
+					}
+				}
+				if (headReferringExpression == null)
+				{
+					for (ReferringExpression re : referringExpressions.values())
+					{
+							headReferringExpression = re;
+							break;
+					}
+				}
+			}
+		}*/
 		
 		System.out.println("Found referring expressions: ");
 		for (ReferringExpression re : referringExpressions.values())

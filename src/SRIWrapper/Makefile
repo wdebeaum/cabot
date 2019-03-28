@@ -43,12 +43,14 @@ SRCS = 	SRIWrapper.java \
 	src/models/Response.java \
 	src/messages/CommMessageHandler.java \
 	src/models/ConstraintBundle.java \
+	src/models/Quantifier.java \
 	
 
 CLASSES = $(SRCS:.java=.class) \
 	src/goals/Goal$$GoalType.class \
 	src/goals/GoalStateHandler$$GoalState.class \
 	src/goals/GoalStateHandler$$SystemState.class \
+	src/models/Quantifier$$QuantifierType.class \
 
 CONFIGDIR=../config
 include $(CONFIGDIR)/defs.mk

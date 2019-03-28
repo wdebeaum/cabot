@@ -69,10 +69,14 @@ public class GridModel2D {
 		return false;
 	}
 	
-	public static GridModel2D randomSample(int numberOfBlocks)
+	public static GridModel2D randomSample(int maxNumberOfBlocks)
 	{
 		GridModel2D toReturn = new GridModel2D();
 		
+		Random numBlocksRandom = new Random();
+		
+		int numberOfBlocks =  maxNumberOfBlocks - (numBlocksRandom.nextInt(6));
+		System.out.println("Creating sample with " + numberOfBlocks + " blocks.");
 		for (int i = 0; i < numberOfBlocks; i++)
 		{
 			Random random = new Random();

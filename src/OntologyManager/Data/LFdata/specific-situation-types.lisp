@@ -371,11 +371,10 @@
  )
 
 ;; bounce
-(define-type ONT::move-up-and-down
+(define-type ONT::bounce-reflect
  :parent ONT::MOVE
+ :wordnet-sense-keys ("bounce%2:35:03" "bounce%2:38:00" "bounce%2:38:02" "reflect%2:39:00" "reflect%2:43:00")
  )
-
-
 
 ;; pan
 (define-type ONT::pan
@@ -385,7 +384,7 @@
 ;; jump, hop
 (define-type ONT::jump
  :wordnet-sense-keys ("jump%2:38:01")
- :parent ONT::MOVE-up-and-down
+ :parent ONT::bounce-reflect
  )
 
 ;; sway, rock, quake
@@ -1036,7 +1035,7 @@
   :arguments ((:essential ONT::affected-result (F::Phys-obj (f::type ont::mammal)))))
 
 (define-type ONT::live
- :wordnet-sense-keys ("exist%2:42:01" "live%2:42:06" "live%2:42:07" "survive%2:42:01" "survive%2:42:02" "survive%2:42:00")
+ :wordnet-sense-keys ("exist%2:42:01" "live%2:42:06" "live%2:42:07" "outlast%2:42:00" "survive%2:42:00" "survive%2:42:01" "survive%2:42:02")
  :parent ONT::life-process
   :sem (f::situation (:default (f::aspect f::dynamic)))
   :arguments ((:essential ONT::neutral))
@@ -1201,7 +1200,7 @@
 )
 
 (define-type ONT::deteriorate
- :wordnet-sense-keys ("decompose%2:30:02" "decay%2:30:01" "disintegrate%2:30:01" "decay%2:30:02" "acerbate%2:37:00" "decay%2:30:01" "decay%2:30:00" "decay%2:30:02")
+ :wordnet-sense-keys ("acerbate%2:37:00" "decay%2:30:00" "decay%2:30:01" "decay%2:30:02" "decompose%2:30:02" "degrade%2:35:00" "disintegrate%2:30:01")
  :parent ONT::change-integrity
  :arguments ((:REQUIRED ONT::Formal ((? tt f::phys-obj f::abstr-obj f::situation)))
              (:OPTIONAL ONT::Agent)
@@ -2165,7 +2164,7 @@
  )
 
 (define-type ONT::indict
- :wordnet-sense-keys ("charge%2:32:02" "accuse%2:32:01")
+ :wordnet-sense-keys ("accuse%2:32:01" "charge%2:32:02" "prosecute%2:41:00")
  :parent ONT::accuse
  )
 
@@ -3088,11 +3087,13 @@
  :parent ONT::cause-come-from
  )
 
+#|
 (define-type ONT::deSelect
  :parent ONT::cause-come-from
  :arguments ((:REQUIRED ONT::AGENT ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
 	     (:ESSENTIAL ONT::FORMAL ((? tt F::phys-obj F::abstr-obj f::situation f::time))))
  )
+|#
 
 (define-type ONT::cause-out-of
  :wordnet-sense-keys ("extract%2:35:04" "pull_out%2:35:00" "pull%2:35:10" "pull_up%2:35:00" "take_out%2:35:09" "draw_out%2:35:05"  "purge%2:29:00")
@@ -3516,7 +3517,7 @@
 )
 
 (define-type ONT::swell
- :wordnet-sense-keys ("swell%2:30:00" "swell_up%2:30:00" "intumesce%2:30:00" "tumefy%2:30:00" "tumesce%2:30:00" "swell%2:30:01" "bloat%2:30:01" "bulk%2:30:00" "protrude%2:30:00" "rise%2:38:02" "raise%2:38:01")
+ :wordnet-sense-keys ("bloat%2:30:01" "bulk%2:30:00" "intumesce%2:30:00" "protrude%2:30:00" "protuberate%2:42:00" "protuberate%2:42:01" "raise%2:38:01" "rise%2:38:02" "swell%2:30:00" "swell%2:30:01" "swell_up%2:30:00" "tumefy%2:30:00" "tumesce%2:30:00")
  :parent ONT::change-in-size
  :arguments((:essential ONT::scale (f::abstr-obj (F::scale ont::size-scale) (F::orientation f::pos))))
  )
@@ -3872,7 +3873,7 @@
  )
 
 (define-type ONT::increase
- :wordnet-sense-keys ("increase%2:30:00" "increase%1:11:00")
+ :wordnet-sense-keys ("increase%1:11:00" "increase%2:30:00" "rise%2:37:00")
  :parent ONT::change-magnitude
  )
 
@@ -3912,7 +3913,7 @@
 
 
 (define-type ONT::fluctuate
- :wordnet-sense-keys ("fluctuate%2:30:00" "fluctuation%1:110:01")
+ :wordnet-sense-keys ("fluctuate%2:30:00" "fluctuation%1:11:01")
  :parent ONT::change
  )
 
@@ -4176,7 +4177,7 @@
 
 ;; grow, thrive, flourish
 (define-type ONT::grow
- :wordnet-sense-keys ("grow%2:30:02" "cultivate%2:36:00" "grow%2:30:01" "develop%2:30:01" "grow%2:30:00" "develop%2:30:00")
+ :wordnet-sense-keys ("cultivate%2:36:00" "develop%2:30:00" "develop%2:30:01" "grow%2:30:00" "grow%2:30:01" "grow%2:30:02")
  :parent ONT::continuous-change
  :sem (F::SITUATION (F::Trajectory -))
  :arguments ((:optional ONT::Agent ((? agt F::Phys-obj f::abstr-obj) (F::intentional +)))
@@ -5188,7 +5189,7 @@
  )
 
 (define-type ONT::Prohibit
-    :wordnet-sense-keys ("abolish%2:41:00")
+    :wordnet-sense-keys ("abolish%2:41:00" "forbid%2:32:00")
     :parent ONT::inhibit-effect
  )
 

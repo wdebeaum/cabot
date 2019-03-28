@@ -67,6 +67,11 @@ public class PredicateConstraint implements Constraint {
 	{
 		return predicate;
 	}
+	
+	public boolean isSatisfied(Scene subjectScene, Scene totalScene)
+	{
+		return isSatisfied(totalScene);
+	}
 
 	public boolean isSatisfied(Scene s)
 	{

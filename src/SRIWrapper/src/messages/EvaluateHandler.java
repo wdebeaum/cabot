@@ -80,6 +80,9 @@ public class EvaluateHandler {
 		{
 			TextToSpeech.say("I don't know what a " + KQMLUtilities.cleanLex(modelName) + 
 					" is.");
+			return unacceptableContent("CANNOT-PROCESS", "ASK-IF", 
+					content.getKeywordArg(":ID").stringValue(),
+					"NIL", content.getKeywordArg(":AS"));
 		}
 		
 		if (Scene.currentScene == null || Scene.currentScene.integerBlockMapping == null)
@@ -90,6 +93,7 @@ public class EvaluateHandler {
 									content.getKeywordArg(":ID").stringValue(),
 									"NIL", content.getKeywordArg(":AS"));
 		}
+		
 		boolean satisfied = modelBuilder.getModelInstantiation(modelName)
 					.testModelOnStructureInstance(Scene.currentScene.integerBlockMapping.values());
 		

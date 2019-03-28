@@ -298,9 +298,9 @@ public class ModelBuilder {
 	public GridModel2D generateExample()
 	{
 		System.out.println("Creating random instances to test");
-		for (int i = 0; i < 300; i++)
+		for (int i = 0; i < 600; i++)
 		{
-			GridModel2D currentGridModel = GridModel2D.randomSample(6);
+			GridModel2D currentGridModel = GridModel2D.randomSample(8);
 			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
 					currentGridModel.getBlocks()))
 			{

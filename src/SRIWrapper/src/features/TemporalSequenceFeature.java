@@ -169,6 +169,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 														DirectionFeature direction)
 	{
 		int maxAxis = direction.getMaxAxis();
+		System.out.println("Max axis = " + maxAxis);
 
 		TreeMap<Double,FeatureGroup> toSort = new TreeMap<Double,FeatureGroup>();
 		for (FeatureGroup fg : elements)
@@ -189,10 +190,21 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 				toSort.put(ugf.getCenterFeature().getValue().get(maxAxis), ugf);
 			}
 		}
+		
 		if (direction.getValue().get(maxAxis) > 0)
+		{
+			System.out.println("Positive max axis");
+			System.out.println(toSort.entrySet());
+			System.out.println("Reversed:");
+			System.out.println(toSort.descendingMap().entrySet());
 			return toSort.values();
+		}
 		else
+		{
+			System.out.println("Negative or zero max axis");
+			System.out.println(toSort.descendingMap().entrySet());
 			return toSort.descendingMap().values();
+		}
 	}
 	
 	
@@ -394,7 +406,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		TemporalSequenceFeature tsf = new TemporalSequenceFeature("scene");
 		Collection<ColumnFeature> columns = ColumnFeature.columnsFromBlocks(blocks);
 		ArrayList<FeatureGroup> columnsAsFgs = new ArrayList<FeatureGroup>(columns);
-		columnsAsFgs.addAll(columns);
+		
 		DirectionFeature leftToRight = new DirectionFeature("lefttoright");
 		leftToRight.setValue(new DoubleMatrix(new double[]{1,0,0}));
 		Collection<FeatureGroup> orderedColumns = sortedPositions(columnsAsFgs, leftToRight);
@@ -411,7 +423,7 @@ public class TemporalSequenceFeature extends UnorderedGroupingFeature {
 		TemporalSequenceFeature tsf = new TemporalSequenceFeature("scene");
 		Collection<UnorderedRowFeature> rows = UnorderedRowFeature.rowsFromBlocks(blocks);
 		ArrayList<FeatureGroup> rowsAsFgs = new ArrayList<FeatureGroup>(rows);
-		rowsAsFgs.addAll(rows);
+		
 		DirectionFeature bottomToTop = new DirectionFeature("bottomtotop");
 		bottomToTop.setValue(new DoubleMatrix(new double[]{0,0,1}));
 		Collection<FeatureGroup> orderedRows = sortedPositions(rowsAsFgs, bottomToTop);

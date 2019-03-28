@@ -67,7 +67,7 @@
 	 (transition
 	  :description "ask-wh. eg: what drug should we use?"
 	  :pattern '((ONT::SPEECHACT ?!sa (? s-act ONT::ASK-WHAT-IS) :what ?!what :suchthat ?!st)
-		     (?!spec ?!what ?!object-type)
+		     ;(?!spec ?!what ?!object-type) ; ?!what could be a sequence
 		     (ont::eval (generate-AKRL-context :what ?!st :result ?akrl-context))  ; note: ?!st instead of ?!what
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
 		     -propose-goal-via-question>
@@ -84,7 +84,7 @@
 	 (transition
 	  :description "ask-wh. eg: what drug should we use?"
 	  :pattern '((ONT::SPEECHACT ?!sa (? s-act ONT::ASK-WHAT-IS) :what ?!what :suchthat -)
-		     (?!spec ?!what ?!object-type)
+		     ;(?!spec ?!what ?!object-type)
 		     (ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))  ; note: ?!what instead of ?!st because there is no :suchthat
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
 		     -propose-goal-via-question-no-suchthat>
@@ -102,7 +102,7 @@
 	 (transition
 	  :description "ask-if. eg: Does the BRAF-NRAS complex vanish?"
 	  :pattern '((ONT::SPEECHACT ?!sa (? s-act ONT::ASK-IF) :what ?!what)
-		     (?!spec ?!what ?!type)
+		     ;(?!spec ?!what ?!type)
 		     (ont::eval (generate-AKRL-context :what ?!what :result ?akrl-context))  
 		     (ont::eval (find-attr :result ?goal :feature ACTIVE-GOAL))
 		     -ask-question>

@@ -113,17 +113,17 @@ public class UnorderedGroupingFeature extends Feature<List> {
 			}
 
 			
-			if (centerX - width / 2 < minX)
+			if (centerX - (width / 2) < minX)
 				minX = centerX - (width / 2);
 			
-			if (centerX + width / 2 > maxX)
+			if (centerX + (width / 2) > maxX)
 				maxX = centerX + (width / 2);
 			
 			if (centerZ + height / 2 > maxHeight)
 				maxHeight = centerZ + (height / 2);
 			
 		}
-		double totalCenter = (maxX - minX) / 2;
+		double totalCenter = (maxX + minX) / 2;
 		DoubleMatrix center = new DoubleMatrix(new double[] {totalCenter,0,maxHeight / 2});
 		centerFeature.setValue(center);
 	}

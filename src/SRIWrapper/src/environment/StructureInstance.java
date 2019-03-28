@@ -24,8 +24,8 @@ public class StructureInstance implements FeatureGroup {
 		this.blocks = new HashSet<Block>();
 		this.blocks.addAll(blocks);
 		features = new HashMap<String, Feature>();
-		for (Block b : blocks)
-			System.out.println(b.position);
+		//for (Block b : blocks)
+		//	System.out.println(b.position);
 		generateFeatures();
 	}
 	
