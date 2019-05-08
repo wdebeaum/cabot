@@ -26,6 +26,7 @@ import features.UnorderedRowFeature;
 import geometry.AxisAlignedBoundingBox;
 import goals.GoalStateHandler;
 import messages.LanguageGeneration;
+import models.Quantifier.QuantifierType;
 import models.comparators.ValueComparator;
 import spatialreasoning.Predicate;
 import spatialreasoning.PredicateType;
@@ -270,12 +271,7 @@ public class ReferringExpression {
 				}
 			}
 			
-			if (termList.getKeywordArg(":ORDINAL") != null)
-			{
-				System.out.println("Found ordinal subselection");
-				subSelections.add(termList.getKeywordArg(":ORDINAL").stringValue());
-				ordinal = true;
-			}
+
 		}
 		
 		KQMLObject modList = headTerm.getKeywordArg(":MODS");
@@ -290,10 +286,39 @@ public class ReferringExpression {
 				{
 					if (modTerm.getKeywordArg(":INSTANCE-OF").stringValue()
 							.equalsIgnoreCase(FeatureConstants.LAST))
+					{
 						subSelections.add(modTerm.getKeywordArg(":INSTANCE-OF").stringValue());
+						ordinal = true;
+					}
 				}
 			}
 		}
+		
+		if (headTerm.getKeywordArg(":MOD") != null)
+		{
+			String symbol = headTerm.getKeywordArg(":MOD").stringValue();
+			KQMLList modTerm = KQMLUtilities.findTermInKQMLList(
+					symbol, tree);
+			if (modTerm != null && modTerm.getKeywordArg(":INSTANCE-OF") != null)
+			{
+				if (modTerm.getKeywordArg(":INSTANCE-OF").stringValue()
+						.equalsIgnoreCase(FeatureConstants.LAST))
+				{
+					subSelections.add(modTerm.getKeywordArg(":INSTANCE-OF").stringValue());
+					ordinal = true;
+				}
+			}
+			
+		}
+		
+		
+		if (headTerm.getKeywordArg(":ORDINAL") != null)
+		{
+			System.out.println("Found ordinal subselection");
+			subSelections.add(headTerm.getKeywordArg(":ORDINAL").stringValue());
+			ordinal = true;
+		}
+
 	}
 	
 	private void findModifiers()
@@ -583,12 +608,14 @@ public class ReferringExpression {
 				}
 				pseudoInstance.setBlocks(combinedResult.getBlocks());
 				System.out.println("Pseudoinstance now has " + pseudoInstance.blocks.size() + " blocks");
-				
+				System.out.println("Combined result has " + combinedResult.getValue().size() + " elements");
 				return combinedResult;
 			}
 			else
 			{
 				UnorderedGroupingFeature result = results.get(0);
+				if (result == null)
+					return null;
 				System.out.println("Blocks in result: " + result.getBlocks().size());
 				pseudoInstance.setBlocks(result.getBlocks());
 				System.out.println("Pseudoinstance now has " + pseudoInstance.blocks + " blocks");
@@ -653,8 +680,12 @@ public class ReferringExpression {
 			
 			for (Predicate predicate : predicates)
 			{
-				if (predicate.evaluate(element,s))
-					results.add(getSubselection(element));
+				if (predicate.evaluate(element,s) )
+				{
+					UnorderedGroupingFeature subselection = getSubselection(element);
+					if (subselection != null)
+						results.add(getSubselection(element));
+				}
 			}
 		}
 		
@@ -721,11 +752,17 @@ public class ReferringExpression {
 		if (contrastSet != null)
 			sb.append(" other ");
 		
-		for (Predicate p : predicates)
-			sb.append(p.toString());
+		if (subSelections.isEmpty())
+		{
+			for (Predicate p : predicates)
+				sb.append(p.toString());
+		}
 		
 		for (String subselection : subSelections)
 		{
+			sb.append(" the ");
+			if (subselection.equalsIgnoreCase(FeatureConstants.LAST))
+				sb.append(" last ");
 			int ordinal = -1;
 			try {
 				ordinal = Integer.parseInt(subselection);
@@ -738,7 +775,7 @@ public class ReferringExpression {
 				sb.append(LanguageGeneration.ordinalString(ordinal));
 		}
 		
-		if (universal)
+		if (universal || (quantifier != null && quantifier.getType() == QuantifierType.UNIVERSAL))
 			sb.append(" every ");
 
 		sb.append(" " + getObjectTypeString());

@@ -46,6 +46,11 @@ public class KQMLUtilities {
 		return result;
 	}
 	
+	public static String cleanScale(String scale)
+	{
+		return scale.replace("-SCALE", "");
+	}
+	
 	public static String cleanOnt(String concept)
 	{
 		if (concept.contains("ONT::"))

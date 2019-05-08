@@ -41,14 +41,28 @@
    )
 ))
 
+(define-words :pos W::v :templ AGENT-affected-XP-TEMPL
+ :words (
+ ((W::come w::out)
+    (wordfeats (W::morph (:forms (-vb) :past W::came :pastpart W::come :ing W::coming)))
+   (SENSES
+     ((example "the truth came out")
+     (LF-PARENT ONT::appear)
+     (meta-data :wn ("come_out%2:32:00"))
+     (SEM (F::Aspect F::bounded) (F::Time-span F::atomic))
+     (templ affected-templ)
+     )
+    )
+   )
+))
+
 (define-words :pos W::adj
  :words (
   (w::coming
   (senses
-   ((LF-PARENT ONT::event-time-rel)
+   ((LF-PARENT ONT::in-future)
     (TEMPL central-adj-templ)
-    (meta-data :origin calo :entry-date 20060824 :change-date nil  :wn ("readable%5:00:00:legible:00") :comments nil)
     )
    )
-)
+  )
 ))

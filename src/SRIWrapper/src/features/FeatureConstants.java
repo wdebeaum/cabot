@@ -15,6 +15,7 @@ public class FeatureConstants {
 	public static final String LEFT = "ONT::LEFT";
 	public static final String LEFTLOC = "ONT::LEFT-LOC";
 	public static final String RIGHT = "ONT::RIGHT";
+	public static final String CORRECT = "ONT::CORRECT"; // Hack
 	public static final String RIGHTLOC = "ONT::RIGHT-LOC";
 	
 	public static final String ROW = "ONT::ROW-FORMATION";
@@ -27,6 +28,7 @@ public class FeatureConstants {
 	public static final String LINE = "ONT::LINEAR-GROUPING";
 	
 	public static final String NUMBER = "ONT::NUMBER";
+	public static final String QUANTITY = "ONT::QUANTITY-ABSTR";
 	
 	public static final String GROUPING = "ONT::GROUP-OBJECT";
 	public static final String SEQUENCE = "ONT::SEQUENCE";
@@ -41,6 +43,8 @@ public class FeatureConstants {
 	public static final String MAX = "W::MAX";
 	public static final String MORETHAN = "W::MORE-THAN";
 	public static final String LESSTHAN = "W::LESS-THAN";
+	
+	public static final String UNIVERSAL = "ONT::UNIVERSAL";
 	
 	public static final String LAST = "ONT::LAST-VAL";
 	public FeatureConstants() {

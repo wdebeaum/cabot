@@ -12,8 +12,8 @@ import environment.*;
 public class GridModel2D {
 
 	private Block[][] grid;
-	public static int DEFAULT_WIDTH = 3;
-	public static int DEFAULT_HEIGHT = 3;
+	public static int DEFAULT_WIDTH = 4;
+	public static int DEFAULT_HEIGHT = 4;
 	private List<Block> blocks;
 	int width, height;
 	
@@ -76,6 +76,20 @@ public class GridModel2D {
 		Random numBlocksRandom = new Random();
 		
 		int numberOfBlocks =  maxNumberOfBlocks - (numBlocksRandom.nextInt(6));
+		System.out.println("Creating sample with " + numberOfBlocks + " blocks.");
+		for (int i = 0; i < numberOfBlocks; i++)
+		{
+			Random random = new Random();
+			int x = random.nextInt(toReturn.width);
+			toReturn.dropBlockAt(x);
+		}
+		return toReturn;
+	}
+	
+	public static GridModel2D randomSampleWithSpecificBlocks(int numberOfBlocks)
+	{
+		GridModel2D toReturn = new GridModel2D();
+		
 		System.out.println("Creating sample with " + numberOfBlocks + " blocks.");
 		for (int i = 0; i < numberOfBlocks; i++)
 		{

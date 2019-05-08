@@ -306,12 +306,13 @@
                    (sem ?sem) (transform ?trans)))
             (role ?lf) (subcatsem ?gapsem) (subcat ?subcat)
             )
-     -advbl-subcat-gap> .92
+     -advbl-subcat-gap> .97 ;.92
      (head (adv (var ?v) ;;(SORT BINARY-CONSTRAINT) 
 	    (sort (? !sort pp-word double-subcat))
             (lf ?lf) (IGNORE -)  (sem ?sem)
             (subcat-map ?submap) (ARGUMENT-MAP ?argmap)
-	    (comparative -) 
+	    (comparative -)
+	    (subcat ?subcat)
             (SUBCAT (% NP (var ?gapv) (sem ?gapsem) 
                        (agr ?gapagr) (case (? case obj -))))))
      )
@@ -595,7 +596,9 @@
       (ARG ?v) (VAR ?mod)
       (role ?advrole)
       ;(SEM ($ f::abstr-obj (F::type (? !ttt ont::position-reln))))
-      (SEM ($ f::abstr-obj (F::type (? !ttt ont::path ont::conventional-position-reln ont::direction ont::complex-ground-reln ont::back ont::front ont::left-of ont::off ont::orients-to ont::right-of ;ont::pos-as-containment-reln ; e.g. "decrease in Mexico" but we would need to have "put the box in the corner"
+      (SEM ($ f::abstr-obj (F::type (? !ttt ont::path ont::conventional-position-reln
+				       ont::direction ; do we want to allow "forward" (as MANNER)?
+				       ont::complex-ground-reln ont::back ont::front ont::left-of ont::off ont::orients-to ont::right-of ;ont::pos-as-containment-reln ; e.g. "decrease in Mexico" but we would need to have "put the box in the corner"
 				       ont::pos-directional-reln ont::pos-distance
 				       ; ont::pos-wrt-speaker-reln ; "I ate there"
 				       ont::resulting-object))))
@@ -1519,6 +1522,7 @@
     ((Utt (LF (% SPEECHACT (class ?sa) (var ?v) (constraint ?adv))) (var ?v) (punctype ?pn))
      -disc-attitude> 
      (advbl (ATYPE PRE) (arg ?v) (SA-ID -) (VAR ?advv) (gap -) (WH -) (sort PRED)
+      (ing -)  ;; exclude V-ing adverbials
       (sem ($ f::abstr-obj (f::type (? t ont::valuation-attribute-val ont::emotional-val ont::evoking-emotional-val)))))
      (head (Utt (ended -) (var ?v) (LF (% SPEECHACT (class ?sa) (constraint ?adv1))) (punc -) (punctype ?pn)))
      (add-to-conjunct (val (MODS ?advv)) (old ?adv1) (new ?adv)))
@@ -1535,7 +1539,7 @@
      ;; beetle fix -- Myrosia moved (Argument (% UTT)) where it should be for discourse adverbials
      ;; Potential ambiguity here because these days discourse adverbials also allowed for post-vp positions
      ;; but this is necessary for making things work in cases like "is this true as well"?
-     (advbl (sort DISC) (ATYPE POST) (SA-ID -) (arg ?v) (var ?advv) (gap -) (ARGUMENT (% UTT)))
+     (advbl (sort DISC) (ATYPE POST) (SA-ID -) (arg ?v) (var ?advv) (gap -) (ing -) (ARGUMENT (% UTT)))
      (add-to-conjunct (val (MODS ?advv)) (old ?adv1) (new ?adv)))
      
     ))
@@ -1704,17 +1708,19 @@
       ;; ing VPs as adverbials
       ;; TEST: Barking, the dog chased the cat.
    ;; TEST: The dog chased the cat barking.
-   ((advbl (arg ?arg) (sem ($ f::abstr-obj (f::information -) (f::intentional -)))
+   ((advbl (arg ?arg) (sem ($ f::abstr-obj (f::information -) (f::intentional -) (f::type ONT::IMPLICIT-OVERLAP)))
      (argument (% S (sem ($ f::situation (f::aspect f::dynamic))) (subjvar ?!subjvar) (subj ?!subj)
 		  (var ?arg))) 
      (sort pred) (gap -) (atype (? atp pre post))
+     (ing +)
      (role ONT::MANNER) (var **)
      (LF (% PROP (CLASS ONT::IMPLICIT-OVERLAP) (VAR **) 
 	    (CONSTRAINT (& (FIGURE ?arg) (GROUND ?v)))
-	    (sem ($ f::abstr-obj (f::information -) (f::intentional -)))))
+	    (sem ($ f::abstr-obj (f::information -) (f::intentional -) (f::type ONT::IMPLICIT-OVERLAP)))))
      )
     -vp-ing-advbl> .97
-    (head (vp (vform ing) (var ?v) (gap -) (aux -) (advbl-necessary -)
+    (head (vp (vform ing) (var ?v) (gap -) ;;(aux -) ; aux: Having eaten the pizza...
+	      (advbl-necessary -)
 	   (constraint ?con)  (transform ?transform) (class ?class)
 	   (subj (% np (var ?!subjvar) (agr ?subjagr) (sem ?subjsem) (gap -)))
 	   ;(subjvar (% *PRO* (VAR *) (gap -) (sem ?subjsem)))

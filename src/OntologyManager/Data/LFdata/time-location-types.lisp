@@ -44,7 +44,7 @@
 (define-type ont::at-loc
     :comment "prototypical locating of a FIGURE wrt a point-like GROUND"
     :parent ont::position-as-point-reln
-    :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj f::abstr-obj) 
+    :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj f::abstr-obj f::situation) (f::tangible +)
 					 (f::scale (? !t ONT::TIME-MEASURE-SCALE ONT::RATE-SCALE ONT::MONEY-SCALE ONT::NUMBER-SCALE)) ; excludes "at four"
 				       )))
     )
@@ -462,8 +462,7 @@
 (define-type ont::path ; for now to avoid conflict w/ old ont::trajectory
  :parent ont::predicate
  :sem (F::abstr-obj)
- ;; situations can be spatially located, e.g. meetings, riots, parties
- ;; so can abstr-obj: the idea in the document; the name on the envelope; the man at the party
+ :comment "constrains the location of an object undergoing motion"
  :arguments ((:ESSENTIAL ONT::FIGURE ((? of F::Phys-obj F::Situation f::abstr-obj)))
 	     (:ESSENTIAL ONT::GROUND ((? val F::Phys-obj F::Situation f::abstr-obj)))
              )
@@ -797,7 +796,7 @@
  :sem  (F::abstr-obj)
  :arguments (;(:ESSENTIAL ONT::FIGURE (F::Situation))
 	     (:ESSENTIAL ONT::FIGURE (F::Situation (f::type ont::change-magnitude)))
-;	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length)))
+;	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length-scale)))
 ;	     (:ESSENTIAL ONT::GROUND (F::abstr-obj))  ; no scale (e.g., increase by three dogs)
 	     (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ?!sc)))  ; put scale back for now
              )
@@ -807,7 +806,7 @@
 (define-type ONT::spatial-distance-rel
  :parent ONT::extent-predicate
  :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation (f::trajectory +) (F::aspect (? asp F::unbounded F::stage-level)) (F::time-span F::extended)))
-	      (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length)))
+	      (:ESSENTIAL ONT::GROUND (F::abstr-obj (F::scale ont::length-scale)))
              )
  )
 
@@ -948,11 +947,9 @@
 ;; the meeting next week; he arrives next week
 (define-type ONT::event-time-rel
  :parent ONT::temporal-location
- :arguments ((:ESSENTIAL ONT::FIGURE ((? f F::Situation F::time))) ; time: recent weeks ;(F::aspect (? asp F::dynamic F::stage-level)))) ; can be indiv-level: I was a pumpkin before midnight
+ :arguments ((:ESSENTIAL ONT::FIGURE ((? f F::Situation F::time))) 
              (:ESSENTIAL ONT::GROUND ((? vl F::time f::situation)))
-	     ; 3/2011 conflating time and situation in the val role to reduce search space
-;             (:ESSENTIAL ONT::SIT-VAL (F::situation)) ;; swift 04/14/02 added this to handle when/before/as soon as/etc. + S, e.g. when I go
-             )
+	     )
  )
 
 (define-type ont::start-time
@@ -961,12 +958,22 @@
 
 (define-type ont::before
     :parent ont::event-time-rel
-    :wordnet-sense-keys ("after%4:02:00" "after%4:02:01")
+    :wordnet-sense-keys ("before%4:02:03")
     )
 
 (define-type ont::after
     :parent ont::event-time-rel
-    :wordnet-sense-keys ("before%4:02:03")
+    :wordnet-sense-keys ("after%4:02:00" "after%4:02:01")
+    )
+
+(define-type ont::during
+    :parent ont::event-time-rel
+    :comment "DURING, STARTS or ENDS in ITL"
+    )
+
+(define-type ont::simultaneous
+    :parent ont::event-time-rel
+    :comment "EQUAL in ITL"
     )
 
 (define-type ont::immediate
@@ -976,7 +983,7 @@
 
 (define-type ont::when-while
     :parent ont::event-time-rel
-   
+    
     )
 
 (define-type ont::until
@@ -998,17 +1005,32 @@
      )
 
 (define-type ONT::now
-     :wordnet-sense-keys ("now%4:02:05" "presently%4:02:00")
+     :wordnet-sense-keys ("now%4:02:05" "presently%4:02:00" "current%3:00:00" "present%3:00:01")
      :parent ONT::event-time-wrt-now
      )
 
 (define-type ONT::recent
-     :wordnet-sense-keys ("new%3:00:00" "past%3:00:00")
+     :wordnet-sense-keys ("new%3:00:00")
+     :parent ONT::event-time-wrt-now
+     )
+
+(define-type ONT::in-future
+     :wordnet-sense-keys ("future%3:00:00")
+     :parent ONT::event-time-wrt-now
+     )
+
+(define-type ONT::in-past
+     :wordnet-sense-keys ("past%3:00:00")
      :parent ONT::event-time-wrt-now
      )
 
 (define-type ONT::soon
-     :wordnet-sense-keys ("soon%4:02:00")
+     :wordnet-sense-keys ("soon%4:02:00""imminent%3:00:00")
+     :parent ONT::event-time-wrt-now
+     )
+
+(define-type ont::occuring-now
+     :wordnet-sense-keys ("current%3:00:00")
      :parent ONT::event-time-wrt-now
      )
 

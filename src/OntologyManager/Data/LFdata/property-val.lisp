@@ -202,7 +202,7 @@
 ; (un)lucky, (un)fortunate
 (define-type ont::luckiness-val
  :parent ont::evaluation-attribute-val 
- :sem (F::abstr-obj (F::scale ont::luckinesss-scale))
+ :sem (F::abstr-obj (F::scale ont::luckiness-scale))
 )
 
 (define-type ont::lucky
@@ -210,7 +210,7 @@
  :wordnet-sense-keys ("fortunate%3:00:00" "lucky%5:00:00:fortunate:00" )
  ; Words: (W::LUCKY W::FORTUNATE)
  ; Antonym: ONT::unlucky (W::UNFORTUNATE W::UNLUCKY)
- :sem (F::abstr-obj (F::scale ont::luckinesss-scale) (F::orientation f::pos))
+ :sem (F::abstr-obj (F::scale ont::luckiness-scale) (F::orientation f::pos))
 )
 
 (define-type ont::unlucky
@@ -218,7 +218,7 @@
  :wordnet-sense-keys ("unfortunate%3:00:00" "doomed%5:00:00:unfortunate:00" )
  ; Words: (W::UNFORTUNATE W::UNLUCKY)
  ; Antonym: ONT::lucky (W::LUCKY W::FORTUNATE)
- :sem (F::abstr-obj (F::scale ont::luckinesss-scale) (F::orientation f::neg))
+ :sem (F::abstr-obj (F::scale ont::luckiness-scale) (F::orientation f::neg))
 )
 
 ;; able, capable, competent
@@ -812,7 +812,7 @@
 (define-type ont::correctness-val
  :parent ont::information-property-val 
  :comment "describing the quality of being error-free or error-prone"
- :sem (F::abstr-obj (F::scale ont::correcteness-scale))
+ :sem (F::abstr-obj (F::scale ont::correctness-scale))
 )
 
 (define-type ont::correct
@@ -820,7 +820,7 @@
  :wordnet-sense-keys ("proper%3:00:00" "correct%5:00:00:proper:00" "correct%3:00:00" "accurate%5:00:00:correct:00" )
  ; Words: (W::PROPER W::CORRECT W::ACCURATE)
  ; Antonym: ONT::incorrect (W::MISTAKEN W::INACCURATE W::INCORRECT)
- :sem (F::abstr-obj (F::scale ont::correcteness-scale) (F::orientation f::pos))
+ :sem (F::abstr-obj (F::scale ont::correctness-scale) (F::orientation f::pos))
 )
 
 (define-type ont::incorrect
@@ -828,7 +828,7 @@
  :wordnet-sense-keys ("faulty%5:00:00:inaccurate:00" "false%5:00:00:incorrect:00" "incorrect%3:00:00" "inaccurate%3:00:00" )
  ; Words: (W::MISTAKEN W::INACCURATE W::INCORRECT)
  ; Antonym: ONT::correct (W::PROPER W::CORRECT W::ACCURATE)
- :sem (F::abstr-obj (F::scale ont::correcteness-scale) (F::orientation f::neg))
+ :sem (F::abstr-obj (F::scale ont::correctness-scale) (F::orientation f::neg))
 )
 
 (define-type ont::validity-val
@@ -1851,14 +1851,16 @@
 )
 
 (define-type ont::asleep-val
- :parent ont::awakeness-val 
- :wordnet-sense-keys ("asleep%4:02:00" )
-)
+    :parent ont::awakeness-val
+    :definitions (ont::not (ont::awake-val :figure ?neutral))
+    :wordnet-sense-keys ("asleep%4:02:00" )
+    )
 
 (define-type ont::awake-val
- :parent ont::awakeness-val 
- :wordnet-sense-keys ("awake%3:00:00" )
-)
+    :parent ont::awakeness-val
+    :definitions (ont::not (ont::asleep-val :figure ?neutral))
+    :wordnet-sense-keys ("awake%3:00:00" )
+    )
 
 ;; energized or fatigued
 (define-type ont::energy-supply-val
@@ -2113,7 +2115,7 @@
 ;; temporal occurrence
 (define-type ont::temporal-occurrence-val
  :parent ont::process-val 
- :sem (F::abstr-obj (F::scale ont::temporal-occurence-scale))
+ :sem (F::abstr-obj (F::scale ont::temporal-occurrence-scale))
 )
 
 ;; continuous, uninterrupted, can be either time or space dimensionality
@@ -3143,7 +3145,7 @@
  :parent ont::object-affordances-val 
  :arguments ((:essential ONT::FIGURE (F::PHYS-OBJ (F::ORIGIN F::ARTIFACT) (F::object-function f::provides-service-up-down))))
  :comment "properties relating to  whether something is functioning as intended"
- :sem (F::abstr-obj (F::scale ont::functionlity-scale) )
+ :sem (F::abstr-obj (F::scale ont::functionality-scale) )
 )
 
 (define-type ont::defective-val
@@ -3439,12 +3441,13 @@
 
 ;; confused, surprised, happy
 (define-type ont::psychological-property-val
- :parent ont::property-val 
- :comment "properties pertaining to psychological, mental or emotional states"
-		;;(:optional ont::stimulus ((? stm f::phys-obj f::situation f::abstr-obj)))
-		;; the object that is involved in a situation, but which is not a stimulus directly
-		;; for example, I am afraid for her, for the project
-		;;(:optional ont::formal (f::situation f::phys-obj f::abstr-obj)))
+    :parent ont::property-val
+    :arguments ((:REQUIRED ONT::FIGURE (F::phys-obj (f::intentional +) (f::origin (? org f::human f::non-human-animal))))) 
+    :comment "properties pertaining to psychological, mental or emotional states"
+    ;;(:optional ont::stimulus ((? stm f::phys-obj f::situation f::abstr-obj)))
+    ;; the object that is involved in a situation, but which is not a stimulus directly
+    ;; for example, I am afraid for her, for the project
+    ;;(:optional ont::formal (f::situation f::phys-obj f::abstr-obj)))
 )
 
 ;; reasonable/sensible vs unreasonable (mental states)

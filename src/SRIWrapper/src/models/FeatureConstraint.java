@@ -21,6 +21,7 @@ public class FeatureConstraint implements Constraint {
 	double value;
 	Feature comparisonFeature;
 	ReferringExpression comparisonSet;
+	boolean existential;
 	
 	public FeatureConstraint(Feature feature, Operator operator, 
 										ComparisonType comparisonType, double value) {
@@ -95,6 +96,7 @@ public class FeatureConstraint implements Constraint {
 		case "ONT::IDENTITY-VAL":
 		case "ONT::AS-MUCH-AS":
 		case "ONT::EQUAL":
+		case "ONT::SAME":
 			return Operator.EQUAL;
 		default:
 			return null;
@@ -125,6 +127,7 @@ public class FeatureConstraint implements Constraint {
 			}
 			
 		}
+		System.out.println(featureToTest);
 		Comparator comparator;
 		if (comparisonType.equals(ComparisonType.DISTANCE))
 			comparator = new DistanceComparator();
@@ -306,6 +309,14 @@ public class FeatureConstraint implements Constraint {
 	public boolean isInferred()
 	{
 		return feature.isInferred() || comparisonFeature.isInferred();
+	}
+
+	public boolean isExistential() {
+		return existential;
+	}
+
+	public void setExistential(boolean existential) {
+		this.existential = existential;
 	}
 
 

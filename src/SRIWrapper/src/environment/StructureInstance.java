@@ -88,6 +88,9 @@ public class StructureInstance implements FeatureGroup {
 		CountFeature countFeature = new CountFeature(FeatureConstants.NUMBER);
 		countFeature.setValue(blocks.size());
 		setFeature(countFeature);
+		CountFeature quantityFeature = new CountFeature(FeatureConstants.QUANTITY);
+		quantityFeature.setValue(blocks.size());
+		setFeature(quantityFeature);
 		features.put(FeatureConstants.SIZE, countFeature);
 	}
 	

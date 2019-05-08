@@ -14,16 +14,18 @@
  )
 
 (define-type ONT::KIND
- :parent ONT::ABSTRACT-OBJECT-nontemporal
- :sem (F::abstr-obj (F::SCALE -))
- :arguments ((:REQUIRED ONT::FIGURE)
-             )
+    :parent ONT::ABSTRACT-OBJECT-nontemporal
+    :wordnet-sense-keys ("kind%1:09:00")
+    :sem (F::abstr-obj (F::SCALE -))
+    :arguments ((:REQUIRED ONT::FIGURE)
+		)
  )
 
 ;; some kind of replication of the same thing
 ;; version, edition, variant
 (define-type ONT::Version
- :parent ONT::KIND
+    :wordnet-sense-keys ("version%1:09:01" "edition%1:14:00")
+    :parent ONT::KIND
  )
 
 ;; example, illustration, instance
@@ -454,7 +456,6 @@
        (F::CONTAINER -) (F::INFORMATION f::information-content) (F::INTENTIONAL -)
        )
   )
-
 
 (define-type ont::number-result
  :parent ont::number
@@ -986,7 +987,8 @@
 
 ;; meeting, party, conference
 (define-type ont::gathering-event
-  :parent ont::located-event
+    :wordnet-sense-keys("ceremony%1:04:00")
+    :parent ont::located-event
   )
 
 ;; 20111005 fire type added for obtw demo
@@ -1009,7 +1011,14 @@
 
 ;; talk, lecture, demo, presentation
 (define-type ont::presentation
+    :wordnet-sense-keys("presentation%1:10:00" "presentation%1:10:02" "show%1:04:00")
   :parent ont::gathering-event
+  )
+
+; talk, lecture, demo, presentation
+(define-type ont::exhibition
+    :wordnet-sense-keys("exhibition%1:14:00")
+    :parent ont::gathering-event
   )
 
 ;; idea
@@ -1329,7 +1338,14 @@
     :wordnet-sense-keys ("letter%1:10:01")
     :parent ONT::linguistic-object
 ; :sem (F::Abstr-obj (F::information F::data))
- )
+    )
+
+;; letters of the alphabet
+(define-type ONT::grammatical-category
+    :wordnet-sense-keys ("grammatical_category%1:10:00" "declension%1:14:00" "conjugation%1:14:01"
+							"linguistic_relation%1:24:00")
+    :parent ONT::linguistic-object
+    )
 
 ;; alpha, beta, ...
 (define-type ONT::greek-letter-symbol

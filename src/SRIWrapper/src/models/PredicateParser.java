@@ -146,6 +146,28 @@ public class PredicateParser {
 			
 			constraints.addAll(predicateConstraints);
 		}
+		else if (eventTerm.getKeywordArg(":AFFECTED") != null && headReferringExpression != null)
+		{
+			String affectedVariable = eventTerm.getKeywordArg(":AFFECTED").stringValue();
+			System.out.println("Predicate affected: " + affectedVariable);
+			// These need to send the term itself to find the predicate
+			Set<PredicateConstraint> predicateConstraints = 
+					PredicateParser.extractChildPredicateConstraints(headReferringExpression, 
+													eventTerm.get(KQMLUtilities.VARIABLE).stringValue(), context);
+			
+			constraints.addAll(predicateConstraints);
+		}
+		else if (eventTerm.getKeywordArg(":AFFECTED-RESULT") != null && headReferringExpression != null)
+		{
+			String affectedVariable = eventTerm.getKeywordArg(":AFFECTED-RESULT").stringValue();
+			System.out.println("Predicate affected-result: " + affectedVariable);
+			// These need to send the term itself to find the predicate
+			Set<PredicateConstraint> predicateConstraints = 
+					PredicateParser.extractChildPredicateConstraints(headReferringExpression, 
+													eventTerm.get(KQMLUtilities.VARIABLE).stringValue(), context);
+			
+			constraints.addAll(predicateConstraints);
+		}
 		
 		return constraints;
 	}

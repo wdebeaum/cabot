@@ -60,6 +60,7 @@ public class Predicate {
 			return left(blockUGF, sceneComplement);
 		case RIGHT:
 		case RIGHTLOC:
+		case CORRECT:
 			return right(blockUGF, sceneComplement);
 		case SIDE:
 		case SIDELOC:
@@ -86,8 +87,6 @@ public class Predicate {
 			return below(b1,b2);
 		case NEXTTO:
 			return isNextTo(b1,b2);
-		case TOUCHING:
-			return isTouching(b1,b2);
 		case ONTOPOF:
 			return above(b1,b2) && isTouching(b1,b2);
 		case ATSAMEHEIGHT:
@@ -97,6 +96,8 @@ public class Predicate {
 		case ANYWHERE:
 			return true;
 		case TOGETHER:
+		case TOUCHING:
+		case ATTACHED:
 			return isTouching(b1,b2);
 		default:
 			return false;
@@ -129,7 +130,6 @@ public class Predicate {
 		case ABOVE:
 		case BELOW:
 		case NEXTTO:
-		case TOUCHING:
 		case ONTOPOF:
 			return above(s, sceneComplement) && isTouching(s, sceneComplement);
 		case TOP:
@@ -139,10 +139,14 @@ public class Predicate {
 			return left(s, sceneComplement);
 		case RIGHT:
 		case RIGHTLOC:
+		case CORRECT:
 			return right(s, sceneComplement);
 		case ANYWHERE:
 			return true;
 		case TOGETHER:
+		case FILLED:
+		case TOUCHING:
+		case ATTACHED:
 			return isTogether(s);
 		case SIDE:
 		case SIDELOC:
@@ -505,8 +509,10 @@ public class Predicate {
 			return "on the right";
 		case TOP:
 			return "on top";
+		case FILLED:
+			return "filled";
 		default:
-			return "";
+			return KQMLUtilities.cleanOnt(predicateType.name());
 		}
 	}
 

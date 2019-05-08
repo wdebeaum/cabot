@@ -311,8 +311,11 @@ public class FeatureParser {
 					
 					groundFeature = referringExpressions.get(ground)
 							.getPseudoInstance().getFeature(groundScale);
-					groundFeature.setSource(referringExpressions.get(ground));
-					groundFeature.setConstant(false);
+					if (groundFeature != null)
+					{
+						groundFeature.setSource(referringExpressions.get(ground));
+						groundFeature.setConstant(false);
+					}
 				}
 				
 			}
@@ -336,6 +339,13 @@ public class FeatureParser {
 						groundFeature.setConstant(false);
 					}
 				}
+				else // Refers to the whole structure
+				{
+					System.out.println("Grounding in whole structure");
+					groundFeature = currentStructureInstance.getFeature(groundScale);
+					groundFeature.setConstant(false);
+					
+				}
 				//groundFeature = structureInstance.getFeature(groundScale);
 				
 			}
@@ -348,6 +358,7 @@ public class FeatureParser {
 				{
 					System.out.println("Ground Scale: " + groundScale);
 					groundFeature = structureInstance.getFeature(groundScale);
+					groundFeature.setConstant(false);
 				}
 				
 			}
@@ -432,9 +443,10 @@ public class FeatureParser {
 		{
 			KQMLList sizeTerm = KQMLUtilities.findTermInKQMLList(
 								term.getKeywordArg(":SIZE").stringValue(), context);
-			groundFeature = new CountFeature(FeatureConstants.NUMBER);
-			if (sizeTerm.getKeywordArg(":VALUE") != null)
+			
+			if (sizeTerm != null && sizeTerm.getKeywordArg(":VALUE") != null)
 			{
+				groundFeature = new CountFeature(FeatureConstants.NUMBER);
 				int value = Integer.parseInt(sizeTerm.getKeywordArg(":VALUE").stringValue());
 				groundFeature.setValue(value);
 				groundFeature.setConstant(true);
@@ -679,6 +691,20 @@ public class FeatureParser {
 					
 			}
 		}
+		boolean isExistential = false;
+		// Existential constraint?
+		if ((extractedFeature == null || groundFeature == null) && 
+				term.getKeywordArg(":INSTANCE-OF").stringValue().equalsIgnoreCase("ONT::EXISTS"))
+		{
+			System.out.println("Existential constraint");
+			extractedFeature = structureInstance.getFeature(FeatureConstants.NUMBER);
+			operator = Operator.GREATER;
+			groundFeature = new CountFeature(FeatureConstants.NUMBER);
+			groundFeature.setValue(0);
+			groundFeature.setConstant(true);
+			groundFeature.setInferred();
+			isExistential = true;
+		}
 		
 		if (extractedFeature == null)
 		{
@@ -699,10 +725,13 @@ public class FeatureParser {
 		System.out.println("Ground Feature: " + groundFeature.getName());
 		if (groundFeature.isConstant())
 			System.out.println("Ground value: " + groundFeature.getValue());
+		
 		FeatureConstraint newConstraint = new FeatureConstraint(extractedFeature,
 													operator, 
 													FeatureConstraint.ComparisonType.VALUE, 
 													groundFeature);
+		
+		newConstraint.setExistential(isExistential);
 		System.out.println("Extracted feature: " + newConstraint);
 		return newConstraint;
 		

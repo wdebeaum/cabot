@@ -41,6 +41,7 @@ public class TextToSpeech {
 					CommDataSender.sendSpeechPostRequest(input);
 		    			//CommDataSender.sendCurlPostSpeechRequest(input);
 					System.out.println(input);
+					Thread.sleep(input.length() * 45);
 					return;
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block

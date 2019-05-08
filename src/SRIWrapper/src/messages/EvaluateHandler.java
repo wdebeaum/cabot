@@ -1,6 +1,7 @@
 package messages;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import utilities.KQMLUtilities;
@@ -24,6 +25,7 @@ import models.FeatureProjection;
 import models.GridModel2D;
 import models.ModelBuilder;
 import models.ModelInstantiation;
+import models.PredicateConstraint;
 import models.Response;
 import models.StructureConstraint;
 
@@ -354,10 +356,25 @@ public class EvaluateHandler {
 			if (assertionContentTerm == null)
 				continue;
 			
+			String relevantSymbol = null;
 			if (assertionContentTerm.getKeywordArg(":NEUTRAL") != null)
 			{
-				String neutralSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL").stringValue();
-				neutralList = KQMLUtilities.findTermInKQMLList(neutralSymbol, context);
+				relevantSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL").stringValue();
+
+			}
+			else if (assertionContentTerm.getKeywordArg(":AFFECTED") != null)
+			{
+				relevantSymbol = assertionContentTerm.getKeywordArg(":AFFECTED").stringValue();
+			
+			}
+			else if (assertionContentTerm.getKeywordArg(":AFFECTED-RESULT") != null)
+			{
+				relevantSymbol = assertionContentTerm.getKeywordArg(":AFFECTED-RESULT").stringValue();			
+			}
+			
+			if (relevantSymbol != null)
+			{
+				neutralList = KQMLUtilities.findTermInKQMLList(relevantSymbol, context);
 				if (assertedObjectName == null && neutralList != null &&
 						neutralList.getKeywordArg(":LEX") != null && 
 						!neutralList.getKeywordArg(":SPEC").stringValue().equals("ONT::PRO"))
@@ -461,7 +478,27 @@ public class EvaluateHandler {
 				if (neutralTerm.getKeywordArg(":INSTANCE-OF").stringValue().
 											equalsIgnoreCase("ONT::EXAMPLE"))
 				{
-					GridModel2D example = modelBuilder.generateExample();
+					int numberOfBlocksToUse = -1;
+					// Check if a specific number of blocks should be used
+					for (KQMLObject term : context)
+					{
+						if (term instanceof KQMLList)
+						{
+							KQMLList termAsList = (KQMLList)term;
+							if (termAsList.getKeywordArg(":VALUE") != null)
+							{
+								numberOfBlocksToUse = Integer.parseInt(termAsList.getKeywordArg(":VALUE").stringValue());
+								break;
+							}
+						}
+					}
+					
+					GridModel2D example = null;
+					if (numberOfBlocksToUse > 0)
+						example = modelBuilder.generateExample(numberOfBlocksToUse);
+					else
+						example = modelBuilder.generateExample();
+					
 					if (example != null)
 					{
 						try {
@@ -519,6 +556,120 @@ public class EvaluateHandler {
 			//modelBuilder.processNewModel(newModelName);
 			modelBuilder.processNewModel(whatPhraseTerm,context);
 			
+		}
+		// "Forget the constraint"
+		else if (goalType.equalsIgnoreCase("ONT::OMIT") || goalType.equalsIgnoreCase("ONT::CAUSE-COME-FROM"))
+		{
+			List<Constraint> constraintList = modelBuilder.getLastModelInstantiation().constraints;
+			if (constraintList.isEmpty())
+			{
+				TextToSpeech.say("I don't have any constraints to delete.");
+				return unacceptableContent(goalType, "ADOPT", id, goal, asObject);
+				
+				
+			}
+			boolean plural = false;
+			boolean removedConstraint = false;
+			boolean universal = false;
+			String objectType = "";
+			int numOfRemovedConstraints = 0;
+			Constraint lastConstraint = null;
+			// Find a specific constraint
+			if (goalLF.getKeywordArg(":AFFECTED") != null)
+			{
+				
+				
+				String constraintVariable = goalLF.getKeywordArg(":AFFECTED").stringValue();
+				KQMLList constraintTermList = KQMLUtilities.findTermInKQMLList(constraintVariable, context);
+				if (constraintTermList.get(KQMLUtilities.ONT_REF).stringValue().equalsIgnoreCase("ONT::THE-SET"))
+					plural = true;
+				if (constraintTermList.getKeywordArg(":SIZE") != null)
+				{
+					if (constraintTermList.getKeywordArg(":SIZE").stringValue().equalsIgnoreCase("ONT::UNIVERSAL"))
+						universal = true;
+				}
+				if (constraintTermList.getKeywordArg(":ASSOC-WITH") != null)
+				{
+					String assocWithVariable = constraintTermList.getKeywordArg(":ASSOC-WITH").stringValue();
+					KQMLList assocWithTermList = KQMLUtilities.findTermInKQMLList(assocWithVariable, context);
+					
+					if (assocWithTermList.getKeywordArg(":INSTANCE-OF") != null)
+					{
+						objectType = assocWithTermList.getKeywordArg(":INSTANCE-OF").stringValue();
+						
+						Iterator<Constraint> i = constraintList.iterator();
+						while (i.hasNext())
+						{
+							Constraint constraint = i.next();
+							boolean matchingConstraint = false;
+							if (universal)
+								matchingConstraint = true;
+							
+							if (constraint instanceof StructureConstraint)
+							{
+								
+								if (((StructureConstraint)constraint).getSubject().getInstanceOf().
+										equalsIgnoreCase(objectType))
+								{
+									matchingConstraint = true;
+								}
+							}
+							else if (constraint instanceof PredicateConstraint)
+							{
+								
+								if (((PredicateConstraint)constraint).getSubject().getInstanceOf().
+										equalsIgnoreCase(objectType))
+								{
+									matchingConstraint = true;
+								}
+							}
+							else if (constraint instanceof FeatureConstraint)
+							{
+								if (((FeatureConstraint)constraint).getFeature().getName().
+										equalsIgnoreCase(objectType))
+								{
+									matchingConstraint = true;
+								}
+							}
+							
+							if (matchingConstraint)
+							{
+								removedConstraint = true;
+								lastConstraint = constraint;
+								numOfRemovedConstraints++;
+								i.remove();
+								if (!plural)
+									break;
+							}
+						}
+					}
+						
+				}
+				
+				if (removedConstraint)
+				{
+					
+				}
+			}
+			if (!removedConstraint)
+			{
+				lastConstraint = constraintList.get(constraintList.size()-1);
+				modelBuilder.getLastModelInstantiation().constraints.remove(lastConstraint);
+			}
+			if (plural)
+			{
+				TextToSpeech.say("I removed " + numOfRemovedConstraints + " " + KQMLUtilities.cleanOnt(objectType) + " constraint." );
+			}
+			else
+			{
+				TextToSpeech.say("I removed the constraint that the \"" + lastConstraint.reason(true) + "\"." );
+			}
+			try {
+				Thread.sleep(1600);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		

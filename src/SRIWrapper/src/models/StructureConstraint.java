@@ -66,7 +66,8 @@ public class StructureConstraint implements Constraint {
 		
 		List<FeatureGroup> individualInstances = referredBlocks.getValue();
 		
-		int numberOfReferredInstances = 1;
+		// int numberOfReferredInstances = 1;
+		int numberOfReferredInstances = referredBlocks.getValue().size();
 		// Check if this UGF is holding the right types of objects to check quantifier constraints
 		// Note this just checks for at least one matching element
 		boolean subStructures = false;
@@ -74,10 +75,12 @@ public class StructureConstraint implements Constraint {
 		{
 			if (instance instanceof Feature)
 			{
-				if (((Feature)instance).getName().equalsIgnoreCase(newSubject.getInstanceOf()))
+				if (((Feature)instance).getName().equalsIgnoreCase(newSubject.getInstanceOf()) ||
+						((Feature)instance).getName().equalsIgnoreCase(newSubject.getElementType()))
 				{
 					numberOfReferredInstances = individualInstances.size();
 					subStructures = true;
+					System.out.println("RefExp has substructures");
 					break;
 				}
 						
@@ -90,12 +93,18 @@ public class StructureConstraint implements Constraint {
 			{
 				if (!(instance instanceof UnorderedGroupingFeature))
 					continue;
+				System.out.println("Substructure is an UnorderedGroupingFeature");
 				UnorderedGroupingFeature instanceUGF = (UnorderedGroupingFeature)instance;
 				Scene subjectScene = new Scene();
 				subjectScene.addBlocks(instanceUGF.getBlocks());
 				
-				if (featureConstraint != null && featureConstraint.isSatisfied(subjectScene, s))
-					satisfactions++;
+				if (instanceUGF.getFeatures().containsKey(featureConstraint.getFeature().getName()))
+				{
+					Feature featureToTest = instanceUGF.getFeatures().get(featureConstraint.getFeature().getName());
+					System.out.println("Found matching feature " + featureToTest.getName());
+					if (featureConstraint != null && featureConstraint.isSatisfied(featureToTest, subjectScene, s))
+						satisfactions++;
+				}
 			}
 			
 			if (!newSubject.getQuantifier().validSatisfactionCount(satisfactions, numberOfReferredInstances))

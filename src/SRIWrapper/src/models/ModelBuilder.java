@@ -66,7 +66,7 @@ public class ModelBuilder {
 	{
 		if (lastConstraintAsked == null)
 			return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
-					content.getKeywordArg(":TO").stringValue(), "NIL", content.getKeywordArg(":AS"));
+					content.getKeywordArg(":TO").stringValue(), "NIL", new KQMLList());
 		
 		if (lastConstraintAsked instanceof PredicateConstraint)
 		{
@@ -76,7 +76,7 @@ public class ModelBuilder {
 			{
 				TextToSpeech.say("Hmm, I don't quite understand.");
 				return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
-						content.getKeywordArg(":TO").stringValue(), "NIL", content.getKeywordArg(":AS"));
+						content.getKeywordArg(":TO").stringValue(), "NIL",  new KQMLList());
 			}
 			
 			// TODO: Improve to take multiple predicates
@@ -90,7 +90,7 @@ public class ModelBuilder {
 		KQMLObject valueObject = content.getKeywordArg(":VALUE");
 		if (valueObject == null)
 			return EvaluateHandler.unacceptableContent("CANNOT-PROCESS", "ANSWER", 
-					content.getKeywordArg(":ID").stringValue(), "NIL", content.getKeywordArg(":AS"));
+					content.getKeywordArg(":ID").stringValue(), "NIL",  new KQMLList());
 
 		double value;
 			
@@ -103,9 +103,11 @@ public class ModelBuilder {
 		{
 			KQMLList valueList = KQMLUtilities.findTermInKQMLList(valueObject.stringValue(),
 																context);
-			if (valueList != null && valueList.getKeywordArg(":QUAN") != null)
+			// Answer is "no limit" or "any number"
+			if (valueList != null && (valueList.getKeywordArg(":QUAN") != null || 
+					valueList.getKeywordArg(":INSTANCE-OF").stringValue().equalsIgnoreCase("ONT::NOT-LIMITED-VAL") ))
 			{
-				value = 10;
+				value = 16;
 				
 			}
 			else
@@ -169,7 +171,7 @@ public class ModelBuilder {
 		else
 		{
 			sb.append("What is the greatest the ");
-			sb.append(featureName);
+			sb.append(KQMLUtilities.cleanScale(featureName));
 		}
 		
 		if (constraintToAsk instanceof StructureConstraint)
@@ -253,6 +255,7 @@ public class ModelBuilder {
 			
 			TextToSpeech.say("Can you tell me anything else about it?");
 			askedFeature = false;
+			showedUserExample = false;
 			lastGoal = new Goal("ONT::DESCRIBE");
 			lastGoal.setParent(currentGoal);
 			return GoalMessages.proposeAdoptContent(lastGoal);
@@ -300,7 +303,23 @@ public class ModelBuilder {
 		System.out.println("Creating random instances to test");
 		for (int i = 0; i < 600; i++)
 		{
-			GridModel2D currentGridModel = GridModel2D.randomSample(8);
+			GridModel2D currentGridModel = GridModel2D.randomSample(9);
+			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
+					currentGridModel.getBlocks()))
+			{
+				return currentGridModel;
+			}
+		}
+		
+		return null;
+	}
+	
+	public GridModel2D generateExample(int numberOfBlocksToUse)
+	{
+		System.out.println("Creating random instances to test");
+		for (int i = 0; i < 600; i++)
+		{
+			GridModel2D currentGridModel = GridModel2D.randomSampleWithSpecificBlocks(numberOfBlocksToUse);
 			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
 					currentGridModel.getBlocks()))
 			{

@@ -33,8 +33,7 @@
 |#
 
 (define-type ONT::cause-effect
-    :wordnet-sense-keys ( "do%2:36:02" "make%2:36:08"
-					  "drive%2:35:00" "get%2:30:02" "open_up%2:30:00")
+    :wordnet-sense-keys ("do%2:36:02" "drive%2:35:00" "get%2:30:02" "make%2:36:08" "open_up%2:30:00")
  :parent ONT::acting
  :comment "an AGENT causes some event to occur or proposition to become true. Usually the verbs that fall under this category are very general causal verbs that take other events as their arguments and are positive causes- i.e., events are caused to happen as opposed to negative causes as in an event is prevented."
  :sem (F::Situation (F::Cause (? cz F::Force f::agentive)) (F::Trajectory -))
@@ -177,6 +176,7 @@
 (define-type ont::motion
  :parent ONT::EVENT-OF-causation
  :sem (F::Situation (F::Cause (? c F::Force -)) (F::Aspect F::Dynamic))
+ :wordnet-sense-keys ("movement%1:04:04")
  :comment "events of motion through some space (physical or abstract). Even though many motion verbs express simply undergoing motion, all these verbs allow to possibiliity of an AGENT"
  :arguments ((:REQUIRED ONT::affected ((? th1 f::phys-obj f::abstr-obj f::situation f::time) (F::mobility F::movable)))
              (:OPTIONAL ONT::Source)
@@ -259,7 +259,7 @@
 
 
 (define-type ONT::Categorization
- :wordnet-sense-keys ("declare%2:32:04" "adjudge%2:32:00" "hold%2:32:11")
+ :wordnet-sense-keys ("adjudge%2:32:00" "declare%2:32:04" "hold%2:32:11")
  :parent ONT::event-of-action
  :sem (F::Situation (F::Cause F::Agentive (F::trajectory -)))
  :arguments ((:ESSENTIAL ONT::Agent ((? cog f::abstr-obj F::phys-obj F::situation))) ;(F::intentional +))) ;situation: It is characterized/marked by a decrease in temperature
@@ -500,11 +500,8 @@
              )
  )
 
-;;; swift 10/27/06 changed f::origin f::human to f::origin f::living for e.g. "every dog hates a cat"; "plants love sunshine"
-;;; I conjoined Experiencer-subj with Experiencer-obj
-;;; swift 01/12/01 -- changed aspect feature f_static to F_Stage-Level to allow progressive
 (define-type ONT::Experiencer-emotion
- :wordnet-sense-keys ("like%2:37:05" "experience%2:37:00" "feel%2:37:00")
+ :wordnet-sense-keys ( "experience%2:37:00" "feel%2:37:00")
  :parent ONT::event-of-experience
  :sem (F::Situation (:required (F::Cause F::Mental))(:default (F::Aspect F::Stage-Level)))
  :arguments (
@@ -566,12 +563,26 @@
              )
  )
 
+(define-type ONT::cause-position
+    :parent ont::event-of-causation
+    :arguments ((:ESSENTIAL ONT::affected-result)
+		)
+    )
+
 (define-type ONT::cause-cover
- :wordnet-sense-keys ("impregnate%2:30:00" "saturate%2:30:04" "spread%2:35:13")
- :parent ont::event-of-causation
- :arguments ((:ESSENTIAL ONT::affected-result)
-             )
- )
+    :wordnet-sense-keys ("cover%2:35:00" "cover%2:35:14"
+					  "cover%2:35:01" "impregnate%2:30:00" "saturate%2:30:04" "spread%2:35:13")
+    :parent ont::cause-position
+    )
+
+(define-type ONT::orient
+    :comment "cause an AFFECTED to be oriented in some direction"
+    :definitions ((ONT::CAUSE-EFFECT :agent ?agent
+				     :formal (ONT::POINTING-TO :neutral ?affected)))
+    :wordnet-sense-keys ("direct%2:33:00" "take_aim%2:33:00" "train%2:33:00" "point%2:32:00"
+					  "point%2:33:02" "point%2:33:10")
+    :parent ont::cause-position
+    )
 
 ;;; Even if we do not know the path, it is implied in the verb
 (define-type ONT::Path-shape
@@ -921,6 +932,19 @@
  :sem (F::situation (F::Aspect F::static) (F::Time-span F::extended))
  )
 
+(define-type ONT::be-ahead
+ :wordnet-sense-keys ("lead%2:42:01")
+ :arguments ((:ESSENTIAL ONT::NEUTRAL1 ((? bb F::Phys-obj F::Abstr-obj))))
+ :parent ONT::in-relation
+ )
+
+ (define-type ONT::be-behind
+ :wordnet-sense-keys ("lag%2:38:00" "trail%2:38:02")
+ :arguments ((:ESSENTIAL ONT::NEUTRAL1 ((? bb F::Phys-obj F::Abstr-obj))))
+ :parent ONT::in-relation
+ )
+
+
 (define-type ONT::comprise
  :wordnet-sense-keys ("consist%2:42:04")
  :parent ONT::in-relation
@@ -984,14 +1008,17 @@
 ;; for verbs consistent with ont::affect class but select for sentient entities in the object role -- e.g.
 ;; confuse, bother, annoy
 (define-type ONT::affect-experiencer
- :wordnet-sense-keys ("come_to%2:39:00")
- :parent ONT::event-of-causation
- :sem (F::Situation (F::aspect F::dynamic) (F::cause F::agentive))
- ;; using f::origin f::living here, but this also includes plants -- no easy way to exclude those but include animals with current feature hierarchy ;-(
- :arguments ((:REQUIRED ONT::agent)
- 	     (:REQUIRED ONT::affected (F::phys-obj (F::origin f::living)))
-             )
- )
+    :wordnet-sense-keys ("come_to%2:39:00")
+    :comment "cause an experience on an cognitive agent"
+    :definitions ((ont::cause-effect :agent ?agent
+				     :formal (ont::event-of-experience :experiencer ?affected)))
+    :parent ONT::event-of-causation
+    :sem (F::Situation (F::aspect F::dynamic) (F::cause F::agentive))
+    ;; using f::origin f::living here, but this also includes plants -- no easy way to exclude those but include animals with current feature hierarchy ;-(
+    :arguments ((:REQUIRED ONT::agent)
+		(:REQUIRED ONT::affected (F::phys-obj (F::origin f::living)))
+		)
+    )
 
 (define-type ont::control-manage
  :wordnet-sense-keys ("control%2:41:00" "control%1:04:00""command%2:41:00" "discharge%2:33:01" "direct%2:41:00" )

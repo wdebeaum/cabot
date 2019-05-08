@@ -309,6 +309,15 @@ public class ModelInstantiation {
 				if (c instanceof StructureConstraint && !((StructureConstraint)c).isInferred())
 					cb.add(c);
 			}
+			// No uninferred constraints, keep the existential ones
+			if (cb.size() == 0)
+			{
+				for (Constraint c : constraintsFound)
+				{
+					if (c instanceof FeatureConstraint && ((FeatureConstraint)c).isExistential())
+						cb.add(c);
+				}
+			}
 		}
 		else
 			cb.addAll(constraintsFound);
