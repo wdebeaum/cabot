@@ -33,7 +33,7 @@ SRCS = 	src/javawrapper/Turn.java \
 CLASSES = $(SRCS:.java=.class) \
 	src/javawrapper/Turn$$Word.class \
 	JavaWrapper$$TimeoutTask.class \
-	JavaWrapper$$1.class \
+	$(if $(EXTRA_NESTED_PRIVATE_CLASS_FILE),JavaWrapper$$1.class) \
 	src/javawrapper/LFTerm$$1.class \
 
 

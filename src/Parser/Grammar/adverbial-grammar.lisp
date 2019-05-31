@@ -306,7 +306,7 @@
                    (sem ?sem) (transform ?trans)))
             (role ?lf) (subcatsem ?gapsem) (subcat ?subcat)
             )
-     -advbl-subcat-gap> .97 ;.92
+     -advbl-subcat-gap> .92
      (head (adv (var ?v) ;;(SORT BINARY-CONSTRAINT) 
 	    (sort (? !sort pp-word double-subcat))
             (lf ?lf) (IGNORE -)  (sem ?sem)
@@ -831,8 +831,9 @@
 		))
 
      (advbl (ATYPE POST) (ARGUMENT (% S (sem ?sem))) (GAP ?!gap)
-      (ARG ?v) (VAR ?mod)
-      (role ?advrole) 
+	    (ARG ?v) (VAR ?mod)
+	    (SEM ($ f::abstr-obj (F::type (? t ONT::by-means-of)))) ; restricted until we find other examples
+	    (role ?advrole) 
       )
      (add-to-conjunct (val (MODS ?mod)) (old ?lf) (new ?new))
      )
@@ -1640,8 +1641,9 @@
 
    ((PP (PTYPE ?pt) (lf ?lf) (case ?c)
 		(lex ?pt) (headcat ?hc)
-     (sem ($ ?somesem)) (var ?gapvar) (agr ?agr)     
-     (gap (% np (lf ?lf) (var ?gapvar) (gap -) (sort (? sort pred descr wh-desc)) (case (? case obj -)) (agr ?agr)))
+		(sem ?somesem) ;(sem ($ ?somesem))
+		(var ?gapvar) (agr ?agr)     
+     (gap (% np (lf ?lf) (var ?gapvar) (gap -) (sort (? sort pred descr wh-desc)) (case (? case obj -)) (agr ?agr) (sem ?somesem)))
      )					; I set the case here to a var, in order to allow -np-spec-of-pp> to work. Otherwise, CASE is not used in PPs
     -pp1-gap> 0.98
     (head (prep (LEX ?pt) (headcat ?hc)))
@@ -1666,7 +1668,7 @@
 			  ;; W::VP)
 		  (SEM ($ F::situation (f::type (? xx ont::event-of-action ont::event-of-state)))))) ;;SITUATION (F::trajectory +)))))))
      )
-    -distance-np-advbl> 1.0 ;.97
+    -extent-np-advbl> 1.0 ;.97
     (head (np (var ?v) (sort unit-measure) (sem ?sem)  
 	      (bare -) ;; we suppress this rule for distances without a specific amount (e.g., "miles")
 	      ;; the semantic restriction is not sufficient to prevent measure-unit phrases such as "a bit" or "a set" as distances so using the lfs to restrict
@@ -1681,14 +1683,14 @@
     )
 
 
-;; adjectival extent adverbials. He jumped three feet high, He jumped three feet higher than than
+;; adjectival extent adverbials. He jumped higher than that
    ((advbl (arg ?arg) ;;(role (:* ONT::distance W::quantity)) 
      (var *) (subj ?anysubj)
 	   (sort binary-constraint) (sem ?sem)
 	   (LF (% PROP (VAR *) (CLASS ONT::extent-predicate) (sem ?sem)
 		  (CONSTRAINT (& (figure ?arg)
 				 (ground (% *PRO* (status definite)
-					    (var **) (class ANYSEM)
+					    (var **) (class ont::VALUE)
 					    (constraint (& (MOD ?v)))))
 				 ))
 		  ))
@@ -1696,17 +1698,17 @@
      (argument (% W::S (subjvar ?anysubj)
 		  (SEM ($ F::situation (f::type (? xx ont::event-of-action ont::event-of-state))))))
      )
-    -extent-adj-advbl> 1.0 ;.97
+    -extent-adj-compar-advbl> 1.0 ;.97
     (head (Adjp (var ?v) (sem ?sem)  (arg **)
 	      (bare -) 
-	      (lf (% prop (class (? cc ont::more-val ont::less-val ont::at-scale-val))))
+	      (lf (% prop (class (? cc ont::more-val ont::less-val))))
 	      (sem ($ f::abstr-obj (f::scale (? sc ont::scale ont::measure-scale)))) 
 	      
 	      ))
      )
 
-      ;; ing VPs as adverbials
-      ;; TEST: Barking, the dog chased the cat.
+   ;; ing VPs as adverbials
+   ;; TEST: Barking, the dog chased the cat.
    ;; TEST: The dog chased the cat barking.
    ((advbl (arg ?arg) (sem ($ f::abstr-obj (f::information -) (f::intentional -) (f::type ONT::IMPLICIT-OVERLAP)))
      (argument (% S (sem ($ f::situation (f::aspect f::dynamic))) (subjvar ?!subjvar) (subj ?!subj)

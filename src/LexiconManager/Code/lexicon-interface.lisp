@@ -559,7 +559,7 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 	(setq compat (list child sense)))
       )
     (print-debug "~%compatibility of ~S and ~S is ~S~%" sense sense-list compat)
-    compat)
+    compat)2
   )
 ||#
 (defun update-tagged-sense-list (sense-list sense)
@@ -937,15 +937,22 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 ;  (lxm::get-word-def 'w::aardvark '(:trips-parts-of-speech (w::n) :penn-parts-of-speech (NN) :wn-sense-keys ("aardvark%1:05:00::" "ant_bear%1:05:01::)")))
  ; (lxm::get-word-def 'w::break '(:penn-parts-of-speech (VB) :tag (W::V) :wn-sense-keys ("break%2:29:04::"))) ;; evoke-injury sense, not in TRIPS
  ; (lxm::get-word-def 'w::show '(:penn-parts-of-speech (VB) :tag (W::V) :wn-sense-keys ("show%2:39:02"))) ; ont::show sense, in TRIPS
- ; (lxm::get-word-def 'w::Diltiazem '( :frame (3 12) :sense-info ((:penn-parts-of-speech (NNP NN) :trips-parts-of-speech (W::NAME W::N) :ont-types (ONT::PHARMACOLOGIC-SUBSTANCE)))))
+					; (lxm::get-word-def 'w::Diltiazem '( :frame (3 12) :sense-info ((:penn-parts-of-speech (NNP NN) :trips-parts-of-speech (W::NAME W::N) :ont-types (ONT::PHARMACOLOGIC-SUBSTANCE)))))
+
+(defvar *gloss-override* nil)
 
 (defun get-word-def (w keylist)
   (if (find-arg keylist :var-prefix)
       (setq *var-prefix* (string (find-arg keylist :var-prefix)))
       (setq *var-prefix* "V"))
+  (if (and *gloss-override* (eq *gloss-override* w))
+      (format t  "~%GET-WORD-DEF CALLED WITH GLOSS OVERRIDE ~S" *gloss-override*))
   (let* ((w (util::convert-to-package w :w))
 	 (w (convert-to-symbol w))
-	 (wdef (if (listp w) (retrieve-multiword-from-trips w) (retrieve-from-lex w)))
+	 (wdef (if (not (eq *gloss-override* w))  ;; for gloss evaluations, we suppress the TRIPS lexical entries
+		   (if (listp w) (retrieve-multiword-from-trips w) (retrieve-from-lex w))
+		   (progn (print-debug "~% Lexicon lookup  for ~S is suppressed~%" w)
+			  nil)))
 	 (tagged-senses (clean-up-tagged-senses (find-arg keylist :sense-info)))
 	 (first-tagged-sense (car tagged-senses)) ; only one sense for ptb
 	 (trips-sense-info (get-lf w :wdef wdef))	 
@@ -1217,7 +1224,6 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 
 (defun process-word-request (w keylist wdef)
   "
- get-word-def (w)
  @param w : word 
  @return  : the lexicon entry for the word (a lex-entry structure) in list format for message passing
             this lexicon entry retrieval incorporates ontologymanager info in the lex definition (sem features, roles)
@@ -1498,8 +1504,10 @@ TODO: domain-specific words (such as CALO) and certain irregular forms (such as 
 
 (defun get-sem-feature-value (lftype feature)
   "given an lftype and feature, return the sem feature value"
-  (cdr (assoc feature (cddr (make-type-spec (get-lf-sem lftype :no-defaults nil) :semvar nil :feature-list-sign '$))))
-  )
+  (let ((sem (get-lf-sem lftype :no-defaults nil)))
+    (when sem
+      (cdr (assoc feature (cddr (make-type-spec sem :semvar nil :feature-list-sign '$))))
+      )))
 
 (defun is-reln (word lftype)
   "return the subcat role if word with this lftype is a relational noun, otherwise nil. This is used by IM to resolve possessive :assoc-with relations"

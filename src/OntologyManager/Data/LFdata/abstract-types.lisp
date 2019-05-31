@@ -150,13 +150,16 @@
   :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
 		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
   :arguments ((:REQUIRED ONT::FIGURE)
-	      (:REQUIRED ONT::GROUND)))
+	      (:REQUIRED ONT::GROUND))
+ :wordnet-sense-keys ("ultimate%3:00:00" "maximum%3:00:00")
+)
 
 ;; worst, least
 (define-type ONT::MIN-val
   :parent ONT::domain-property
   :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
 		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
+ :wordnet-sense-keys ("minimum%3:00:00")
   )
 
 ;; as hot as it can be
@@ -799,19 +802,14 @@
 
 ;; success, failure
 (define-type ONT::outcome
- :parent ONT::information-function-object
- :arguments ((:essential ONT::FIGURE)
-	     )
- )
-
-(define-type ONT::result
- :parent ONT::outcome
- :arguments ((:essential ONT::FIGURE)
-	     )
- )
+    :wordnet-sense-keys ("result%1:11:00")
+    :parent ONT::information-function-object
+    :arguments ((:essential ONT::FIGURE)
+		)
+    )
 
 (define-type ONT::clinical-finding
- :parent ONT::result
+ :parent ONT::outcome
  :arguments ((:essential ONT::FIGURE)
 	     )
  )
@@ -987,7 +985,7 @@
 
 ;; meeting, party, conference
 (define-type ont::gathering-event
-    :wordnet-sense-keys("ceremony%1:04:00")
+    :wordnet-sense-keys("ceremony%1:04:00" "gathering%1:14:00")
     :parent ont::located-event
   )
 
@@ -1074,7 +1072,7 @@
 )
 
 (define-type ONT::FEELING
-    :wordnet-sense-keys ("feeling%1:03:00" "bother%1:09:00" "worry%1:09:00" "sorrow%1:09:00" "distress%1:12:02" "restlessness%1:12:00")
+    :wordnet-sense-keys ("feeling%1:03:00" "bother%1:09:00" "worry%1:09:00" "sorrow%1:09:00" "distress%1:12:02" "restlessness%1:12:00" "mercy%1:07:00")
     :parent ONT::mental-construction
     :arguments ((:OPTIONAL ONT::FIGURE) ;(f::situation (f::information f::mental-construct) (f::cause f::mental)))
 		)
@@ -1616,7 +1614,7 @@
 
 (define-type ONT::SAME
  :parent ONT::IDENTITY-VAL
- :wordnet-sense-keys ("same%3:00:02" "same%3:00:02" "identical%5:00:00:same:02")
+ :wordnet-sense-keys ("same%3:00:02" "same%3:00:02" "identical%5:00:00:same:02" "same%3:00:00")
  ; Antonym: NIL (W::OTHER)
  )
 

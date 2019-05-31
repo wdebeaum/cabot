@@ -197,7 +197,7 @@
 
 
 (define-type ONT::Awareness
- :wordnet-sense-keys ("think%2:31:00" "cogitate%2:31:00" "cerebrate%2:31:00")
+ :wordnet-sense-keys ("think%2:31:00" "cogitate%2:31:00" "cerebrate%2:31:00" "attention%1:09:00")
  :parent ONT::event-of-experience
  :sem (F::Situation (F::Cause F::Mental) (F::Trajectory -))
  :comment "a state in which an EXPERIENCER holds some attitude towards a proposition"
@@ -223,7 +223,7 @@
 
 
 (define-type ONT::Objective-influence
-    :wordnet-sense-keys ("force%1:07:01" "appeal%2:37:00" "keep_up%2:29:00" "retire%2:33:00" "stampede%2:38:01" "stampede%2:41:01" "trip%2:38:01" "unbalance%2:42:00" "undo%2:36:00")
+    :wordnet-sense-keys ("force%1:07:01" "keep_up%2:29:00" "retire%2:33:00" "stampede%2:38:01" "stampede%2:41:01" "trip%2:38:01" "unbalance%2:42:00" "undo%2:36:00")
     :parent ONT::EVENT-OF-causation
     :comment "an AGENT influences the AFFECTED role in some way (typically unspecified by the verb)"
     :sem (F::Situation (F::Trajectory -))
@@ -454,7 +454,7 @@
  )
 
 (define-type ONT::Request
- :wordnet-sense-keys ("request%2:32:01" "request%1:10:00" "call%2:41:04")
+ :wordnet-sense-keys ("call%2:41:04" "insist%2:32:00" "request%1:10:00" "request%2:32:01")
  :parent ONT::directive
  :comment "the generic directive act"
  :sem (F::Situation (F::Cause F::Agentive))
@@ -566,6 +566,7 @@
 (define-type ONT::cause-position
     :parent ont::event-of-causation
     :arguments ((:ESSENTIAL ONT::affected-result)
+		(:optional ont::affected1)
 		)
     )
 
@@ -841,7 +842,7 @@
  :sem (F::Situation (F::Aspect F::static) (F::Time-span F::extended) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::neutral )
 	     ;; this is still here until we decide what to do with the formal-pred mappings for be
-	     (:essential ONT::formal (F::Abstr-obj (f::type (? cbd ont::domain-property ont::position-reln))))
+	     (:essential ONT::formal (F::Abstr-obj (f::type (? cbd ont::domain-property ont::position-reln ont::predicate)))) ; ont::predicate: with, without, around
 ;             (:ESSENTIAL ONT::PROPERTY ((? oc2 F::abstr-obj))) ;; only properties (preds) -- for event nouns use ont::have-experience or ont::participating
              )
  )
@@ -986,7 +987,6 @@
 
 ;; e.g., my leg hurts, he itches, They tired of the game
  (define-type ONT::experiencer-obj
- :wordnet-sense-keys ("itch%2:39:02" "ache%2:39:00")
  :parent ONT::event-of-undergoing-action
  :sem (F::Situation (F::aspect F::dynamic) (F::cause F::agentive))
  :arguments (;; (:REQUIRED ONT::cause) ;; this used to include other verbs, but now is a formal (part or an experiencer), or experiencer
@@ -1063,7 +1063,7 @@
 ;; fail
 ;; this isn't a subtype of ont::try because the intentionality is indeterminate
 (define-type ONT::fail
- :wordnet-sense-keys ("bomb%2:41:00" "fail%2:30:07" "fail%2:40:00" "fail%2:41:00" "fail%2:41:02" "fail%2:41:08" "fail%2:41:12" "fall_short_of%2:42:00" "neglect%2:41:00")
+ :wordnet-sense-keys ("bomb%2:41:00" "fail%2:30:07" "fail%2:40:00" "fail%2:41:00" "fail%2:41:02" "fail%2:41:08" "fail%2:41:12" "fall_short_of%2:42:00" "neglect%2:41:00" "failure%1:11:00")
  :parent ONT::acting
  :arguments ((:OPTIONAL ONT::neutral)
 	     (:REQUIRED ONT::formal (F::Situation))

@@ -29,6 +29,11 @@
 (define-type ont::social-imperative
   :parent ont::social-contract
   :wordnet-sense-keys ("freedom%1:26:01" "slavery%1:26:00")
+  )
+
+(define-type ont::right-permission
+  :parent ont::social-contract
+  :wordnet-sense-keys ("right%1:07:00" "permission%1:10:00")
 )
 
 (define-type ont::social-judgement
@@ -38,11 +43,8 @@
 ;; Maybe there is too much overlap between children in governing-principle and
 ;; judgement-val.  The goal is to extricate the actual judgement from the expression
 ;; which represents it, but that may be too lofty a goal.
-
-(define-type ont::judgement-val
-  :parent ont::social-judgement
-  :wordnet-sense-keys ("moral%3:00:00::" "immoral%3:00:00::" "immoral%3:00:00:wrong:01")
-)
+;; 03/13/19 - judgement-val renamed morality-val and moved under judgement-val
+;;            which is under evaluation-attribute-val
 
 (define-type ont::essential-contract
   :parent ont::social-imperative
