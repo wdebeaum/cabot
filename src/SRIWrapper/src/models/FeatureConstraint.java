@@ -8,12 +8,13 @@ import features.CountFeature;
 import features.DecimalFeature;
 import features.Feature;
 import features.FeatureConstants;
+import features.FeatureGroup;
 import features.UnorderedGroupingFeature;
 
 public class FeatureConstraint implements Constraint {
 
-	public enum Operator {LESS,GREATER,GEQ,LEQ,EQUAL,GREATEST,LEAST}
-	public enum ComparisonType {VALUE,DISTANCE,DEFAULT}
+	public enum Operator {LESS,GREATER,GEQ,LEQ,EQUAL,GREATEST,LEAST,NOTEQUAL}
+	public enum ComparisonType {VALUE,DISTANCE,INTRA,DEFAULT}
 	
 	Feature feature;
 	Operator operator;
@@ -96,8 +97,12 @@ public class FeatureConstraint implements Constraint {
 		case "ONT::IDENTITY-VAL":
 		case "ONT::AS-MUCH-AS":
 		case "ONT::EQUAL":
+		case "ONT::ASSOC-WITH":
 		case "ONT::SAME":
+		case "ONT::CHANGE": //Hack
 			return Operator.EQUAL;
+		case FeatureConstants.DIFFERENT:
+			return Operator.NOTEQUAL;
 		default:
 			return null;
 		}
@@ -127,28 +132,70 @@ public class FeatureConstraint implements Constraint {
 			}
 			
 		}
+		
+		Feature newComparisonFeature = comparisonFeature;
+		
+		if (isSuperlative())
+		{
+			if (operator.equals(Operator.GREATEST) && comparisonFeature instanceof UnorderedGroupingFeature)
+			{
+				newComparisonFeature = ((UnorderedGroupingFeature)comparisonFeature).
+												getMaxFeatureValue(featureToTest.getName());
+			}
+			if (operator.equals(Operator.LEAST) && comparisonFeature instanceof UnorderedGroupingFeature)
+			{
+				newComparisonFeature = ((UnorderedGroupingFeature)comparisonFeature).
+												getMinFeatureValue(featureToTest.getName());
+			}
+		}
+		
 		System.out.println(featureToTest);
 		Comparator comparator;
 		if (comparisonType.equals(ComparisonType.DISTANCE))
 			comparator = new DistanceComparator();
 		else
 			comparator = new ValueComparator();
+		
+		// In cases like "The height of all columns are equal, check for all items in a group
+		if (operator.equals(Operator.EQUAL) && comparisonFeature instanceof UnorderedGroupingFeature)
+		{
+			System.out.println("Checking equality over grouping");
+			UnorderedGroupingFeature grouping = (UnorderedGroupingFeature)comparisonFeature;
+			System.out.println("Feature to test value: " + featureToTest.getValue());
+			for (FeatureGroup fg : grouping.getValue())
+			{
+				if (fg.getFeatures().containsKey(featureToTest.getName()))
+				{
+					newComparisonFeature = fg.getFeatures().get(featureToTest.getName());
+					System.out.println("Comparison feature value " + newComparisonFeature.getValue());
+					if (!(comparator.compare(featureToTest,newComparisonFeature) == 0))
+						return false;
+				}
+				else
+					return false;
+
+			}
+			return true;
+		}
+		
+		
+		
 		switch (operator)
 		{
 		case LESS:
-			return comparator.compare(featureToTest,comparisonFeature) < 0;
+			return comparator.compare(featureToTest,newComparisonFeature) < 0;
 		case GREATER:
-			return comparator.compare(featureToTest,comparisonFeature) > 0;
+			return comparator.compare(featureToTest,newComparisonFeature) > 0;
 		case EQUAL:
-			return comparator.compare(featureToTest,comparisonFeature) == 0;
+			return comparator.compare(featureToTest,newComparisonFeature) == 0;
 		case GEQ:
-			return comparator.compare(featureToTest,comparisonFeature) >= 0;
+			return comparator.compare(featureToTest,newComparisonFeature) >= 0;
 		case LEQ:
-			return comparator.compare(featureToTest,comparisonFeature) <= 0;
+			return comparator.compare(featureToTest,newComparisonFeature) <= 0;
 		case GREATEST:
-			return comparator.compare(featureToTest,comparisonFeature) > 0;
+			return comparator.compare(featureToTest,newComparisonFeature) > 0;
 		case LEAST:
-			return comparator.compare(featureToTest,comparisonFeature) < 0;
+			return comparator.compare(featureToTest,newComparisonFeature) < 0;
 		default:
 			return false;
 			
@@ -208,7 +255,7 @@ public class FeatureConstraint implements Constraint {
 		sb.append(" ");
 		if (comparisonFeature.isConstant())
 			sb.append(comparisonFeature.getValue());
-		else if (comparisonFeature.getSource() != null)
+		else if (comparisonFeature.getSource() != null && !isSuperlative())
 		{
 			sb.append(" the ");
 			sb.append(getPrettyFeatureName(comparisonFeature.getName()));
@@ -250,8 +297,10 @@ public class FeatureConstraint implements Constraint {
 		switch (operator)
 		{
 		case LESS:
+		case LEAST:
 			return "less than";
 		case GREATER:
+		case GREATEST:
 			return "greater than";
 		case EQUAL:
 			return "equal to";
@@ -304,6 +353,11 @@ public class FeatureConstraint implements Constraint {
 		comparisonFeature.setValue((int)value);
 		comparisonFeature.setConstant(true);
 		return true;
+	}
+	
+	public boolean isSuperlative()
+	{
+		return operator.equals(Operator.GREATEST) || operator.equals(Operator.LEAST);
 	}
 	
 	public boolean isInferred()

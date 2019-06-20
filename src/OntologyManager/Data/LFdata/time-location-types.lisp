@@ -537,7 +537,10 @@
 
 (define-type ont::source-as-loc
  :parent ont::from
- :arguments ((:ESSENTIAL ONT::FIGURE (F::phys-obj)))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::phys-obj))
+	     (:ESSENTIAL ONT::GROUND (F::phys-obj
+				      (F::mobility F::movable)) ; exclude "... arrive in country X from country Y"
+				      ))
  )
 
 #| ; now this is :RESULT
@@ -621,6 +624,7 @@
 	     ; copied from to-loc
 	     (:ESSENTIAL ONT::FIGURE ((? f F::PHYS-OBJ F::abstr-obj))); (F::situation (f::type ont::event-of-change)))   ; "I walked to the store" FIGURE should point to "I", not "walked"
 	     (:ESSENTIAL ONT::GROUND ((? t F::Phys-obj F::abstr-obj) (f::spatial-abstraction ?!sa)
+				      (F::mobility F::movable) ; exclude "... arrive in country X from country Y"
 					;(F::form F::geographical-object)
 				      ) )  ; spatial-abstraction is not enough: many things have spatial-abstraction, e.g., a frog.  Another possibility is (F::object-function F::spatial-object)
 
@@ -844,6 +848,16 @@
              )
  )
 
+(define-type ont::EARLY-in-process
+    :parent ONT::scheduled-time-modifier
+    :wordnet-sense-keys ("early%3:00:02" "early%4:02:00" )
+    )
+
+(define-type ont::LATE-in-process
+    :parent ONT::scheduled-time-modifier
+    :wordnet-sense-keys ("late%3:00:02" "late%4:02:00" ) 
+    )
+
 ;; temporal locations of events, things
 (define-type ONT::temporal-location
  :parent ONT::TEMPORAL-MODIFIER
@@ -1002,23 +1016,36 @@
     
     )
 
-(define-type ont::until
+(define-type ont::since-until
     :parent ont::event-time-rel
    
     )
 
+(define-type ont::since
+    :parent ont::since-until
+   
+    )
+
+(define-type ont::until
+    :parent ont::since-until
+   
+    )
+
+
 ;; still, yet, so far, ....
+
+
+(define-type ONT::event-time-wrt-now
+    :parent ONT::event-time-rel
+    )
+
 (define-type ONT::time-rel-so-far
 ; :parent ONT::event-time-rel
-    :parent ONT::EVENT-DURATION-MODIFIER
+    :parent ONT::event-time-wrt-now
     :wordnet-sense-keys ("so_far%4:02:00")
     :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
              )
  )
-
-(define-type ONT::event-time-wrt-now
-    :parent ONT::event-time-rel
-     )
 
 (define-type ONT::now
      :wordnet-sense-keys ("now%4:02:05" "presently%4:02:00" "current%3:00:00" "present%3:00:01")
@@ -1062,7 +1089,7 @@
  )
 
 ;; event times not including situations
-(define-type ONT::event-time
+(define-type ONT::event-time-initially
  :parent ONT::event-time-rel
  :arguments (;(:ESSENTIAL ONT::VAL ((? vl F::time)))
 	     (:ESSENTIAL ONT::GROUND ((? grd F::time)))
@@ -1340,9 +1367,55 @@
 (define-type ONT::day-stage
     :parent ONT::DATE-OBJECT-IN
     :comment "a regular part of the day"
-     :wordnet-sense-keys ("morning%1:28:00" "evening%1:28:00" "night%1:28:00" "twilight%1:28:00" "afternoon%1:28:00"  )
+    :wordnet-sense-keys ("twilight%1:28:00")
     :sem (F::time (f::time-function f::day-period))
- )
+    )
+
+(define-type ont::morning-AM
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("morning%1:28:00")
+    )
+
+(define-type ont::dat-stage-PM
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("morning%1:28:00")
+    )
+
+(define-type ont::afternoon
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("afternoon%1:28:00")
+    )
+
+(define-type ont::noon
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("noon%1:28:00")
+    )
+
+(define-type ont::evening
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("evening%1:28:00")
+    )
+
+(define-type ont::night
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("night%1:28:00")
+    )
+
+
+(define-type ont::midnight
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("midnight%1:28:00")
+    )
+(define-type ont::sunrise
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("dawn%1:28:00" "sunrise%1:11:00"  "sunrise%1:19:00")
+    )
+
+(define-type ont::sunset
+    :parent ONT::DAY-STAGE
+    :wordnet-sense-keys ("sunset%1:28:00" "sunset%1:11:00"  "sunset%1:19:00")
+    )
+
 
 (define-type ONT::year-stage
     :parent ONT::DATE-OBJECT-IN

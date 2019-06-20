@@ -357,6 +357,19 @@ public class EvaluateHandler {
 				continue;
 			
 			String relevantSymbol = null;
+			if (assertionContentTerm.getKeywordArg(":NEUTRAL1") != null)
+			{
+				relevantSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL1").stringValue();	
+				KQMLList relevantTerm = KQMLUtilities.findTermInKQMLList(relevantSymbol, context);
+				if (relevantTerm.getKeywordArg(":INSTANCE-OF").stringValue().equalsIgnoreCase("ONT::EXAMPLE"))
+				{
+					TextToSpeech.say("Ok.");
+					modelBuilder.processAssertion(content,context);
+					return acceptableContent("ASSERTION", id, goal, goalLF, context);
+				}
+					
+			}
+			
 			if (assertionContentTerm.getKeywordArg(":NEUTRAL") != null)
 			{
 				relevantSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL").stringValue();
@@ -371,6 +384,7 @@ public class EvaluateHandler {
 			{
 				relevantSymbol = assertionContentTerm.getKeywordArg(":AFFECTED-RESULT").stringValue();			
 			}
+
 			
 			if (relevantSymbol != null)
 			{

@@ -57,9 +57,11 @@ public class Predicate {
 			return top(blockUGF, sceneComplement);
 		case LEFT:
 		case LEFTLOC:
+		case LEFTMOST:
 			return left(blockUGF, sceneComplement);
 		case RIGHT:
 		case RIGHTLOC:
+		case RIGHTMOST:
 		case CORRECT:
 			return right(blockUGF, sceneComplement);
 		case SIDE:
@@ -136,9 +138,11 @@ public class Predicate {
 			return top(s, sceneComplement);
 		case LEFT:
 		case LEFTLOC:
+		case LEFTMOST:
 			return left(s, sceneComplement);
 		case RIGHT:
 		case RIGHTLOC:
+		case RIGHTMOST:
 		case CORRECT:
 			return right(s, sceneComplement);
 		case ANYWHERE:

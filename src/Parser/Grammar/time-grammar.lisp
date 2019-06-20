@@ -700,6 +700,19 @@
      (number (val ?!v2) (lex ?l2) (NTYPE w::DIGIT) (coerce ?coerce) (digits -))
      (compute-val-and-ntype (expr (+ ?!v1 ?!v2)) (newval ?newval) (ntype ?ntype)))
 
+    ;; Basic Number Expressions with hyphens
+    ;;  e.g., thirty-one, twenty-seven
+    ((number (VAL ?newval) (agr 3p) (lex (?l1 ?l2)) (ntype ?ntype)
+      (var *) (LF ?lf) (coerce ?coerce) (sem ?sem)
+      (nobarespec ?nbs)
+	     )
+     -tenty-digit-hyphen>
+     (head (number (nobarespec ?nbs) (lf ?lf) (val ?!v1) (lex ?l1) (sem ?sem)
+		   (NTYPE w::TENS) (coerce ?coerce) (digits -)))
+     (punc (lex W::punc-minus))
+     (number (val ?!v2) (lex ?l2) (NTYPE w::DIGIT) (coerce ?coerce) (digits -))
+     (compute-val-and-ntype (expr (+ ?!v1 ?!v2)) (newval ?newval) (ntype ?ntype)))
+
     ;; Written numbers with commas, e.g., 1,939 - we used to remove the commas in tokenization, but this
     ;;   leads to unfortunate parser like 1,939 parsing as a year!
     ((number (VAL ?newval) (agr 3p) (lex (?l1 ?l2)) (ntype ?ntype)
@@ -941,9 +954,11 @@
       (nobarespec ?nbs)
 	     )
      -range-hyphen> 1
-     (head (number (nobarespec ?nbs) (lf ?lf) (val ?!v1) (lex ?l1)))
+     (head (number (nobarespec ?nbs) (lf ?lf) (val ?!v1) (lex ?l1) (has-digits +))) ; excludes three-nine
      (punc (lex  w::punc-minus))
-     (number (val ?!v2) (lex ?l2)))
+     (number (val ?!v2) (lex ?l2) (has-digits +))
+     (less-than (val1 ?!v1) (val2 ?!v2)) ; excludes 9-3
+     )
 
     ;; from 20 to 35
     ((number (RESTR (& (min ?!v1) (max ?!v2))) (agr 3p) (lex (?l1 ?l2)) (ntype ?ntype) (range +)
@@ -1133,12 +1148,14 @@
      ;; Myrosia 10/26/03 added (name -) to prevent cases like "aspirin 7" or "pittsford 8"
      ;; also lowered the probability considerably to avoid overgeneration
      ;; swift 09/22/11 removing the sem restriction to allow "unit 1" "scenario 2" etc.
-     (head (n (name -) (one -) (SEM ?sem) (SEM ($ (? xx f::PHYS-OBJ f::abstr-obj) (f::scale -)))   ;; don't want scales like "S" for seconds, etc
-	      (WH -) (lf ?cl) 
-	    (LF (:* ?lfparent ?lfform))
-	    (lex ?lex)
-	    (sort (? !sort unit-measure)) (subcat ?subcat) (subcat-map ?smap))) ; pass up sort and subcat so we can use n1-reln3 (e.g., the beat 1 of meausure 1)
-     (BOUND (arg1 ?cl))
+      (head (n (name -) (one -) (SEM ?sem) (SEM ($ (? xx f::PHYS-OBJ f::abstr-obj)
+						   (f::type (? !yy ONT::DOMAIN))
+						   (f::scale -)))   ;; don't want scales like "S" for seconds, etc
+	       (WH -) (lf ?cl) 
+	       (LF (:* ?lfparent ?lfform))
+	       (lex ?lex)
+	       (sort (? !sort unit-measure)) (subcat ?subcat) (subcat-map ?smap))) ; pass up sort and subcat so we can use n1-reln3 (e.g., the beat 1 of meausure 1)
+      (BOUND (arg1 ?cl))
      ;;     (nname (lex ?name))
      (rnumber (val ?name))
      (simple-cons (in1 ?lfform) (in2 ?name) (out ?seq))
@@ -1335,7 +1352,7 @@
 ;; lex and headcat added for aug-trips
 (parser::augment-grammar
   '((headfeatures 
-     (DATE var lex orig-lex headcat agr)
+     (DATE var lex orig-lex headcat agr restr)
      (number ntype var lex orig-lex headcat)
      )
 
@@ -1419,6 +1436,15 @@
 		))
    (number (VAL ?n) (NTYPE w::DAY)))
 
+  ;; 31 July
+  ((DATE (INT +) (Month ?m) (DAY ?n)(lex ?hlex) (headcat ?hcat) (day-specified +))
+   -dt-month-day-rev> 1.0
+   (number (VAL ?n) (NTYPE w::DAY))
+   (head (name (LF ONT::MONTH-NAME)
+		(lf ?M) (lex ?hlex) (headcat ?hcat)
+		))
+   )
+  
   ;; July 31st
   ((DATE (INT +) (Month ?m) (DAY ?n)(lex ?hlex) (headcat ?hcat) (day-specified +))
    -dt-month-day-ord> 1.0
@@ -1533,14 +1559,24 @@
 
    ;; late june, mid 06/2010, early 2006
 
-     ((date (day ?d) (dow ?dow) (month ?month) (year ?year) (phase (? c ont::stage-val  ont::scheduled-time-modifier))
+     ((date (day ?d) (dow ?dow) (month ?month) (year ?year) (phase (? c ont::stage-val  ont::scheduled-time-modifier ont::middle-val))
        (var ?v))
       -mid-month-year> 1.0
-      (adjp (var ?adjv) (LF (% PROP (class (? c ont::stage-val  ont::scheduled-time-modifier)))) (arg ?v))
+      (adjp (var ?adjv) (LF (% PROP (class (? c ont::stage-val  ont::scheduled-time-modifier ont::middle-val)))) (arg ?v))
       (head (date (INT +) (hour -) (minute -) (day ?d) (dow ?dow) (month ?month) (year ?year)))
       
       )
 
+     ; to fix: this assumes there is only one thing in restr
+     ; mid-January (note: mid- is a prefix)
+     ((date (day ?d) (dow ?dow) (month ?month) (year ?year) (phase (:* ONT::MIDDLE-VAL W::MID)) ; note: the "-" is removed from W::MID so it looks like the parse when it uses -mid-month-year> for "mid January"
+       (var ?v))
+      -mid-month-year-prefix> 1.01
+      (head (date (INT +) (hour -) (minute -) (day ?d) (dow ?dow) (month ?month) (year ?year)
+		  (restr (% W:& (:MOD (% w::*PRO* (class (:* ONT::MIDDLE-VAL W::mid-))))))
+		  ))
+      
+      )
 
    ;;  Dates as adverbials: must either have a DOW or a DAY feature (i.e., we can't have all of them empty) - so we use two rules...
    ;; Those with a day of the week, e.g.,  Monday I go
@@ -1691,22 +1727,39 @@
 
     ;; Time expression ranges
      
-     ;; dates: march 23 (2004) - april 8 (2004); 11/28/2004 - 12/28/2004
+     ;; date ranges: march 23 (2004) - april 8 (2004); 11/28/2004 - 12/28/2004
      ;; times: 2 - 3pm
+     ;; June to September
     ((NP (LF  (% DESCRIPTION (VAR *) (status ?st)
 		 (CLASS ONT::TIME-RANGE)(CONSTRAINT (& (to ?v2) (from ?v1)))))
-      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1) (F::SCALE -)))
+      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1) (F::SCALE -))) (sort pred)
       (VAR *) (headcat ?hcat))
       -date-range>
      (NP (LF  (% DESCRIPTION (VAR ?v1) (status ?st)))
       (SEM ($ F::TIME (F::TIME-FUNCTION ?tf)))
       (VAR ?v1) (headcat ?hcat))
-     (punc (lex (? lx punc-tilde punc-minus))) ;; currently - defined only as punc-minus in parser
+     (word (lex (? c to til through until punc-tilde punc-minus)))
      (head
       (NP (LF  (% DESCRIPTION (VAR ?v2) (status ?st)))
 	  (SEM ($ F::TIME (F::TIME-FUNCTION ?tf)))
 	  (VAR ?v2))))
-   
+
+     ;; from June to September
+    ((NP (LF  (% DESCRIPTION (VAR *) (status ?st)
+		 (CLASS ONT::TIME-RANGE)(CONSTRAINT (& (to ?v2) (from ?v1)))))
+      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf1) (F::SCALE -))) (sort pred)
+      (VAR *) (headcat ?hcat))
+      -date-range-to>
+     (word (lex (? xx from)))
+     (NP (LF  (% DESCRIPTION (VAR ?v1) (status ?st)))
+      (SEM ($ F::TIME (F::TIME-FUNCTION ?tf)))
+      (VAR ?v1) (headcat ?hcat))
+     (word (lex (? c to til through until)))
+     (head
+      (NP (LF  (% DESCRIPTION (VAR ?v2) (status ?st)))
+	  (SEM ($ F::TIME (F::TIME-FUNCTION ?tf)))
+	  (VAR ?v2))))
+    
     ;; e.g., "the 1980s" "the 40s" 
     ;;  we can't build an N1 here as then it would become a SET through the INDV-PLURAL rules.
     ((NP (LF (% DESCRIPTION (VAR ?v) (status ?spec) (CLASS ONT::TIME-RANGE) (CONSTRAINT (& (decade ?n) (poss ?poss)))))

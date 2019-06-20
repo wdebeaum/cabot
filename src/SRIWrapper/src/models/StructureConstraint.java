@@ -153,6 +153,7 @@ public class StructureConstraint implements Constraint {
 			}
 		}
 		
+		
 		return true;
 	}
 	

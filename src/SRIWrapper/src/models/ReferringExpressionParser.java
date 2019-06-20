@@ -210,6 +210,7 @@ public class ReferringExpressionParser {
 				ure.headTerm = KQMLUtilities.setKeywordArgTo(ure.headTerm, 
 										":INSTANCE-OF", 
 										new KQMLToken(referent.getInstanceOf()));
+				
 				System.out.println("Inferred refexp as " + referent.getObjectTypeString());
 				if (contrasted)
 					ure.setContrastSet(referent);

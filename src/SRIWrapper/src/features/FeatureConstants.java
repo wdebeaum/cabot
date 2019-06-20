@@ -4,6 +4,8 @@ public class FeatureConstants {
 
 	public static final String HEIGHT = "ONT::HEIGHT-SCALE";
 	public static final String WIDTH = "ONT::WIDTH-SCALE";
+	public static final String LENGTH = "ONT::LENGTH-SCALE";
+	public static final String LINEAREXTENT = "ONT::LINEAR-EXTENT-SCALE";
 	public static final String SIZE = "ONT::SIZE-SCALE";
 	public static final String CENTER = "ONT::CENTER";
 	public static final String CENTEROFMASS = "ONT::LOC-AS-POINT";
@@ -38,11 +40,13 @@ public class FeatureConstants {
 	public static final String GAP = "ONT::PHYS-SHAPE";
 	public static final String OTHER = "ONT::OTHER";
 	public static final String REF_SEM = "ONT::REFERENTIAL-SEM";
+	public static final String DIFFERENT = "ONT::DIFFERENT";
 	
 	public static final String MIN = "W::MIN";
 	public static final String MAX = "W::MAX";
 	public static final String MORETHAN = "W::MORE-THAN";
 	public static final String LESSTHAN = "W::LESS-THAN";
+	
 	
 	public static final String UNIVERSAL = "ONT::UNIVERSAL";
 	

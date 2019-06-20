@@ -205,29 +205,67 @@ public class FeatureParser {
 				
 			}
 		}
-		else if (term.getKeywordArg(":NEUTRAL") != null && term.getKeywordArg(":NEUTRAL1") != null)
+		else if (term.getKeywordArg(":NEUTRAL") != null)
 		{
 			String figureSymbol = term.getKeywordArg(":NEUTRAL").stringValue();
 			KQMLList figureTerm = 
 					KQMLUtilities.findTermInKQMLList(figureSymbol, context);
-			KQMLList neutralOneTerm = 
-					KQMLUtilities.findTermInKQMLList(term.getKeywordArg(":NEUTRAL1").stringValue(), context);
+
 			String descriptorFeatureString = figureTerm.getKeywordArg(":INSTANCE-OF").stringValue();
-			String neutralOneDescriptorFeatureString = neutralOneTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+			
+			
+			if (descriptorFeatureString.equalsIgnoreCase(FeatureConstants.SET) && 
+					figureTerm.getKeywordArg(":ELEMENT-TYPE") != null)
+				descriptorFeatureString = figureTerm.getKeywordArg(":ELEMENT-TYPE").stringValue();
+				
+			
 			if (structureInstance.hasFeature(descriptorFeatureString))
 			{
 				extractedFeature = structureInstance.getFeature(descriptorFeatureString);
 				System.out.println("Feature Scale: " + descriptorFeatureString);
 			}
-			else if (structureInstance.hasFeature(neutralOneDescriptorFeatureString))
+			else if (term.getKeywordArg(":NEUTRAL1") != null)
 			{
-				extractedFeature = structureInstance.getFeature(neutralOneDescriptorFeatureString);
-				System.out.println("Feature Scale: " + neutralOneDescriptorFeatureString);
+				KQMLList neutralOneTerm = 
+						KQMLUtilities.findTermInKQMLList(term.getKeywordArg(":NEUTRAL1").stringValue(), context);
+				String neutralOneDescriptorFeatureString = neutralOneTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+				
+				if (structureInstance.hasFeature(neutralOneDescriptorFeatureString))
+				{
+
+					extractedFeature = structureInstance.getFeature(neutralOneDescriptorFeatureString);
+					System.out.println("Feature Scale: " + neutralOneDescriptorFeatureString);
+				}
+				else if (neutralOneTerm.getKeywordArg(":SIZE") != null)
+				{
+					extractedFeature = structureInstance.getFeature(FeatureConstants.NUMBER);
+					System.out.println("Inferred number subject feature");
+				}
 			}
-			else if (neutralOneTerm.getKeywordArg(":SIZE") != null)
+			
+		}
+		
+		// Get the first term in the sequence for equality over a sequence of terms
+		else if (term.getKeywordArg(":SEQUENCE") != null)
+		{
+			KQMLList sequenceList = (KQMLList)term.getKeywordArg(":SEQUENCE");
+			String firstVariable = sequenceList.get(0).stringValue();
+			
+			KQMLList firstTerm = 
+					KQMLUtilities.findTermInKQMLList(firstVariable, context);
+
+			String descriptorFeatureString = firstTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+			
+			
+			if (descriptorFeatureString.equalsIgnoreCase(FeatureConstants.SET) && 
+					firstTerm.getKeywordArg(":ELEMENT-TYPE") != null)
+				descriptorFeatureString = firstTerm.getKeywordArg(":ELEMENT-TYPE").stringValue();
+				
+			
+			if (structureInstance.hasFeature(descriptorFeatureString))
 			{
-				extractedFeature = structureInstance.getFeature(FeatureConstants.NUMBER);
-				System.out.println("Inferred number subject feature");
+				extractedFeature = structureInstance.getFeature(descriptorFeatureString);
+				System.out.println("Feature Scale: " + descriptorFeatureString);
 			}
 			
 		}
@@ -295,6 +333,31 @@ public class FeatureParser {
 			groundTerm = KQMLUtilities.findTermInKQMLList(ground, context);
 			System.out.println("Ground (compar): " + ground);
 		}
+		else if (term.getKeywordArg(":SEQUENCE") != null)
+		{
+			KQMLList sequenceList = (KQMLList)term.getKeywordArg(":SEQUENCE");
+			String secondVariable = sequenceList.get(1).stringValue();
+			
+			KQMLList firstTerm = 
+					KQMLUtilities.findTermInKQMLList(secondVariable, context);
+
+			String descriptorFeatureString = firstTerm.getKeywordArg(":INSTANCE-OF").stringValue();
+			
+			
+			if (descriptorFeatureString.equalsIgnoreCase(FeatureConstants.SET) && 
+					firstTerm.getKeywordArg(":ELEMENT-TYPE") != null)
+				descriptorFeatureString = firstTerm.getKeywordArg(":ELEMENT-TYPE").stringValue();
+				
+			
+			if (structureInstance.hasFeature(descriptorFeatureString))
+			{
+				groundFeature = structureInstance.getFeature(descriptorFeatureString);
+				System.out.println("Feature Scale: " + descriptorFeatureString);
+				return groundFeature;
+			}
+			
+		}
+		
 		
 		if (groundTerm != null)
 		{
@@ -606,6 +669,20 @@ public class FeatureParser {
 		FeatureConstraint.Operator operator = 
 				FeatureConstraint.operatorFromTRIPS(operatorString, lex);
 		
+		if (operator == null)
+		{
+			// Try the modifiers for "same"
+			if (term.getKeywordArg(":MOD") != null)
+			{
+				String modString = term.getKeywordArg(":MOD").stringValue();
+				KQMLList modTerm = KQMLUtilities.findTermInKQMLList(modString, context);
+				if (modTerm.getKeywordArg(":LEX") != null)
+					lex = modTerm.getKeywordArg(":LEX").stringValue();
+				operator = FeatureConstraint.operatorFromTRIPS(
+								modTerm.getKeywordArg(":INSTANCE-OF").stringValue(), lex);
+			}
+		}
+		
 		// The instance-of is not actually an operator, but a descriptor
 		if (isDefaultComparator(operatorString))
 		{
@@ -672,9 +749,13 @@ public class FeatureParser {
 				(operator.equals(Operator.GREATEST) || operator.equals(Operator.LEAST)))
 		{
 			System.out.println("Calculating greatest or least feature");
-			ReferringExpression refExp = extractedFeature.getSource();
+			
+			ReferringExpression refExp = headReferringExpression;
+			System.out.println("Refexp: " + refExp);
+			System.out.println("Head refexp: " + headReferringExpression);
+			System.out.println("Num refexps: " + referringExpressions.size());
 			if (refExp == null)
-				refExp = headReferringExpression;
+				refExp = extractedFeature.getSource();
 			if (refExp == null && !referringExpressions.isEmpty())
 			{
 				for (ReferringExpression re : referringExpressions.values())
@@ -686,11 +767,44 @@ public class FeatureParser {
 			if (refExp == null)
 				return null;
 			
-			if (operator.equals(Operator.GREATEST))
-			{
-					
-			}
+			groundFeature = refExp.getInverseGroupingFeature();
+			System.out.println("RefExp for superlative: " + refExp);
+			System.out.println("Inverse feature for superlative: " + groundFeature);
 		}
+		
+		
+		if (extractedFeature != null && groundFeature == null && operator != null &&
+				(operator.equals(Operator.EQUAL)) && extractedFeature.getName() != FeatureConstants.SEQUENCE)
+		{
+			System.out.println("Comparing against all elements");
+			
+			// Only choose plural ones because it doesn't make sense otherwise
+			ReferringExpression refExp = null;
+			if (headReferringExpression != null && headReferringExpression.isPlural())
+				refExp = headReferringExpression;
+			System.out.println("Refexp: " + refExp);
+			System.out.println("Head refexp: " + headReferringExpression);
+			System.out.println("Num refexps: " + referringExpressions.size());
+			if (refExp == null && extractedFeature.getSource() != null &&
+					extractedFeature.getSource().isPlural())
+				refExp = extractedFeature.getSource();
+			if (refExp == null && !referringExpressions.isEmpty())
+			{
+				for (ReferringExpression re : referringExpressions.values())
+				{
+					if (re.isPlural())
+					{
+						refExp = re;
+						break;
+					}
+				}
+			}
+			if (refExp == null)
+				return null;
+			
+			groundFeature = refExp.getLastGroupingFeature();
+		}
+		
 		boolean isExistential = false;
 		// Existential constraint?
 		if ((extractedFeature == null || groundFeature == null) && 
@@ -706,7 +820,7 @@ public class FeatureParser {
 			isExistential = true;
 		}
 		
-		if (extractedFeature == null)
+		if (extractedFeature == null || !extractedFeature.isComparable())
 		{
 			System.out.println("No extracted feature");
 			return null;

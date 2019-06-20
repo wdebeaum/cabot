@@ -133,7 +133,28 @@
 	  ))
     (punc (punctype ?p) (lex (? lex w::punc-exclamation-mark w::punc-period w::punc-question-mark w::punc-colon w::ellipses w::punc-comma w::punc-minus w::punc-semicolon)))
     (add-to-conjunct (val (punctype ?p)) (old ?con) (new ?constraint))
-   )
+    )
+
+   ;;  two utterances seoparated by punctuation - common in text-based dialogue
+
+   ((utt  ;(var ?v)
+	  (focus ?foc)  ;; i changed the var from the punc to the utt so that the lf is printed properly (why was it the other way?
+     (punc +) (punctype ?p) (uttword ?uw) (sa-seq +)
+     (lf (% sa-seq (var *) (class ont::sa-seq)
+	    (constraint (& (acts (?v1 ?v2))))))
+     (var *))
+    
+   -utt-punctuation-utt>
+   (head (utt (focus ?foc) (ended -) (var ?v1) (punc -) (uttword ?uw)
+	  (lf (% speechact (var ?v1) (class ?cl) (constraint ?con)))
+	  ))
+    (punc (punctype ?p) (lex (? lex w::punc-exclamation-mark w::punc-period w::punc-question-mark w::punc-colon w::ellipses w::punc-comma w::punc-minus)))
+    (utt (focus ?foc) (ended -) (var ?v2) (punc -) (uttword ?uw1)
+     (lf (% speechact (var ?v2) (class ?cl1) (constraint ?con1)))
+     )
+    ;; (add-to-conjunct (val (punctype ?p)) (old ?con) (new ?constraint))
+    )
+   
 
     #||((utt (var *) (punctype ?stype) (lf (% speechact (var *) (class ont::sa_tell) (constraint (& (content ?v)))))) 
     -utt-seq1>
@@ -366,7 +387,8 @@
     (np (sem ?npsem) (var ?npvar) (agr ?a) (case (? case sub -)) (lex ?lex) (sort pred) ;; lex needed for expletives? 
       (pp-word -) (changeagr -) (gap -) (expletive ?exp))
     (head (vp (lf ?lf) (gap ?g)
-              (template (? !x  lxm::propositional-equal-templ))
+              ;(template (? !x  lxm::propositional-equal-templ))
+              (template (? !x  lxm::NEUTRAL-NEUTRAL1-CP-STHAT-EQUAL-TEMPL))
 	      (subjvar ?npvar)
 	      (subj (% np (sem ?npsem) (var ?npvar) (agr ?a) (case (? case sub -)) (lex ?lex)
 		       (pp-word -) (changeagr -) (gap -) (expletive ?exp)))
@@ -391,7 +413,9 @@
     -s1-be-prop1>
     (np (sem ?npsem) (var ?npvar) (agr ?a) (case (? case sub -)) (lex ?lex) ;; lex needed for expletives?
      (pp-word -) (changeagr -) (subcat-map ont::formal))
-    (head (vp (lf ?lf) (gap ?g) (template lxm::propositional-equal-templ)
+    (head (vp (lf ?lf) (gap ?g)
+	      ;(template lxm::propositional-equal-templ)
+	      (template lxm::NEUTRAL-NEUTRAL1-CP-STHAT-EQUAL-TEMPL)
 	      (subjvar ?npvar)
 	      (subj (% np (sem ?npsem) (agr ?a) (var ?npvar) (lex ?lex)))
 	      (var ?v) (vform fin) (agr ?a)
@@ -414,7 +438,9 @@
     -s1-be-prop2>
     (np (sem ?npsem) (var ?npvar) (agr ?a) (case (? case sub -)) (lex ?lex) ;; lex needed for expletives?
      (pp-word -) (changeagr -) (comp3-map ont::formal))
-    (head (vp (lf ?lf) (gap ?g) (template lxm::propositional-equal-templ)
+    (head (vp (lf ?lf) (gap ?g)
+	      ;(template lxm::propositional-equal-templ)
+	      (template lxm::NEUTRAL-NEUTRAL1-CP-STHAT-EQUAL-TEMPL)
 	      (subjvar ?npvar)
 	      (subj (% np (sem ?npsem) (var ?npvar) (agr ?a) (lex ?lex)))
 	      (var ?v) (vform fin) (agr ?a)
@@ -1115,7 +1141,7 @@
      ((vp (lf (% prop (class ?c) (var ?v) (constraint ?constraint) (tma ?newtma) 
 	         (transform ?transf) (sem ?sem)))
           (class ?c) (var ?v) (constraint ?constraint) (tma ?newtma)  (sem ?sem) (transform ?transf)
-           (vform (? vf past pres fut)) (dobjvar ?dobjvar)
+           (vform (? vf past pres fut)) (subjvar ?sv) (dobjvar ?dobjvar)
           )
       -vp-tns+> 1.0 ;; 1 because we are simply adding tense info, not really using more rules
      (head
@@ -1225,13 +1251,14 @@
 	    (subj ?subj) (subj (% ?s1 (lex ?subjlex) (agr ?subjagr) (var ?subjvar) (sem ?subjsem) (gap -))) ;; note double matching required
 	    ;;(iobj ?iobj) (iobj (% ?s2  (case (? icase obj -)) (var ?iobjvar) (sem ?iobjsem) (gap -)))
 	    (part (% -)) 
-	    (dobj ?dobj) (dobj (% np (agr ?dobjagr) (case (? dcase obj -)) (var ?dobjvar) (sem ?dobjsem) (gap ?gap)))	    
-	            ;; we allow a possible gap in the dobj np e.g., "what did he thwart the passage of"
+	    (dobj ?dobj) (dobj (% np (agr ?dobjagr) (case (? dcase obj -)) (var ?dobjvar) (sem ?dobjsem)
+				  (sort pred) (gap ?gap)))	    
 	    (comp3 (% -))
 	    (subj-map ?lsubj-map) (dobj-map ?dobj-map) (iobj-map ?iobj-map) (comp3-map ?comp3-map)
 	    
 	   ))
-     (np (case (? icase obj -)) (var ?iobjvar) (gerund -) (generated -) (sem ($ (? rcp f::phys-obj f::abstr-obj) (f::intentional +))) (gap -))
+     (np (case (? icase obj -)) (var ?iobjvar) (gerund -) (generated -)
+      (sort pred) (sem ($ (? rcp f::phys-obj f::abstr-obj) (f::intentional +))) (gap -))
      ?dobj
      )
 
@@ -1260,13 +1287,14 @@
 	    (subj ?subj) (subj (% ?s1 (lex ?subjlex) (agr ?subjagr) (var ?subjvar) (sem ?subjsem) (gap -))) ;; note double matching required
 	    ;;(iobj ?iobj) (iobj (% ?s2  (case (? icase obj -)) (var ?iobjvar) (sem ?iobjsem) (gap -)))
 	    (part (% -)) 
-	    (dobj ?dobj) (dobj (% np (agr ?dobjagr) (case (? dcase obj -)) (var ?dobjvar) (sem ?dobjsem) (gap ?gap) (gerund -)))	    
+	    (dobj ?dobj) (dobj (% np (agr ?dobjagr) (case (? dcase obj -)) (var ?dobjvar) (sem ?dobjsem) (gap ?gap) (sort pred)
+				  (gerund -)))	    
 	            ;; we allow a possible gap in the dobj np e.g., "what did he thwart the passage of"
 	    (comp3 (% -))
 	    (subj-map ?lsubj-map) (dobj-map ?dobj-map) (iobj-map ?iobj-map) (comp3-map ?comp3-map)
 	    
 	   ))
-     (np (case (? icase obj -)) (var ?iobjvar) (sem ($ f::phys-obj (f::origin f::living) (f::intentional +) (f::type ont::person))) 
+     (np (case (? icase obj -)) (var ?iobjvar) (sort pred) (sem ($ f::phys-obj (f::origin f::living) (f::intentional +) (f::type ont::person))) 
       (generated -) (gap -))
      ?dobj
      )
@@ -2505,12 +2533,15 @@
     (add-to-conjunct (val (tense (? vf past pres fut))) (old ?tma) (new ?newtma))
     ?subj
     (advbl (atype pre-vp) (gap -)  ; pre-vp: Is the block eventually red?
+     (sem ($ f::abstr-obj (F::type (? ttt ont::property-val ont::position-reln ont::predicate)))) ; "regular" adverbs
      (argument (% s (sem ?sem)))
      (arg ?v) (var ?mod) (role ?advrole) (subcat -))           
     ?dobj
     ?comp)
 
-      ; Is the pizza cold quickly?
+   ; Is the pizza cold quickly/eventually?
+   ; Is the pizza in the oven?  
+   ; Is the pizza cold if I put it in the fridge?
    ((s (stype ynq) (main +) (aux -) (gap ?gap) ;(gap -)
      (subj (% np (lex ?subjlex) (sem ?subjsem) (var ?subjvar) (agr ?subjagr)))
      (sort pred) 
@@ -2549,6 +2580,7 @@
 	     (advbl-needed ?avn)
 	     ))
     (advbl (atype post) (gap -)  ; post: Is the block red eventually?
+     (sem ($ f::abstr-obj (F::type (? ttt ont::property-val ont::position-reln ont::predicate)))) ; property-val: "regular" adverbs; position-reln: in; predicate: if, eventually
      (argument (% s (sem ?sem)))
      (arg ?v) (var ?mod) (role ?advrole) (subcat -))
     (add-to-conjunct (val (mod ?mod)) (old ?con) (new ?newcon))
@@ -2993,6 +3025,7 @@
     -utt4a>
     (head (uttword (lf ?lf) (lex ?lex) (var ?v) (sa ?sa))))
 
+    ;; what bis this rule for? Add an example here!
     ((utt (var *) ;(sem ($ f::proposition))
 	  (uttword +)
       (lf (% speechact (var *) (class  ont::sa_apologize) (constraint (& (content ?reason)))))
@@ -3001,6 +3034,7 @@
      (head (uttword (lf ?lf) (lex ?lex) (var ?v) (sa ont::sa_apologize)))
      (cp (var ?reason)))
 
+    ;;  thanks for the gift
     ((utt (var *) ;(sem ($ f::proposition))
 	  (uttword +)
       (lf (% speechact (var *) (class (? sa ont::sa_apologize ont::sa_thank)) (constraint (& (reason ?reason)))))
@@ -3645,6 +3679,7 @@
    ;; sentential conjunction
    ;; both ss must be of the same type, decl or imperative <-- not anymore: I ate a pizza but what did Peter eat?
    ;; stype can also be whq: "... and what did the dog chase?" (cf. "what chased the cat" can be decl)
+   ;;               and ynq: "... and is the cat red?"
    ;; he did this and/or/but he did that; do this and/or/but do that
    ;; test: bark and chase the cat.
    ((s (sseq +) (stype ?st) (var *)  (sem ?sem) (wh-var (?wh-var1 ?wh-var2))
@@ -3656,13 +3691,13 @@
 		 ))))
      )
     -s-conj2>
-    (head (s (stype (? st decl imp whq)) (subj ?subj1) (var ?v1) (sem ?s1)
+    (head (s (stype (? st decl imp whq ynq)) (subj ?subj1) (var ?v1) (sem ?s1)
 	   (lf (% prop (class ?c1) (tma ?tma1)))
 	   (advbl-needed -) (wh-var ?wh-var1)
 	   ))
     (conj (lf (? lx ont::or ont::and ont::but ont::however ont::plus ont::otherwise ont::so))
      (lex ?lex))
-    (s (stype (? st2 decl imp whq)) (subj ?subj2) (var ?v2)
+    (s (stype (? st2 decl imp whq ynq)) (subj ?subj2) (var ?v2)
      (advbl-needed -) (sem ?s2)
      (lf (% prop (class ?c2) (tma ?tma2))) (wh-var ?wh-var2))
     (sem-least-upper-bound (in1 ?s1) (in2 ?s2) (out ?sem))
@@ -4146,7 +4181,8 @@
     (head (vp (lf ?lf)
 	      (gap ?g)
 	      (SEM ($ F::situation (f::type (? vtype ONT::ARRIVE ont::come ont::appear ont::grow ont::show))))
-              (template (? !x  lxm::propositional-equal-templ))
+              ;(template (? !x  lxm::propositional-equal-templ))
+              (template (? !x  lxm::NEUTRAL-NEUTRAL1-CP-STHAT-EQUAL-TEMPL))
 	      (subjvar ?npvar)
 	      (subj (% np (sem ?npsem) (var ?npvar) (agr ?a) (case (? case sub -)) (lex ?lex)
 		       (pp-word -) (changeagr -) (gap -) (expletive ?exp)))

@@ -46,6 +46,7 @@ public class ReferringExpression {
 	private StructureInstance pseudoInstance; // Use to attach features
 	private StructureInstance inverseInstance;
 	UnorderedGroupingFeature inverseGroupingFeature;
+	UnorderedGroupingFeature lastGroupingFeature;
 	List<UnorderedGroupingFeature> subselectionInverse;
 	public static String[] definiteHeadTermIndicators = {"ONT::THE", "ONT::THE-SET", "ONT::QUANTIFIER", "ONT::BARE"};
 	public static String[] indefiniteHeadTermIndicators = {"ONT::A", "ONT::INDEF-SET"};
@@ -70,14 +71,17 @@ public class ReferringExpression {
 		binaryPredicates = new ArrayList<Predicate>();
 		subSelections = new ArrayList<String>();
 		pseudoInstance = new StructureInstance("placeholder", new ArrayList<Block>());
-		inverseInstance = new StructureInstance("inverse", new ArrayList<Block>());
+		inverseInstance = new StructureInstance("others", new ArrayList<Block>());
 		if (isReferredObject(headTerm))
 			lastReferredObjectType = headTerm.getKeywordArg(":INSTANCE-OF").stringValue();
 		
 		quantifier = Quantifier.extractQuantifier(headTerm, tree);
 		contrastSet = null;
 		ground = null;
-		inverseGroupingFeature = null;
+		inverseGroupingFeature = new UnorderedGroupingFeature("others");
+		inverseGroupingFeature.setSource(this);
+		lastGroupingFeature = new UnorderedGroupingFeature("all");
+		lastGroupingFeature.setSource(this);
 		subselectionInverse = null;
 		findModifiers();
 		findLocation();
@@ -132,9 +136,20 @@ public class ReferringExpression {
 				instanceOf.equalsIgnoreCase(FeatureConstants.GAP) ||
 				instanceOf.equalsIgnoreCase(FeatureConstants.SPACE) ||
 				instanceOf.equalsIgnoreCase(FeatureConstants.OTHER) ||
-				instanceOf.equalsIgnoreCase(FeatureConstants.REF_SEM) ||
-				instanceOf.equalsIgnoreCase(FeatureConstants.SET))
+				instanceOf.equalsIgnoreCase(FeatureConstants.REF_SEM))
 			return true;
+		
+		if (instanceOf.equalsIgnoreCase(FeatureConstants.SET) && 
+				term.getKeywordArg(":ELEMENT-TYPE") != null)
+		{
+			String elementType = term.getKeywordArg(":ELEMENT-TYPE").stringValue();
+			if (elementType.equalsIgnoreCase(FeatureConstants.BLOCK) ||
+					elementType.equalsIgnoreCase(FeatureConstants.COLUMN) ||
+					elementType.equalsIgnoreCase(FeatureConstants.ROW) ||
+					elementType.equalsIgnoreCase(FeatureConstants.GAP) ||
+					elementType.equalsIgnoreCase(FeatureConstants.SPACE))
+				return true;
+		}
 		
 //		// For subselections, like "ends of the row"
 //		if (term.getKeywordArg(":FIGURE") != null)
@@ -270,8 +285,6 @@ public class ReferringExpression {
 						subSelections.add(ontType);
 				}
 			}
-			
-
 		}
 		
 		KQMLObject modList = headTerm.getKeywordArg(":MODS");
@@ -369,68 +382,6 @@ public class ReferringExpression {
 				predicates.add(new Predicate(result));
 		}
 	}
-	
-	public Feature getMaxFeatureValue(String featureName, Scene s)
-	{
-		UnorderedGroupingFeature result = evaluate(s);
-		Feature maxFeature = null;
-		
-		if (isPlural())
-		{
-			for (FeatureGroup element : result.getValue())
-			{
-				if (element instanceof UnorderedGroupingFeature && 
-						element.getFeatures().containsKey(featureName))
-				{
-					Feature currentFeature = element.getFeatures().get(featureName);
-					if (maxFeature == null)
-						maxFeature = currentFeature;
-					Comparator comparator = new ValueComparator();
-					if (comparator.compare(currentFeature, maxFeature) >= 0)
-						maxFeature = currentFeature;
-				}
-			}
-			
-			return maxFeature;
-		}
-		else
-		{
-			evaluate(s);
-			return pseudoInstance.getFeature(featureName);
-		}
-	}
-	
-	public Feature getMinFeatureValue(String featureName, Scene s)
-	{
-		UnorderedGroupingFeature result = evaluate(s);
-		Feature minFeature = null;
-		
-		if (isPlural())
-		{
-			for (FeatureGroup element : result.getValue())
-			{
-				if (element instanceof UnorderedGroupingFeature && 
-						element.getFeatures().containsKey(featureName))
-				{
-					Feature currentFeature = element.getFeatures().get(featureName);
-					if (minFeature == null)
-						minFeature = currentFeature;
-					Comparator comparator = new ValueComparator();
-					if (comparator.compare(currentFeature, minFeature) <= 0)
-						minFeature = currentFeature;
-				}
-			}
-			
-			return minFeature;
-		}
-		else
-		{
-			evaluate(s);
-			return pseudoInstance.getFeature(featureName);
-		}
-	}
-	
-	
 	
 	public String getInstanceOf()
 	{
@@ -586,8 +537,8 @@ public class ReferringExpression {
 			}
 		}
 		
-		inverseGroupingFeature = new UnorderedGroupingFeature("inverse");
 		
+		inverseGroupingFeature.setValue(new ArrayList<Feature>());
 
 		for (UnorderedGroupingFeature inverseMatch : objectTypeMatches)
 		{
@@ -596,15 +547,18 @@ public class ReferringExpression {
 
 		inverseInstance.setBlocks(inverseGroupingFeature.getBlocks());
 		
-
+		lastGroupingFeature.getValue().clear();
 		if (results.size() > 0)
 		{
 			if (isPlural() || universal)
 			{
 				UnorderedGroupingFeature combinedResult = new UnorderedGroupingFeature("result");
+				
 				for (UnorderedGroupingFeature result : results)
 				{
 					combinedResult.add(result);
+					
+					lastGroupingFeature.add(result);
 				}
 				pseudoInstance.setBlocks(combinedResult.getBlocks());
 				System.out.println("Pseudoinstance now has " + pseudoInstance.blocks.size() + " blocks");
@@ -618,6 +572,8 @@ public class ReferringExpression {
 					return null;
 				System.out.println("Blocks in result: " + result.getBlocks().size());
 				pseudoInstance.setBlocks(result.getBlocks());
+				lastGroupingFeature.getValue().clear();
+				lastGroupingFeature.add(result);
 				System.out.println("Pseudoinstance now has " + pseudoInstance.blocks + " blocks");
 				
 				return results.get(0);
@@ -821,5 +777,15 @@ public class ReferringExpression {
 	{
 		return contrastSet;
 	}
+
+	public UnorderedGroupingFeature getInverseGroupingFeature() {
+		return inverseGroupingFeature;
+	}
+
+	public UnorderedGroupingFeature getLastGroupingFeature() {
+		return lastGroupingFeature;
+	}
+	
+	
 
 }

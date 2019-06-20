@@ -25,7 +25,7 @@ public class CountFeature extends Feature<Integer> {
 	public void setValue(Integer newValue) {
 		// TODO Auto-generated method stub
 		value = newValue;
-		constant = true;
+		//constant = true;
 	}
 	
 	public void setValue(Double newValue) {

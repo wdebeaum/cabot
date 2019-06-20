@@ -13,6 +13,7 @@ public abstract class Feature<T> implements FeatureGroup{
 	protected String name;
 	protected String prettyName;
 	protected boolean constant;
+	protected boolean comparable;
 	private ReferringExpression source;
 	private boolean inferred;
 	
@@ -23,6 +24,7 @@ public abstract class Feature<T> implements FeatureGroup{
 		constant = false;
 		source = null;
 		inferred = false;
+		comparable = true;
 	}
 	
 	public abstract T getValue();
@@ -93,6 +95,7 @@ public abstract class Feature<T> implements FeatureGroup{
 	public void setConstant(boolean value)
 	{
 		constant = value;
+		System.out.println("Feature " + name + " set to constant");
 	}
 
 	public ReferringExpression getSource() {
@@ -111,6 +114,11 @@ public abstract class Feature<T> implements FeatureGroup{
 	public boolean isInferred()
 	{
 		return inferred;
+	}
+	
+	public boolean isComparable()
+	{
+		return comparable;
 	}
 	
 }

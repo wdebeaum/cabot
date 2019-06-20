@@ -951,24 +951,13 @@
              )
  )
 
-; hit, strike
-(define-type ONT::HITTING
- :wordnet-sense-keys ("beat%2:35:01" "hit%2:35:03" "strike%2:35:01" )
- :comment "an agent comes into contact with force with another object, typically harming the other object"
-; :parent ONT::MOTION
- :parent ONT::apply-force
- :sem (F::SITUATION (F::Trajectory -))
- :arguments ((:required ONT::affected (F::Phys-obj))
-             )
- )
-
 (define-type ONT::COLLIDE
  :wordnet-sense-keys ("collide%2:35:01"  "collide%2:35:00" "crash%2:38:02" "crash%2:38:01")
  :comment "two objects comes into contact with force with another, typically both being negatively affected - also supports the plural subject that cincludes both objects"
- :parent ONT::MOTION
+ :parent ONT::cause-contact
  :sem (F::SITUATION (F::Trajectory -))
- :arguments ((:required ONT::affected (F::Phys-obj))
-	     (:optional ONT::affected1 (F::Phys-obj))
+ :arguments ((:required ONT::affected (F::Phys-obj (F::mobility F::movable)))
+	     (:optional ONT::affected1 (F::Phys-obj (F::mobility F::movable)))
              )
  )
 
@@ -1639,7 +1628,7 @@
 ;; kill, destroy
 (define-type ont::destroy
     :comment "render inoperative"
-    :wordnet-sense-keys ("destroy%2:35:00" "destroy%2:36:00" "down%2:38:00" "knock_out%2:30:00"
+    :wordnet-sense-keys ("destroy%2:35:00" "destroy%2:36:00" "down%2:38:00" "knock_out%2:30:00" "knock_out%2:30:01"
 					   "abortion%1:04:00")
     :arguments ((:REQUIRED ONT::affected ((? xx F::Phys-obj F::Abstr-obj)
 					  (F::type (? tt ONT::phys-object ont::mental-construction)))))
@@ -3267,6 +3256,15 @@
              )
  )
 
+(define-type ONT::cause-in
+ :wordnet-sense-keys ("inject%2:29:00" "inject%2:35:00" "inject%2:34:01" "insert%2:35:00" "insert%2:30:00" "insert%2:35:01")
+ :parent ONT::event-of-causation
+ :arguments ((:REQUIRED ONT::Agent)
+	     (:required ont::source)
+	     (:optional ont::affected-result ((? thm F::phys-obj F::abstr-obj)))
+             )
+ )
+
 
 (define-type ont::shed
  :wordnet-sense-keys ("shed%2:29:00")
@@ -3330,7 +3328,7 @@
  )
 
 (define-type ONT::socially-remove
-    :wordnet-sense-keys ("banishment%1:04:00" "expel%2:41:01" "expel%2:41:00" "ouster%1:04:00")
+    :wordnet-sense-keys ("banishment%1:04:00" "expel%2:41:01" "expel%2:41:00" "ouster%1:04:00" "repatriate%2:41:01")
  :parent ONT::cause-come-from
  :arguments ((:REQUIRED ONT::Formal ((? thm F::phys-obj F::abstr-obj) (F::intentional +)))
              )
@@ -3560,7 +3558,13 @@
    :parent ont::emit-giveoff-discharge ;; 20121022 GUM change parent; this change requires adding an ont::effect role
    :arguments ((:OPTIONAL ONT::effect (F::situation))
 	       )
-  )
+   )
+
+(define-type ont::emit-vapor
+    :wordnet-sense-keys ("smoke%2:43:00" "steam%2:43:00")
+    :parent ont::emit-giveoff-discharge
+    :arguments ((:REQUIRED ONT::agent (F::Phys-obj (f::intentional -))))
+    )
 
 
 ;; write a book (about trucks), write your name
@@ -4634,7 +4638,7 @@
 (define-type ONT::Joining
  :wordnet-sense-keys ("conjoin%2:35:00" "join%2:35:00")
  :comment "abstract, social, or physical connection of objects such that the objects retain their original make-up/identity (whereas COMBINE-OBJECTS are not un-combinable anymore)"
- :parent ONT::event-of-causation
+ :parent ONT::cause-contact
  :sem (F::Situation (F::Trajectory -))
  :arguments ((:OPTIONAL ONT::AGENT (F::Phys-obj))
 	     (:OPTIONAL ONT::AGENT1 (F::Phys-obj))
@@ -4701,7 +4705,7 @@
 
 ;; stretch  20120524 GUM change new type
 (define-type ONT::admit
-  :wordnet-sense-keys ("accept%2:40:03" "admit%2:41:00" "invite%2:35:12")
+  :wordnet-sense-keys ("accept%2:40:03" "admit%2:41:00" "invite%2:35:12" "admit%2:41:01")
   :parent ont::enroll
  )
 
@@ -4736,9 +4740,13 @@
  :parent ONT::position
  :comment "two objects share a common subpart"
  :sem (F::Situation (F::Aspect F::Indiv-level) (F::Cause -))
- :arguments ((:REQUIRED ONT::neutral (F::Phys-obj (F::Spatial-abstraction (? sa F::Line F::Strip F::Spatial-region))))
-             (:REQUIRED ONT::neutral1 (F::Phys-obj (F::Spatial-abstraction (? sa1 F::Line F::Strip F::Spatial-region))
-              ))
+ :arguments ((:REQUIRED ONT::neutral (F::Phys-obj
+				      (F::mobility f::fixed)
+				      (F::Spatial-abstraction (? sa F::Line F::Strip F::Spatial-region))))
+             (:REQUIRED ONT::neutral1 (F::Phys-obj
+				       (F::mobility f::fixed)
+				       (F::Spatial-abstraction (? sa1 F::Line F::Strip F::Spatial-region))
+				       ))
              (:ESSENTIAL ONT::location (F::phys-obj))
              )
  )
@@ -5561,7 +5569,7 @@
 
 ;; infancy, childhood, adulthood
 (define-type ONT::lifecycle-stage
- :parent ONT::domain-property
+ :parent ONT::event-type
  :arguments ((:OPTIONAL ONT::FIGURE (F::phys-obj (F::origin F::living)))
              )
  :wordnet-sense-keys ("time_of_life%1:28:00")
@@ -5624,7 +5632,8 @@
 
 ;; smoke (as in cigarettes, pipes)
 (define-type ONT::smoking
- :wordnet-sense-keys ("smoke%2:34:00")
+    :wordnet-sense-keys ("smoke%2:34:00" "smoking%1:04:00")
+     :arguments ((:REQUIRED ONT::Agent (F::Phys-obj (f::origin f::living) (f::intentional +))))
  :parent ONT::consume
  )
 

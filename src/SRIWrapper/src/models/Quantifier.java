@@ -20,7 +20,7 @@ public class Quantifier {
 	public Quantifier()
 	{
 		
-		minimumCount = 0;
+		minimumCount = 1;
 		maximumCount = 100;
 	}
 	

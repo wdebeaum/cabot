@@ -164,6 +164,8 @@ public class StructureInstance implements FeatureGroup {
 		DistanceFeature heightFeature = new DistanceFeature(FeatureConstants.HEIGHT);
 		DistanceFeature widthScaleFeature = new DistanceFeature(FeatureConstants.WIDTH);
 		DistanceFeature widthFeature = new DistanceFeature("ONT::WIDTH");
+		DistanceFeature lengthFeature = new DistanceFeature(FeatureConstants.LENGTH);
+		DistanceFeature linearExtentFeature = new DistanceFeature(FeatureConstants.LINEAREXTENT);
 		DistanceFeature radiusFeature = new DistanceFeature("W::RADIUS");
 		DistanceFeature diameterFeature = new DistanceFeature("W::DIAMETER");
 		double maxHeight = 0;
@@ -189,6 +191,8 @@ public class StructureInstance implements FeatureGroup {
 		//System.out.println("Widthscale before: " + widthScaleFeature.getValue());
 		widthFeature.setValue(generateWidthFeature());
 		widthScaleFeature.setValue(generateWidthFeature());
+		lengthFeature.setValue(generateWidthFeature());
+		linearExtentFeature.setValue(generateWidthFeature());
 		radiusFeature.setValue(maxDistanceFromCenter / Block.BLOCK_WIDTH + .5);
 		diameterFeature.setValue(maxDistanceFromCenter * 2 / Block.BLOCK_WIDTH + 1);
 		heightFeature.setValue((maxHeight + Block.BLOCK_WIDTH / 2) / Block.BLOCK_WIDTH);
@@ -197,6 +201,8 @@ public class StructureInstance implements FeatureGroup {
 		setFeature(heightFeature);
 		setFeature(widthFeature);
 		setFeature(widthScaleFeature);
+		setFeature(lengthFeature);
+		setFeature(linearExtentFeature);
 		setFeature(radiusFeature);
 		setFeature(diameterFeature);
 	}
@@ -253,7 +259,7 @@ public class StructureInstance implements FeatureGroup {
 		setFeature(sequenceFeature);
 	}
 	
-	public void generateUnorderedGroupingFeature()
+	private void generateUnorderedGroupingFeature()
 	{
 		UnorderedGroupingFeature groupingFeature = 
 				new UnorderedGroupingFeature(FeatureConstants.GROUPING);

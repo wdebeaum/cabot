@@ -543,9 +543,29 @@
              )
  )
 
+(define-type ONT::cause-contact
+    :parent ONT::event-of-causation
+    :definitions ((ONT::CAUSE-EFFECT :agent ?agent :formal (ONT::CONNECTED :neutral ?agent :neutral1 ?affected)))
+    :arguments ((:required ONT::affected (F::Phys-obj))
+		(:required ONT::AGENT (F::Phys-obj (F::mobility F::movable)))
+		)
+    )
+
+
+; hit, strike
+(define-type ONT::HITTING
+    :wordnet-sense-keys ("beat%2:35:01" "hit%2:35:03" "strike%2:35:01" )
+    :comment "an agent comes into contact with force with another object, typically harming the other object"
+					; :parent ONT::MOTION
+    :parent ONT::cause-contact
+    :sem (F::SITUATION (F::Trajectory -))
+    
+    )
+
+
 (define-type ONT::touch
     :wordnet-sense-keys ("touch%2:35:00" "touch%1:04:00")
-    :parent ONT::event-of-causation
+    :parent ONT::cause-contact
     )
 
 (define-type ONT::apply-force
@@ -842,7 +862,7 @@
  :sem (F::Situation (F::Aspect F::static) (F::Time-span F::extended) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::neutral )
 	     ;; this is still here until we decide what to do with the formal-pred mappings for be
-	     (:essential ONT::formal (F::Abstr-obj (f::type (? cbd ont::domain-property ont::position-reln ont::predicate)))) ; ont::predicate: with, without, around
+	     (:essential ONT::formal (F::Abstr-obj (f::type (? cbd ont::domain-property ont::position-reln ont::predicate ont::relation)))) ; ont::predicate: with, without, around; ont::relation: the same
 ;             (:ESSENTIAL ONT::PROPERTY ((? oc2 F::abstr-obj))) ;; only properties (preds) -- for event nouns use ont::have-experience or ont::participating
              )
  )

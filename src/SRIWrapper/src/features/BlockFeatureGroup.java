@@ -13,6 +13,7 @@ public class BlockFeatureGroup implements FeatureGroup {
 		block = b;
 		features = new HashMap<String,Feature>();
 		generateFeatures();
+		
 	}
 	
 	private void generateFeatures()

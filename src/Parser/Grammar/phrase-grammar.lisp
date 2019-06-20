@@ -473,7 +473,7 @@
     (QUAL var arg lex orig-lex headcat transform ARGUMENT COMPLEX)
     ;; MD 18/04/2008 added SEM as a headfeature to handle "in full" where in subcategorizes for adjp
     ;; Other option might be to subcategorize for adj - need to consider in the future
-    (ADJP arg lex orig-lex headcat transform argument sem complex) ;; post-subcat)     
+    (ADJP arg lex orig-lex headcat transform sem complex) ;; post-subcat)     
     (ADJ1 arg lex orig-lex headcat transform argument sem sort lf allow-deleted-comp allow-post-n1-subcat gap)
     (ADJ arg lex orig-lex headcat transform argument sem sort) ;; post-subcat)
     (COMPAR gap)
@@ -575,7 +575,7 @@
 				   (var *) (constraint (& (FIGURE ?v)))))) (old ?r) (new ?con)))
 
 
-     ;;  example??  
+     ;;  mid-January 
    ((NAME (RESTR  ?con)
        (LF ?lf) ;(CLASS ?lf)
        (SORT ?sort) (QUAL +)
@@ -1181,7 +1181,8 @@
     ;; 04/2008 swift adding orientation and intensity features
     ;; 10/2009 new representation using ontology types as scales, e.g. enormous -> (f v1 (:* ont::hi w::enormous) :scale ont::large)
     ((ADJP (ARG ?arg) (VAR ?v) (sem ?sem) (atype ?atype) (comparative ?cmp)
-	   (gap ?gap)
+      (gap ?gap)
+      (argument ?argument)
       (LF (% PROP (CLASS ?lf)
 	     (VAR ?v) (CONSTRAINT ?newc)
 	     (transform ?transform) (sem ?sem) (premod -)
@@ -1189,12 +1190,13 @@
      -adj-scalar-pred> 1
      (head (ADJ1 (LF ?lf) ;(SUBCAT -)
 		 (VAR ?v) (sem ?sem) (SORT PRED) (arg ?arg) (ARGUMENT-MAP ?argmap) (pertainym -)
-	    (transform ?transform) (constraint ?con) (comp-op ?dir)
-	    (Atype ?atype) (comparative ?cmp) (lex ?lx) ;(lf (:* ?lftype ?lex))
-	    (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
-	    (gap ?gap)
-	    (post-subcat -) (prefix -)
-	    (functn -)
+		 (argument ?argument)
+		 (transform ?transform) (constraint ?con) (comp-op ?dir)
+		 (Atype ?atype) (comparative ?cmp) (lex ?lx) ;(lf (:* ?lftype ?lex))
+		 (sem ($ F::ABSTR-OBJ (f::scale ?scale) (F::intensity ?ints) (F::orientation ?orient)))
+		 (gap ?gap)
+		 (post-subcat -) (prefix -)
+		 (functn -)
 	    ))
      (append-conjuncts (conj1 ?con) (conj2 (& (orientation ?orient) (intensity ?ints)
 					    (?argmap ?arg) (scale ?scale) 
@@ -1204,7 +1206,9 @@
 
     ;; prefix ADV modification of an ADJ
    ((ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
-     (transform ?transform) (constraint ?newc) (comp-op ?dir)  (argument ?argument)
+     (transform ?transform)
+     (argument ?argument)
+     (constraint ?newc) (comp-op ?dir)  (argument ?argument)
      (atype ?atype) (comparative ?cmp) (lex ?lx) ; (lf (:* ?lftype ?lx))
      ;(sem ($ F::SITUATION))
      (arg ?arg)
@@ -1217,7 +1221,8 @@
     (word (lex w::punc-minus))
     (head (ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
 	       (transform ?transform) (constraint ?con) (comp-op ?dir) (arg ?arg)
-	       (atype ?atype) (comparative ?cmp) (lex ?lx) (argument ?argument)
+	       (atype ?atype) (comparative ?cmp) (lex ?lx)
+	       (argument ?argument)
 	       ))
     (add-to-conjunct  (val (:MOD (% *PRO* (status ont::f) (class ?qual)
 				    (var ?advbv) (constraint (& (FIGURE ?v))))))
@@ -1274,7 +1279,7 @@
      (gap ?gap)
      (LF (% PROP (CLASS ?lf)
 	    (VAR ?v) (CONSTRAINT ?newc)
-	    
+	   
 	    (transform ?transform) (sem ?sem) (premod -)
 	    )))
      -adj-nonscalar-pred> 1
@@ -1294,22 +1299,24 @@
    |#
 
    ;; once morphology is done, move up the attach subcats
-   ((ADJ1 (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
-	    (transform ?transform) (constraint ?con) (comp-op ?dir)  (SUBCAT-MAP ?subm)
-	    (atype ?atype) (comparative ?cmp) (lex ?lx)
-             (FUNCTN -)
-	    (post-subcat ?psub) (prefix -)
-	    (subcat2 ?subcat2)
-	    (subcat2-map ?subcat2-map)
-	    )
+   ((ADJ1 (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
+     (pertainym -)   (argument ?argument)
+     (transform ?transform) (constraint ?con) (comp-op ?dir)  (SUBCAT-MAP ?subm)
+     (atype ?atype) (comparative ?cmp) (lex ?lx)
+     (FUNCTN -)
+     (post-subcat ?psub) (prefix -)
+     (subcat2 ?subcat2)
+     (subcat2-map ?subcat2-map)
+     )
        
      -adj-adj1> 1
      (head (ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap) (pertainym -)
-	    (transform ?transform) (constraint ?con) (comp-op ?dir) (SUBCAT-MAP ?subm)
-	    (atype ?atype) (comparative ?cmp) (lex ?lx)
-	    (sem ?sem)
-	    (FUNCTN -)
-	    (post-subcat ?psub) (prefix -)
+		(transform ?transform) (constraint ?con) (comp-op ?dir) (SUBCAT-MAP ?subm)
+		(argument ?argument)
+		(atype ?atype) (comparative ?cmp) (lex ?lx)
+		(sem ?sem)
+		(FUNCTN -)
+		(post-subcat ?psub) (prefix -)
 	    (subcat2 ?subcat2)
 	    (subcat2-map ?subcat2-map)
 	    ))
@@ -1320,6 +1327,7 @@
     ((ADJP (ARG ?arg) (VAR ?adjv) (sem ?sem) (atype ?atype) (comparative ?cmp)
       (LF (% PROP (CLASS ont::at-scale-val) (VAR ?adjv) (CONSTRAINT ?newc)
 	     (transform ?transform) (sem ?sem)))
+      (argument ?argument)
       )
      -adj-unit-modifier> 1.0
      (ADJP (sort unit-measure) (var ?adjv) 
@@ -1328,6 +1336,8 @@
      (head (ADJ (LF ?lf)  (VAR ?v) (SUBCAT -) (sem ($ F::ABSTR-OBJ (F::scale (? sc1 ont::scale ont::domain)))) ;ont::linear-d))))
 		(SORT PRED) ;;(ARGUMENT-MAP ?argmap)
 		(transform ?transform) (constraint ?con)
+		(argument ?argument)
+		
 	    (atype ?atype) (comparative ?cmp)
 	    (post-subcat -)
 	    (FUNCTN -)
@@ -1335,7 +1345,30 @@
      (class-greatest-lower-bound (in1 ?sc1) (in2 ?sc) (out ?finalsc))
      (append-conjuncts (conj1 ?restr) (conj2 ?r) (new ?tempcon))
      (append-conjuncts (conj1 (& (FIGURE ?arg) (GROUND ?adjval) (scale ?finalsc)))
-		       (conj2 ?tempcon) (new ?newc)))
+      (conj2 ?tempcon) (new ?newc)))
+
+   ;; of height three feet
+   ((ADJP (ARG ?arg) (VAR ?adjv) (sem ?sem) (atype ?atype) (comparative ?cmp)
+     (argument (% ?xx (sem ?argsem) (var ?argvar) (lex ?lex)))
+     (LF (% PROP (CLASS ont::at-scale-val) (VAR ?adjv) (CONSTRAINT ?newc)
+	    (transform ?transform) (sem ?sem)))
+     )
+    -adj-of-scale-unit-modifier> 1.0
+     (word (lex w::of))
+     (N (LF ?lf)  (VAR ?v)
+	(sem ($ F::ABSTR-OBJ (F::scale (? sc1 ont::scale ont::domain))))
+	;;(subcat (% (sem ?sem)))
+	(subcat-map ont::figure)   ;; this just selects a single sense in order to reduce uneccesary search
+	(transform ?transform)
+	)
+    (head (ADJP (sort unit-measure) (var ?adjv) 
+		(LF (% PROP (constraint (& (GROUND ?adjval)))))
+		(argument (% ?xx (sem ?argsem) (var ?argvar)))
+		(sem ($ F::ABSTR-OBJ (F::scale (? sc ont::scale ont::domain))))))
+    (class-greatest-lower-bound (in1 ?sc1) (in2 ?sc) (out ?finalsc))
+    (append-conjuncts (conj1 ?restr) (conj2 ?r) (new ?tempcon))
+    (append-conjuncts (conj1 (& (FIGURE ?arg) (GROUND ?adjval) (scale ?finalsc)))
+     (conj2 ?tempcon) (new ?newc)))
 
 ;;  a (ten foot)-high fence, a three mile wide path, .. 
     ((ADJP (ARG ?arg) (VAR ?v) (sem ?sem) (atype ?atype) (comparative ?cmp)
@@ -1895,7 +1928,7 @@
      -name-n1> .98
      (np (name +) (generated -) ;; don't allow numbers or times here
          (VAR ?v1) (gap -))
-     (head (N1 (VAR ?v2) (relc -) (sem ?sem) (sem ($ (? x F::ABSTR-OBJ F::PHYS-OBJ))) ;;  F::SITUATION)))
+     (head (N1 (VAR ?v2) (relc -) (sem ?sem) (sem ($ (? x F::ABSTR-OBJ F::PHYS-OBJ F::SITUATION))) ; F::SITUATION: the South Sudan situation
 	    (RESTR ?r) (CLASS ?c) (SORT PRED) (name-mod -)
 	    (derived-from-name -)  ; the second n shouldn't be a name
 	    ;;(subj-map -)  ;; nominalized verbs have their own rules
@@ -2028,7 +2061,7 @@
     
 	
     ;; e.g., the train that went to Avon, the train I moved, the train that is in Avon
-    
+  
     ((N1 (RESTR ?con)
       (CLASS ?c) (SORT ?sort) (QUAL ?qual) (COMPLEX +) (var ?v)
       (relc +)  (subcat (% -)) (post-subcat -)
@@ -2931,6 +2964,26 @@
 				  (unit ?c)
 				  (scale ?sc))) (old ?restr) (new ?constr))
 	 )
+
+   ;;  ellided quantities unitys -- e.g., "five" as "five feet" or "five blocks" The scale is unconstrained
+	((NP (LF (% description (STATUS ONT::INDEFINITE)
+		    (VAR *)
+		    (SORT unit-measure) 
+		    (CLASS ONT::quantity)
+		    (CONSTRAINT ?constr) (argument ?argument)
+		    (sem ?sem) 
+		    ))
+	  (sem ?sem) (lex ?lex)
+	  (class ont::quantity)
+	  (SPEC ont::INDEFINITE) (AGR 3s) (unit-spec +) (VAR *) (SORT unit-measure))
+         -unit-np-number-indef-ellided>
+	 (NUMBER (val ?num) (VAR ?nv) (AGR ?agr) (lex ?lex) (restr ?r))
+	 (add-to-conjunct (val (& (value ?num))) (old ?r) (new ?newr))
+	 (add-to-conjunct (val (& (amount (% *PRO* (status ont::indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
+				  (unit ?c)
+				  (scale ?sc))) (old ?restr) (new ?constr))
+	 )
+
 
   
    ;;  special case: "a mile"
@@ -4098,7 +4151,7 @@
                 (sem ?sem) (transform ?transform)
                 ))
 	 )
-     -gerund> .97 ;;.97
+     -gerund> .98 ;;.97
      (head (vp (vform ing) (var ?v) (gap -) (aux -)
                (sem ?sem) 
 	       (class ?class)  (constraint ?con)  (transform ?transform)
@@ -4151,7 +4204,8 @@
             ;; these are dummy vars for trips-lcflex conversion, please don't delete
             ;;(subj ?subj) (dobj ?dobj) (comp3 ?comp3) (iobj ?iobj) (part ?part)
 	    (dobj ?dobj)
-	    (dobj (% NP (var ?dobjvar)))
+	    ;(dobj (% NP (var ?dobjvar)))
+	    (dobj (% ?d (var ?dobjvar)))
 	    (subj ?subj)
 	    (subj (% NP (var ?subjvar)))
       	    (comp3 ?comp3)
@@ -4163,7 +4217,7 @@
 	    ))
       (add-to-conjunct (val (& (?subjmap ?subjvar) ((? !dmap ONT::NOROLE) ?dobjvar))) (old ?r) (new ?newr))
       )
-    
+    #|
  ;; and we have explicit nominalizations (current any N of type EVENT-OF-CHANGE)
     ((N1 (SORT PRED)
       (gap -) (var ?v) (agr ?agr)
@@ -4200,7 +4254,7 @@
 	    ))
       (add-to-conjunct (val (& (?subjmap ?subjvar))) (old ?r) (new ?newr))
       )
-     
+    |#
 
     ;;  of-PP is typically the DOBJ role   
  ;;   e.g., The eradication of the trucks
@@ -6231,7 +6285,7 @@
       )
      -n1-from-name> .995
      (head (name (lex ?l) (sem ?sem) 
-		 (sem ($ (? type f::PHYS-OBJ f::situation) (f::type (? x ont::molecular-part ont::cell-part ont::chemical ont::physical-process ont::organization))))
+		 (sem ($ (? type f::PHYS-OBJ f::situation) (f::type (? x ont::molecular-part ont::cell-part ont::chemical ont::physical-process ont::organization ont::country)))) ; organization: the FDA; country: the DRC
 		 (var ?v) (agr ?agr) ;;(agr 3s) 
 		 (lf ?lf) (class ?class)
 	    (full-name ?fname) (time-converted ?tc)

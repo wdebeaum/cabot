@@ -28,6 +28,7 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		centerFeature = new PointFeature(FeatureConstants.CENTER);
 		centerOfMassFeature = new PointFeature("W::CENTER-OF-MASS");
 		elements = new ArrayList<FeatureGroup>();
+		comparable = false;
 	}
 
 	@Override
@@ -258,6 +259,8 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		result.put(FeatureConstants.QUANTITY, count);
 		result.put(heightFeature.name, heightFeature);
 		result.put(FeatureConstants.WIDTH, widthFeature);
+		result.put(FeatureConstants.LENGTH, widthFeature);
+		result.put(FeatureConstants.LINEAREXTENT, widthFeature);
 		result.put(FeatureConstants.SIZE, count);
 		return result;
 	}

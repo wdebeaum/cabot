@@ -41,6 +41,8 @@ public class KQMLUtilities {
 	
 	public static String cleanConcept(String concept)
 	{
+		if (concept.length() <= 5)
+			return concept;
 		String result = concept.substring(5);
 		result.replace("-SCALE", "");
 		return result;
