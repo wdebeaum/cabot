@@ -1207,7 +1207,6 @@
     ;; prefix ADV modification of an ADJ
    ((ADJ (LF ?lf) (SUBCAT ?subcat) (VAR ?v) (sem ?sem) (SORT PRED) (ARGUMENT-MAP ?argmap)
      (transform ?transform)
-     (argument ?argument)
      (constraint ?newc) (comp-op ?dir)  (argument ?argument)
      (atype ?atype) (comparative ?cmp) (lex ?lx) ; (lf (:* ?lftype ?lx))
      ;(sem ($ F::SITUATION))
@@ -1926,7 +1925,7 @@
          (QUAL -) (relc -) (subcat ?subcat) (name-mod +)  ;; only allow one name modifier
      ) 
      -name-n1> .98
-     (np (name +) (generated -) ;; don't allow numbers or times here
+     (np (name +) (generated -) (LF (% ?xx (class ?c1))) ;; don't allow numbers or times here
          (VAR ?v1) (gap -))
      (head (N1 (VAR ?v2) (relc -) (sem ?sem) (sem ($ (? x F::ABSTR-OBJ F::PHYS-OBJ F::SITUATION))) ; F::SITUATION: the South Sudan situation
 	    (RESTR ?r) (CLASS ?c) (SORT PRED) (name-mod -)
@@ -2251,7 +2250,7 @@
 	 (subcat (% - (W::VAR -))) ;(subcat -)
 	 (post-subcat -)
       )
-     -N1-appos1> .98
+     -N1-appos1>
      (head (N1 (VAR ?v1) (RESTR ?r) (CLASS ?c) (sort (? !sort unit-measure)) ;(SORT ?sort) 
 	       (QUAL ?qual) (relc -) (sem ?sem)
 	       (subcat (% - (W::VAR -))) ;(subcat -)
@@ -2260,6 +2259,23 @@
       )
      (np (name +) (generated -) (sem ?sem) (class ?lf) (VAR ?v2) (time-converted -))
      (add-to-conjunct (val (IDENTIFIED-AS ?v2)) (old ?r) (new ?con)))
+
+   ;; and the opposite - The Ras protein, the Avon city
+
+   ((N1 (RESTR ?con) (CLASS ?c) (SORT ?sort) (QUAL ?qual) ;(COMPLEX +)  ; took out complex + so this will go through two-np-conjunct
+	 (subcat (% - (W::VAR -))) ;(subcat -)
+	 (post-subcat -)
+      )
+    -N1-appos-rev>
+    (np (name +) (generated -) (sem ?sem) (class ?lf) (VAR ?v2) (time-converted -))
+    (head (N1 (VAR ?v1) (RESTR ?r) (CLASS ?c) (sort (? !sort unit-measure)) ;(SORT ?sort) 
+	      (QUAL ?qual) (relc -) (sem ?sem) (class (? !c ONT::SITUATION-ROOT))
+	      (subcat (% - (W::VAR -))) ;(subcat -)
+	      (post-subcat -) (complex -) (derived-from-name -) (time-converted -)
+	      )      
+     )
+    
+    (add-to-conjunct (val (IDENTIFIED-AS ?v2)) (old ?r) (new ?con)))
 	
    ;; same with comma  the city, avon
     ((N1 (RESTR ?con) (CLASS ?c) (SORT ?sort) (QUAL ?qual) ;(COMPLEX +) 
@@ -2485,7 +2501,7 @@
 		(sem ?sem) (transform ?transform) (headless -) ; exclude missing-heads
 		(sem ($ (? x F::PHYS-OBJ) (F::KR-TYPE ?kr)))
 		))
-	 (unify (pattern ?!xx) (value ?kr))  ;; we do this because checking this in the SEM, even though it fails, would be ignored!
+	 (assoc-val (feat parser::drum) (val ?kr) (result ?!result)) ;; only do this for DRUM
 	 (add-to-conjunct (val (:name-of ?lex)) (old ?r) (new ?constraint)))
 ))
 
@@ -2647,6 +2663,7 @@
 	       )
 	   (head (N1 (VAR ?v) (SORT unit-measure) (INDEF-ONLY -) (CLASS ?c) (MASS ?m)
 		     (KIND -) (agr ?agr) (sem ?sem) (sem ($ f::abstr-obj (f::scale ?sc)))
+		     (RESTR ?rest1)
 		     (argument ?argument) (RESTR ?restr1) (transform ?transform) (post-subcat -) (rate-activity-nom -) (agent-nom -)
 		     ))
 	   (append-conjuncts (conj1 ?rest1) (conj2 ?restr) (new ?restr2))
@@ -2965,25 +2982,7 @@
 				  (scale ?sc))) (old ?restr) (new ?constr))
 	 )
 
-   ;;  ellided quantities unitys -- e.g., "five" as "five feet" or "five blocks" The scale is unconstrained
-	((NP (LF (% description (STATUS ONT::INDEFINITE)
-		    (VAR *)
-		    (SORT unit-measure) 
-		    (CLASS ONT::quantity)
-		    (CONSTRAINT ?constr) (argument ?argument)
-		    (sem ?sem) 
-		    ))
-	  (sem ?sem) (lex ?lex)
-	  (class ont::quantity)
-	  (SPEC ont::INDEFINITE) (AGR 3s) (unit-spec +) (VAR *) (SORT unit-measure))
-         -unit-np-number-indef-ellided>
-	 (NUMBER (val ?num) (VAR ?nv) (AGR ?agr) (lex ?lex) (restr ?r))
-	 (add-to-conjunct (val (& (value ?num))) (old ?r) (new ?newr))
-	 (add-to-conjunct (val (& (amount (% *PRO* (status ont::indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
-				  (unit ?c)
-				  (scale ?sc))) (old ?restr) (new ?constr))
-	 )
-
+  
 
   
    ;;  special case: "a mile"
@@ -3288,6 +3287,32 @@
     )
    ))
 
+;;  Some NP rules where the SEM is not a head feature
+
+(parser::augment-grammar 
+ '((headfeatures
+    (NP ARGUMENT SUBCAT role lex orig-lex headcat transform postadvbl refl abbrev))
+   ;;  ellided quantities units -- e.g., "five" as "five feet" or "five blocks" The scale is unconstrained
+	((NP (LF (% description (STATUS ONT::INDEFINITE)
+		    (VAR *)
+		    (SORT unit-measure) 
+		    (CLASS ONT::quantity)
+		    (CONSTRAINT ?constr) (argument ?argument)
+		    (sem ?sem) 
+		    ))
+	  (sem ?sem) (lex ?lex)
+	  (class ont::quantity) (ellided +)
+	  (SPEC ont::INDEFINITE) (AGR 3s) (unit-spec +) (VAR *) (SORT unit-measure))
+         -unit-np-number-indef-ellided> .98
+	 (head (NUMBER (val ?num) (VAR ?nv) (AGR ?agr) (lex ?lex) (restr ?r)))
+	 (add-to-conjunct (val (& (value ?num))) (old ?r) (new ?newr))
+	 (add-to-conjunct (val (& (amount (% *PRO* (status ont::indefinite) (class ont::NUMBER) (VAR ?nv) (constraint ?newr)))
+				  (unit ?c)
+				  (scale ?sc))) (old ?restr) (new ?constr))
+	 (compute-sem-features (lf ont::quantity) (sem ?sem))
+	 )
+   ))
+
 (parser::augment-grammar 
   '((headfeatures
      (NP VAR SEM agr ARGUMENT SUBCAT role lex orig-lex headcat transform)
@@ -3311,7 +3336,7 @@
      (head (N1 (VAR ?v) (class ?c) ;(LF ?c) ; changed N to N1 because some N's need to change to pred (via N1-RELN1)
 	       (Mass count) (sort PRED)  
 	      (KIND -) (agr 3s) (one -) ;; don't allow "one" as the N!
-	      (RESTR ?restr) (sem ($ (? ss  F::PHYS-OBJ F::SITUATION-ROOT  F::ABSTR-OBJ)))
+	      (RESTR ?restr) (sem ($ (? ss  F::PHYS-OBJ F::SITUATION-ROOT)))
 	      (transform ?transform) (postadvbl -)
 	      (post-subcat -) (gap -)
 	      ))
@@ -3393,11 +3418,13 @@
       (VAR *) 
       (ARG ?arg) (lex ?lex) (LF ont::SM) (SUBCAT ?subcat) (Mass MASS)
       (unit-spec +)
-      (restr (& (quantity ?unit-v)))) ;; mass nouns get QUANTITY in the restriction
+      (restr ?newcon)) ;; mass nouns get QUANTITY in the restriction
      -spec-indef-unit-mass>
-     (head (NP (sort unit-measure) (LF (% DESCRIPTION (status (? status ont::indefinite ont::indefinite-plural))))
+     (head (NP (sort unit-measure) (LF (% DESCRIPTION (status (? status ont::indefinite ont::indefinite-plural))
+					  (constraint ?con)))
 	     (ARGUMENT ?subcat) (ARGUMENT (% ?xx (MASS MASS)))
-	    (var ?unit-v) (lex ?unit-lex) )))
+	     (var ?unit-v) (lex ?unit-lex) ))
+     (add-to-conjunct (val (quantity ?unit-v)) (old ?con) (new ?newcon)))
 
     ;;  e.g., the gallon (of water)
        
@@ -3422,7 +3449,7 @@
       (restr ?new))
      -spec-quan-unit-mass>
      (spec (LF ?speclf) (agr ?agr) (complex -) (restr ?restr) (agr 3s))  ;; singular AGR as its a mass term we'll be constructing
-     (head (NP (sort unit-measure)
+     (head (NP (sort unit-measure) (bare-np -)
 	     (ARGUMENT ?subcat) (ARGUMENT (% ?xx (MASS MASS)))
 	    (var ?unit-v) (lex ?unit-lex)))
      (add-to-conjunct (val (quantity ?unit-v)) (old ?restr) (new ?new)))
@@ -4752,6 +4779,87 @@
      ?part
      )
 
+    ;; Being eaten is bad
+    ((N1 (SORT PRED)
+      (gap -) (var ?v) (agr 3s) (gerund +)
+      (sem ?sem) (mass bare) ; no: the being eaten is bad
+      (case (? case sub obj -)) ;; gerunds aren't case marked, allow any value except posessive
+      (class ?class)
+      (dobj ?dobj)
+      (subj ?subj)
+      (comp3 ?comp3)
+      (subj-map ?!subjmap)
+      (dobj-map ?dmap)
+      (comp3-map ?comp-map)
+      (nomobjpreps ?nop)
+      (nomsubjpreps ?nsp)
+      (subcat (% -))
+      (restr ?newc)
+      )
+     -gerund-being> ;;0.98
+     (word (lex being))
+     (head (v (vform passive) (var ?v) (gap -) (aux -) 
+	      (sem ?sem) 
+	      (LF ?class) (transform ?transform)
+            ;; these are dummy vars for trips-lcflex conversion, please don't delete
+            ;;(subj ?subj) (dobj ?dobj) (comp3 ?comp3) (iobj ?iobj) (part ?part)
+	    (dobj ?dobj)
+	    (subj ?subj)
+	    (comp3 ?comp3)
+	    (subj-map ?!subjmap)
+	    (dobj-map ?dmap)
+	    (comp3-map ?comp-map)
+	    (nomobjpreps ?nop)
+	    (nomsubjpreps ?nsp)
+	    (part ?part)
+	    (restr ?restr)
+	    ))
+     ?part
+     (append-conjuncts (conj1 ?restr) (conj2 (& (vform passive)))
+		       (new ?newc))
+     )
+
+    ;; Having eaten is good
+    ((N1 (SORT PRED)
+      (gap -) (var ?v) (agr 3s) (gerund +)
+      (sem ?sem) (mass bare) ; no: the being eaten is bad
+      (case (? case sub obj -)) ;; gerunds aren't case marked, allow any value except posessive
+      (class ?class)
+      (dobj ?dobj)
+      (subj ?subj)
+      (comp3 ?comp3)
+      (subj-map ?!subjmap)
+      (dobj-map ?dmap)
+      (comp3-map ?comp-map)
+      (nomobjpreps ?nop)
+      (nomsubjpreps ?nsp)
+      (subcat (% -))
+      (restr ?newc)
+      )
+     -gerund-having> ;;0.98
+     (word (lex having))
+     (head (v (vform pastpart) (var ?v) (gap -) (aux -) 
+	      (sem ?sem) 
+	      (LF ?class) (transform ?transform)
+            ;; these are dummy vars for trips-lcflex conversion, please don't delete
+            ;;(subj ?subj) (dobj ?dobj) (comp3 ?comp3) (iobj ?iobj) (part ?part)
+	    (dobj ?dobj)
+	    (subj ?subj)
+	    (comp3 ?comp3)
+	    (subj-map ?!subjmap)
+	    (dobj-map ?dmap)
+	    (comp3-map ?comp-map)
+	    (nomobjpreps ?nop)
+	    (nomsubjpreps ?nsp)
+	    (part ?part)
+	    (restr ?restr)
+	    ))
+     ?part
+     (append-conjuncts (conj1 ?restr) (conj2 (& (vform pastpart)))
+		       (new ?newc))
+     )
+    
+    
     ;; swift 11/28/2007 there is no more gname status
     ;; Myrosia 2/12/99: changed the rule so that class in LF comes from class
     ;; Added "postadvbl -" to handle things like "elmwood at genesee"
@@ -4772,8 +4880,8 @@
       )
      -np-name> 0.995
      (head (name (lex ?l) (sem ?sem) (var ?v) (agr ?agr) (lf ?lf) (class ?class)
-		 (sort sort) (sem ($ (? !s F::time)))
-		 (full-name ?fname) (time-converted ?tc)
+		 (sort ?sort) ;;(sem ($ (? !s F::time)))
+		 (full-name ?fname) (time-converted ?tc) (mass ?mass)
 		 ;; swift 11/28/2007 removing gname rule & passing up generated feature (instead of restriction (generated -))
 		 (generated ?gen)  (transform ?transform) (title -)
 		 (restr ?restr)

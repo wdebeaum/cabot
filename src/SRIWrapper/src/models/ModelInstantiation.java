@@ -3,6 +3,7 @@ package models;
 import java.util.*;
 import java.util.Map.Entry;
 
+import utilities.ConstraintLogger;
 import utilities.KQMLUtilities;
 import environment.*;
 import TRIPS.KQML.*;
@@ -355,6 +356,9 @@ public class ModelInstantiation {
 		System.out.println("Found " + cb.getConstraints().size() + " constraints");
 		
 		constraints.addAll(cb.getConstraints());
+		
+		for (Constraint c : cb.getConstraints())
+			ConstraintLogger.writeNewConstraint(c);
 		
 		return cb;
 	}

@@ -99,4 +99,23 @@ public class GridModel2D {
 		}
 		return toReturn;
 	}
+	
+	public String asciiImage()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		for (int z = height - 1; z >= 0; z--)
+		{
+			for (int x = width - 1; x >= 0; x--)
+			{
+				if (grid[z][x] != null)
+					sb.append("x");
+				else
+					sb.append(" ");
+					
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
 }

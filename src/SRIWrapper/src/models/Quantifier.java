@@ -15,11 +15,14 @@ public class Quantifier {
 	public Quantifier(ReferringExpression re)
 	{
 		this.referringExpression = referringExpression;
+		type = QuantifierType.GENERIC;
+		minimumCount = 1;
+		maximumCount = 100;
 	}
 	
 	public Quantifier()
 	{
-		
+		type = QuantifierType.GENERIC;
 		minimumCount = 1;
 		maximumCount = 100;
 	}
@@ -128,5 +131,22 @@ public class Quantifier {
 	public QuantifierType getType()
 	{
 		return type;
+	}
+	
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("Quantifier: " + type.toString());
+		sb.append("\nMaximum count: " + maximumCount);
+		sb.append("\nMinimum count: " + minimumCount);
+		return sb.toString();
+	}
+
+	public int getMinimumCount() {
+		return minimumCount;
+	}
+
+	public int getMaximumCount() {
+		return maximumCount;
 	}
 }

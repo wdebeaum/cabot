@@ -2732,9 +2732,7 @@ sweep_up%2:42:00::
 swell_up%2:30:00::
 swoop_up%2:35:00::
 swot_up%2:31:00::
-take_up%2:34:00::
 take_up%2:35:00::
-take_up%2:35:03::
 take_up%2:35:04::
 take_up%2:38:03::
 take_up%2:40:00::
@@ -3916,9 +3914,9 @@ have_intercourse%2:35:00::
 letter%2:42:00::
 prepare_for%2:30:00::
 some_other%5:00:00:other:00
-put_in%2:30:00
-put_in%2:32:00
-put_in%2:32:02
+put_in%2:30:00::
+put_in%2:32:00::
+put_in%2:32:02::
 
 mid-January%1:28:00::
 mid-February%1:28:00::
@@ -3933,3 +3931,14 @@ mid-October%1:28:00::
 mid-November%1:28:00::
 mid-December%1:28:00::
 
+eat_at%2:30:00::
+dip_into%2:31:00::
+suck%2:34:02::
+
+two_weeks%1:28:00::
+first_trimester%1:28:00::
+second_trimester%1:28:00::
+third_trimester%1:28:00::
+
+lamb%1:18:01::
+lamb%1:18:00::

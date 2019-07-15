@@ -596,7 +596,7 @@
       (ARG ?v) (VAR ?mod)
       (role ?advrole)
       ;(SEM ($ f::abstr-obj (F::type (? !ttt ont::position-reln))))
-      (SEM ($ f::abstr-obj (F::type (? !ttt ont::path ont::conventional-position-reln
+      (SEM ($ f::abstr-obj (F::type (? !ttt ont::goal-reln ont::conventional-position-reln
 				       ont::direction ; do we want to allow "forward" (as MANNER)?
 				       ont::complex-ground-reln ont::back ont::front ont::left-of ont::off ont::orients-to ont::right-of ;ont::pos-as-containment-reln ; e.g. "decrease in Mexico" but we would need to have "put the box in the corner"
 				       ont::pos-directional-reln ont::pos-distance
@@ -650,10 +650,12 @@
 		;;(aux -)   c.f., It had gone bad
 		(gap ?gap)
 		(ellipsis -)
+		(result ?resultsem)
 		))
      (adjp (ARGUMENT (% NP (sem ?sem))) 
       ;(SEM ($ f::abstr-obj (F::type (? ttt ONT::position-reln ont::domain-property)))) ; not sure why we have position-reln here
-      (SEM ($ f::abstr-obj (F::type (? ttt ont::domain-property)))) 
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::domain-property))))
+      (SEM ?resultsem)
       (GAP -)
       ;; (subjvar ?subjvar)
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
@@ -681,11 +683,13 @@
 		;;(aux -)   c.f., It had gone bad
 		(gap ?gap)
 		(ellipsis -)
+		(result ?resultsem)
 		))
      (adjp (ARGUMENT (% NP (sem ?sem))) 
 ;      (SEM ($ f::abstr-obj (F::type (? ttt ONT::path))))
       ;(SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln ont::domain-property))))
       (SEM ($ f::abstr-obj (F::type (? ttt ont::domain-property))))
+      (sem ?resultsem)
       (GAP -)
       ;; (subjvar ?subjvar)
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
@@ -697,8 +701,9 @@
 
      
     ;;  resultative construction using adverbs: e.g., I walked to the store
-    ((vp- (constraint ?new) (tma ?tma) ;(class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
-					(class (? class ONT::EVENT-OF-CHANGE)) (var ?v) ; it leaked from the roof ; I arrived into the house
+    ;; it seems this is also used for passive transitives, e.g., The box was moved to the corner
+    ((vp- (constraint ?new) (tma ?tma) (class (? class ONT::EVENT-OF-CAUSATION)) (var ?v)
+				       ;(class (? class ONT::EVENT-OF-CHANGE)) (var ?v) ; it leaked from the roof ; I arrived into the house; but we need to exclude e.g, used/expressed in the liver (yes, passive)
          ;;(LF (% PROP (constraint ?new) (class ?class) (sem ?sem) (var ?v) (tma ?tma)))
 ;      (advbl-needed -) (complex +) (result-present +) (GAP ?gap)
       (SUBJ (% NP (Var ?npvar) (sem ?sem) (agr ?agr) (lex ?lex) (case ?case)))

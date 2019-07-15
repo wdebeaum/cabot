@@ -44,6 +44,7 @@ SRCS = 	SRIWrapper.java \
 	src/messages/CommMessageHandler.java \
 	src/models/ConstraintBundle.java \
 	src/models/Quantifier.java \
+	src/utilities/ConstraintLogger.java \
 	
 
 CLASSES = $(SRCS:.java=.class) \

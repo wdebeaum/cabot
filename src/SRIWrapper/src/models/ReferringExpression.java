@@ -30,6 +30,7 @@ import models.Quantifier.QuantifierType;
 import models.comparators.ValueComparator;
 import spatialreasoning.Predicate;
 import spatialreasoning.PredicateType;
+import utilities.ConstraintLogger;
 import utilities.KQMLUtilities;
 
 public class ReferringExpression {
@@ -76,6 +77,7 @@ public class ReferringExpression {
 			lastReferredObjectType = headTerm.getKeywordArg(":INSTANCE-OF").stringValue();
 		
 		quantifier = Quantifier.extractQuantifier(headTerm, tree);
+		
 		contrastSet = null;
 		ground = null;
 		inverseGroupingFeature = new UnorderedGroupingFeature("others");
@@ -703,10 +705,62 @@ public class ReferringExpression {
 	
 	public String toString()
 	{
+		StringBuilder sbSpec = new StringBuilder();
+		sbSpec.append("Referring Expression details:\n");
+		sbSpec.append("Quantifier: " + quantifier + "\n\n");
+		sbSpec.append("Contrast Set: " + contrastSet + "\n");
+		sbSpec.append("Restricted: " + restricted + "\n");
+		
+		sbSpec.append("Plural: " + isPlural() + "\n");
+		
+		for (String subselection : subSelections)
+		{
+			int ordinal = -1;
+			try {
+				ordinal = Integer.parseInt(subselection);
+				sbSpec.append("Ordinal: " + ordinal + "\n");
+			}
+			catch (NumberFormatException nfe)
+			{
+				continue;
+			}
+		}
+		
+		if (universal || (quantifier != null && quantifier.getType() == QuantifierType.UNIVERSAL))
+		{
+			sbSpec.append("Universal: True\n");
+		}
+		else
+		{
+			sbSpec.append("Universal: False\n");
+		}
+
+		
+		sbSpec.append("Description: " + getDescription() + "\n");
+		return sbSpec.toString();
+	}
+	
+	public String toString(boolean indent)
+	{
+		if (indent)
+			return "\t" + toString().replace("\n", "\n\t");
+		else
+			return toString();
+	}
+	
+	
+	public String getDescription()
+	{
 		StringBuilder sb = new StringBuilder();
+		
 		//sb.append("the ");
 		if (contrastSet != null)
 			sb.append(" other ");
+		
+		if (quantifier.getMaximumCount() == quantifier.getMinimumCount())
+		{
+			sb.append(" " + quantifier.getMinimumCount() + " ");
+		}
 		
 		if (subSelections.isEmpty())
 		{
@@ -739,6 +793,7 @@ public class ReferringExpression {
 				headTerm.getKeywordArg(":SPEC").stringValue().equals("ONT::THE-SET")) ||
 				isPlural())
 			sb.append("s");
+		
 		return sb.toString();
 	}
 

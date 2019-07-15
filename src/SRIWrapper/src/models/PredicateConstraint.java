@@ -47,7 +47,7 @@ public class PredicateConstraint implements Constraint {
 	@Override
 	public String reason(boolean satisfied) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("the " + subject + " is ");
+		sb.append("the " + subject.getDescription() + " is ");
 		if (!satisfied)
 			sb.append("not ");
 		sb.append(predicate.prettyString());
@@ -150,6 +150,9 @@ public class PredicateConstraint implements Constraint {
 		sb.append("PredicateConstraint: " + subject + "\n");
 		if (predicate != null)
 			sb.append(predicate.toString() + "\n");
+		
+		sb.append("Reason: \n");
+		sb.append(reason(true));
 		
 		return sb.toString();
 	}

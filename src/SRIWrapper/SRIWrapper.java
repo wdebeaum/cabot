@@ -18,6 +18,7 @@ import java.math.*;
 
 import spatialreasoning.Plan;
 import spatialreasoning.Step;
+import utilities.ConstraintLogger;
 import utilities.JsonReader;
 import utilities.KQMLUtilities;
 import utilities.TextToSpeech;
@@ -157,6 +158,7 @@ public class SRIWrapper extends StandardTripsModule  {
 	modelBuilder = new ModelBuilder();
 	goalStateHandler = new GoalStateHandler(modelBuilder, this);
 	evaluateHandler = new EvaluateHandler(goalStateHandler,modelBuilder);
+	ConstraintLogger.initialize("constraints.txt");
 	
 	plan = new Plan(modelBuilder);
 	plan.steps.add(new Step("getresponse",""));
@@ -307,6 +309,13 @@ public class SRIWrapper extends StandardTripsModule  {
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
+	try {
+	    KQMLPerformative perf =
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (utterance . *)))");
+	    send(perf);		
+	} catch (IOException ex) {
+	    error("Yow! Subscription failed: " + ex);
+	}
 	
 	blockMessagePuller = new BlockMessagePuller(this, goalStateHandler, plan, 
 			NetworkConfiguration.apiIp);
@@ -421,7 +430,7 @@ public class SRIWrapper extends StandardTripsModule  {
 		    	// Store the utterance to be referenced later and matched with the demonstration
 		    	
 		    	int uttNumValue = Integer.parseInt(uttNum.stringValue());
-		    	
+		    	ConstraintLogger.writeUtterance(text.stringValue());
 		    	// UNCOMMENT THIS FOR STEP DEMO
 		    	//plan.processUtterance(text.stringValue());
 		    }

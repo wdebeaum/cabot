@@ -20,6 +20,7 @@ import environment.Block;
 import java.io.IOException;
 import java.util.*;
 
+import utilities.ConstraintLogger;
 import utilities.KQMLUtilities;
 import utilities.TextToSpeech;
 
@@ -126,8 +127,9 @@ public class ModelBuilder {
 		
 		System.out.println("Filled constraint: ");
 		System.out.println(lastConstraintAsked);
-		
+		ConstraintLogger.writeNewConstraint(lastConstraintAsked);
 		lastConstraintAsked = null;
+		
 		TextToSpeech.say("Okay, got it.");
 		constraintsReceived++;
 		
@@ -164,7 +166,7 @@ public class ModelBuilder {
 		else if (constraintToAsk instanceof PredicateConstraint)
 		{
 			sb.append("Where can the ");
-			sb.append(((PredicateConstraint) constraintToAsk).getSubject());
+			sb.append(((PredicateConstraint) constraintToAsk).getSubject().getDescription());
 			sb.append(" be?");
 			return sb.toString();
 		}
@@ -179,11 +181,11 @@ public class ModelBuilder {
 			
 			ReferringExpression re = ((StructureConstraint)constraintToAsk).getSubject();
 			if (featureName.equals(FeatureConstants.NUMBER))
-				sb.append(re);
+				sb.append(re.getDescription());
 			else
 			{
 				sb.append(" of the ");
-				sb.append(re);
+				sb.append(re.getDescription());
 			}
 		}
 	
@@ -280,7 +282,7 @@ public class ModelBuilder {
 			return null;
 		
 		TextToSpeech.say("Is this a correct example?");
-
+		ConstraintLogger.writeExample(satisfiedExample.asciiImage());
 		try {
 			BlockMessageSender.sendPostRequest(satisfiedExample.getBlocks());
 		}

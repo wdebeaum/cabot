@@ -176,21 +176,28 @@ public class StructureConstraint implements Constraint {
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		sb.append("StructureConstraint: " + subject + "\n");
+		sb.append("StructureConstraint subject: \n" + subject.toString(true) + "\n");
+		sb.append("---------\n");
+		sb.append("Restricted (i.e. 'only'): " + subject.isRestricted() + "\n");
+		sb.append("Comparison objects: \n" );
+		for (ReferringExpression object : objects)
+			sb.append(object.toString());
+		
 		if (featureConstraint != null)
-			sb.append(featureConstraint.toString() + "\n");
+			sb.append("Feature: \n" + featureConstraint.toString() + "\n");
 		return sb.toString();
 	}
 	
 	public String reason()
 	{
-		return subject + "'s " + featureConstraint.reason();
+		return subject.getDescription() + "'s " + featureConstraint.reason();
 	}
 	
 	public String reason(boolean satisfied)
 	{
-		return subject + "'s " + featureConstraint.reason(satisfied);
+		return subject.getDescription() + "'s " + featureConstraint.reason(satisfied);
 	}
+	
 
 	@Override
 	public String getDescription() {

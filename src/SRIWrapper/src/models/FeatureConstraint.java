@@ -217,20 +217,27 @@ public class FeatureConstraint implements Constraint {
 	
 	public String toString()
 	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("Feature Constraint \n");
+		sb.append(feature.getName() + " ");
+		sb.append(operator.toString() + " ");
+		
 		if (comparisonFeature != null)
 		{
 			if (comparisonFeature.isConstant())
-				return "Feature Constraint: " + feature.getName() + " " 
-									+ operator + " " 
-									+ comparisonFeature.getValue();
+				sb.append(comparisonFeature.getValue());
+			else if (comparisonFeature instanceof UnorderedGroupingFeature)
+				sb.append("others");
 			else
-				return "Feature Constraint: " + feature.getName() + " " 
-									+ operator + " " 
-									+ comparisonFeature.getName();
+				sb.append(comparisonFeature.getName());
 		}
 		else
-			return "Feature Constraint: " + feature.getName() + " " 
-			+ operator + " unresolved value";			
+			sb.append("unresolved value");
+		
+		sb.append("\nDescription: ");
+		sb.append(reason(true) + "\n");
+		
+		return sb.toString();
 	}
 	
 	public String reason()

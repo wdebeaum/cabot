@@ -29,6 +29,7 @@ public class TextToSpeech {
     public static void say(String input)
     {
 	    	sendUtterance(input);
+	    	ConstraintLogger.writeSystemUtterance(input);
 	    	System.out.println("Trying to say: " + input);
 	    	if (!SPEECH_ENABLED)
 	    	{

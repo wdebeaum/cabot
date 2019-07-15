@@ -9,8 +9,8 @@
    (wordfeats (W::morph (:forms (-vb) :nom w::cause)))
    (SENSES
     ((EXAMPLE "Aspirin causes headaches")
-     ;(lf-parent ont::cause-produce-reproduce) ;;  20120524 GUM change new parent
-     (lf-parent ont::cause-effect) ;;  20120524 GUM change new parent
+     ;(lf-parent ont::cause-produce-reproduce) 
+     (lf-parent ont::cause-effect) 
      (TEMPL AGENT-AFFECTED-XP-NP-TEMPL)
      )
     ;; LF-GUM spreadsheet instructions say delete this sense, but then surface form has no representation.

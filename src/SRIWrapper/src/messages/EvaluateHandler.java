@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import utilities.ConstraintLogger;
 import utilities.KQMLUtilities;
 import utilities.TextToSpeech;
 import environment.Scene;
@@ -432,6 +433,7 @@ public class EvaluateHandler {
 				currentConstraint += 1;
 				if (cb.size() > currentConstraint)
 					sb.append(" and ");
+				
 			}
 			TextToSpeech.say(sb.toString());
 			try {
@@ -515,6 +517,7 @@ public class EvaluateHandler {
 					
 					if (example != null)
 					{
+						ConstraintLogger.writeExample(example.asciiImage());
 						try {
 							BlockMessageSender.sendPostRequest(example.getBlocks());
 						}
@@ -652,6 +655,7 @@ public class EvaluateHandler {
 								lastConstraint = constraint;
 								numOfRemovedConstraints++;
 								i.remove();
+								ConstraintLogger.removedConstraint(constraint);
 								if (!plural)
 									break;
 							}
@@ -669,6 +673,7 @@ public class EvaluateHandler {
 			{
 				lastConstraint = constraintList.get(constraintList.size()-1);
 				modelBuilder.getLastModelInstantiation().constraints.remove(lastConstraint);
+				ConstraintLogger.removedConstraint(lastConstraint);
 			}
 			if (plural)
 			{
