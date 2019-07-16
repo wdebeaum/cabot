@@ -188,10 +188,14 @@ public class FeatureParser {
 			{
 				extractedFeature = structureInstance.getFeature(scale);
 				System.out.println("Scale: " + scale);
+				if (headReferringExpression != null)
+					System.out.println("Feature refexp: " + headReferringExpression.toString());
+				return extractedFeature;
 			}
 			
 		}
-		else if (term.getKeywordArg(":FIGURE") != null)
+		
+		if (term.getKeywordArg(":FIGURE") != null)
 		{
 			String figureSymbol = term.getKeywordArg(":FIGURE").stringValue();
 			KQMLList figureTerm = 

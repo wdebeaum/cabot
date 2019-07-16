@@ -267,7 +267,7 @@ public class FeatureConstraint implements Constraint {
 			sb.append(" the ");
 			sb.append(getPrettyFeatureName(comparisonFeature.getName()));
 			sb.append(" of the ");
-			sb.append(comparisonFeature.getSource().toString());
+			sb.append(comparisonFeature.getSource().getDescription());
 		}
 		else
 			sb.append("the " + getPrettyFeatureName(comparisonFeature.getName()));

@@ -258,6 +258,7 @@ public class UnorderedGroupingFeature extends Feature<List> {
 		result.put(count.name, count);
 		result.put(FeatureConstants.QUANTITY, count);
 		result.put(heightFeature.name, heightFeature);
+		result.put(FeatureConstants.HEIGHT, heightFeature);
 		result.put(FeatureConstants.WIDTH, widthFeature);
 		result.put(FeatureConstants.LENGTH, widthFeature);
 		result.put(FeatureConstants.LINEAREXTENT, widthFeature);
