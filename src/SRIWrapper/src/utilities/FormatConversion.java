@@ -20,6 +20,9 @@ public class FormatConversion {
 	
 	public static String doubleMatrixToJSONString(DoubleMatrix input)
 	{
+		if (input == null)
+			return null;
+		
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < input.length; i++)

@@ -152,7 +152,7 @@ public class PredicateConstraint implements Constraint {
 			sb.append(predicate.toString() + "\n");
 		
 		sb.append("Reason: \n");
-		sb.append(reason(true));
+		sb.append(reason(true) + "\n");
 		
 		return sb.toString();
 	}

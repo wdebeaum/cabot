@@ -283,7 +283,7 @@ public class ReferringExpression {
 						.equalsIgnoreCase(getVariableName()))
 				{
 					// Don't grab scales like "height of the column"
-					if (termList.getKeywordArg(":SCALE") == null)
+					if (termList.getKeywordArg(":SCALE") == null && !ontType.contains("-SCALE"))
 						subSelections.add(ontType);
 				}
 			}
@@ -379,7 +379,7 @@ public class ReferringExpression {
 				lex = modifier.getKeywordArg(":LEX").stringValue();
 			
 			PredicateType result = PredicateType.fromString(ontType, lex);
-			
+			System.out.println("Added modifier as predicate: " + result);
 			if (result != null)
 				predicates.add(new Predicate(result));
 		}
@@ -766,6 +766,10 @@ public class ReferringExpression {
 		{
 			for (Predicate p : predicates)
 				sb.append(p.toString());
+		}
+		else
+		{
+			System.out.println("Skipping predicates because of subselection");
 		}
 		
 		for (String subselection : subSelections)

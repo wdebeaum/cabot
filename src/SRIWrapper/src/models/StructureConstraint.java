@@ -176,7 +176,7 @@ public class StructureConstraint implements Constraint {
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		sb.append("StructureConstraint subject: \n" + subject.toString(true) + "\n");
+		sb.append("StructureConstraint subject:\n" + subject.toString(true) + "\n");
 		sb.append("---------\n");
 		sb.append("Restricted (i.e. 'only'): " + subject.isRestricted() + "\n");
 		sb.append("Comparison objects: \n" );

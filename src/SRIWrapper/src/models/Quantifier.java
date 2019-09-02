@@ -31,16 +31,30 @@ public class Quantifier {
 	{
 		Quantifier q = new Quantifier();
 		String sizeVariable;
+		if (head == null)
+			return null;
+		
 		if (head.getKeywordArg(":SIZE") != null)
 		{
 			sizeVariable = head.getKeywordArg(":SIZE").stringValue();
 		
 			if (sizeVariable.equalsIgnoreCase(FeatureConstants.UNIVERSAL))
 				q.type = QuantifierType.UNIVERSAL;
+			else if (sizeVariable.equalsIgnoreCase(FeatureConstants.SOME))
+			{
+				
+			}
 			else
 			{
 			
 				KQMLList sizeTerm = KQMLUtilities.findTermInKQMLList(sizeVariable, context);
+				if (sizeTerm == null)
+				{
+					System.out.println("Quantifier min: " + q.minimumCount);
+					System.out.println("Quantifier max: " + q.maximumCount);
+					System.out.println("Quantifier type: " + q.getType());
+					return q;
+				}
 				if (sizeTerm.getKeywordArg(":VALUE") != null)
 				{
 					int value = Integer.parseInt(sizeTerm.getKeywordArg(":VALUE").stringValue());
@@ -107,8 +121,15 @@ public class Quantifier {
 		}
 		//if (head.getKeywordArg(":QUAN") != null)
 		
+		// "The columns" - no specific number, therefore likely to be a universal constraint
+		if (head.getKeywordArg(":SPEC") != null && 
+				head.getKeywordArg(":SPEC").stringValue().equalsIgnoreCase("ONT::THE-SET") && 
+				q.maximumCount == 100 && q.minimumCount == 1)
+			q.type = QuantifierType.UNIVERSAL;
+		
 		System.out.println("Quantifier min: " + q.minimumCount);
 		System.out.println("Quantifier max: " + q.maximumCount);
+		System.out.println("Quantifier type: " + q.getType());
 		
 		return q;
 	}

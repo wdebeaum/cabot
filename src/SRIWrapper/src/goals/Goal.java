@@ -200,8 +200,11 @@ public class Goal {
 			toReturn = new Goal("G" + getNextWhat(),"G" + getNextId(),newTerm);
 			toReturn.updateTerm();
 		}
-		System.out.println("Answer-Modified term: " + toReturn.term );
-		toReturn.context = newContext;
+		if (toReturn != null)
+		{
+			System.out.println("Answer-Modified term: " + toReturn.term );
+			toReturn.context = newContext;
+		}
 		
 		return toReturn;
 		

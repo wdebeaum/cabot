@@ -20,6 +20,16 @@ public class StructureModel {
 		explicitFeatureConstraints = new HashSet<FeatureConstraint>();
 	}
 	
+	public void addPositiveStructureInstance(StructureInstance si)
+	{
+		positiveStructureInstances.add(si);
+	}
+	
+	public void addNegativeStructureInstance(StructureInstance si)
+	{
+		negativeStructureInstances.add(si);
+	}
+	
 	public void addInferredConstraint(FeatureConstraint fc)
 	{
 		inferredFeatureConstraints.add(fc);

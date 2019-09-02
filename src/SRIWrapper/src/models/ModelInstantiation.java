@@ -25,16 +25,24 @@ public class ModelInstantiation {
 	private Set<ReferringExpression> referringExpressions;
 	String[] generalFeaturesToAsk = {FeatureConstants.HEIGHT, FeatureConstants.WIDTH};
 	String[] subFeaturesToAsk = {FeatureConstants.NUMBER};
+	private String name;
 	public Constraint lastConstraint;
 	private boolean introduced;
 	
 	public ModelInstantiation() {
+
+		this("unnamed");
+	}
+	
+	public ModelInstantiation(String name)
+	{
 		currentStructureInstance = new StructureInstance("placeholder", new ArrayList<Block>());
 		components = new HashMap<String,FeatureGroup>();
 		constraints = new ArrayList<Constraint>();
 		positiveExamples = new ArrayList<StructureInstance>();
 		introduced = false;
 		lastConstraint = null;
+		this.name = name;
 	}
 
 	public void addKQMLTerm(KQMLList term, KQMLList context)
@@ -200,18 +208,22 @@ public class ModelInstantiation {
 						// Ask where the top block can be
 						if (row.getBlocks().size() == 1)
 						{
-							refExp = new ReferringExpression(p,"ONT::THE","ONT::BLOCK");
+							refExp = new ReferringExpression(p,"ONT::THE",FeatureConstants.BLOCK);
 							PredicateConstraint pc = new PredicateConstraint(refExp);
 							return pc;
 						}
-						else
+						else // Ask how many blocks can be in the top row
 						{
-							refExp = new ReferringExpression(p,"ONT::THE-SET","ONT::BLOCK");
-							// Don't do anything for plural top rows
+							refExp = new ReferringExpression(p,"ONT::THE", FeatureConstants.ROW);
+							Feature feature = refExp.getPseudoInstance().getFeature(FeatureConstants.NUMBER);
+							FeatureConstraint fc = new FeatureConstraint(feature, Operator.LEQ,
+									ComparisonType.VALUE);	
+							StructureConstraint toReturn = new StructureConstraint(refExp,fc);
+							return toReturn;
+							
 						}
 						
 						
-						// Ask how many blocks can be in the top row
 						// If there is no row, skip down below
 					}
 				}

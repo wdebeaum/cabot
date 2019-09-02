@@ -49,6 +49,7 @@ public class FeatureConstants {
 	
 	
 	public static final String UNIVERSAL = "ONT::UNIVERSAL";
+	public static final String SOME = "ONT::SOME";
 	
 	public static final String LAST = "ONT::LAST-VAL";
 	public FeatureConstants() {

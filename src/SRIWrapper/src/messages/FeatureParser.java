@@ -687,6 +687,21 @@ public class FeatureParser {
 			}
 		}
 		
+		if (operator != null)
+		{
+			if (term.getKeywordArg(":MOD") != null)
+			{
+				String modString = term.getKeywordArg(":MOD").stringValue();
+				KQMLList modTerm = KQMLUtilities.findTermInKQMLList(modString, context);
+				if (modTerm.getKeywordArg(":INSTANCE-OF") != null && 
+						modTerm.getKeywordArg(":INSTANCE-OF").stringValue().equalsIgnoreCase("ONT::NEG"))
+					operator = FeatureConstraint.getNegatedOperator(operator);
+				else if (modTerm.getKeywordArg(":LEX") != null &&
+						modTerm.getKeywordArg(":LEX").stringValue().equalsIgnoreCase("W::NO"))
+					operator = FeatureConstraint.getNegatedOperator(operator);
+			}
+		}
+		
 		// The instance-of is not actually an operator, but a descriptor
 		if (isDefaultComparator(operatorString))
 		{

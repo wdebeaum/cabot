@@ -57,20 +57,24 @@ public class Predicate {
 			return top(blockUGF, sceneComplement);
 		case LEFT:
 		case LEFTLOC:
-		case LEFTMOST:
 			return left(blockUGF, sceneComplement);
+		case LEFTMOST:
+			return left(blockUGF, sceneComplement) && !middle(blockUGF, sceneComplement); 
 		case RIGHT:
 		case RIGHTLOC:
-		case RIGHTMOST:
-		case CORRECT:
+		case CORRECT: // Hack for parser
 			return right(blockUGF, sceneComplement);
+		case RIGHTMOST:
+			return right(blockUGF, sceneComplement) && !middle(blockUGF, sceneComplement); 
 		case SIDE:
 		case SIDELOC:
 		case SIDEPRED:
-			return (right(blockUGF, sceneComplement) || left(blockUGF, sceneComplement));
+		case OUTER:
+			return (right(blockUGF, sceneComplement) || left(blockUGF, sceneComplement)) && !middle(blockUGF, sceneComplement);
 		case MIDDLE:
 		case CENTER:
 		case BETWEEN:
+		case INNER:
 			return middle(blockUGF, sceneComplement);
 		default:
 			return false;
@@ -138,13 +142,15 @@ public class Predicate {
 			return top(s, sceneComplement);
 		case LEFT:
 		case LEFTLOC:
-		case LEFTMOST:
 			return left(s, sceneComplement);
+		case LEFTMOST:
+			return left(s, sceneComplement) || !middle(s, sceneComplement);			
 		case RIGHT:
 		case RIGHTLOC:
-		case RIGHTMOST:
 		case CORRECT:
 			return right(s, sceneComplement);
+		case RIGHTMOST:
+			return right(s, sceneComplement) || !middle(s, sceneComplement);
 		case ANYWHERE:
 			return true;
 		case TOGETHER:
@@ -155,10 +161,12 @@ public class Predicate {
 		case SIDE:
 		case SIDELOC:
 		case SIDEPRED:
-			return left(s, sceneComplement) || right(s, sceneComplement);
+		case OUTER:
+			return (left(s, sceneComplement) || right(s, sceneComplement)) && !middle(s, sceneComplement);
 		case MIDDLE:
 		case CENTER:
 		case BETWEEN:
+		case INNER:
 			return middle(s,sceneComplement);
 		default:
 			return false;
@@ -191,6 +199,7 @@ public class Predicate {
 			return true;
 		case MIDDLE:
 		case BETWEEN:
+		case INNER:
 			return middle(s1,s2);
 		default:
 			return false;

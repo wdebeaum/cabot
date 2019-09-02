@@ -133,6 +133,7 @@
     )
 
 (define-type ONT::loaded-claim
+    :wordnet-sense-keys ("case%1:04:00" "complain%2:32:01")
     :parent ONT::representative
     :comment "speech act that expresses the speakers belief with a particular purpose (e.g., accuse, complain)"
     )
@@ -239,6 +240,8 @@
  :wordnet-sense-keys ("change_posture%2:38:00")
  :parent ONT::EVENT-OF-causation
  :sem (F::Situation (f::trajectory +))
+ :arguments ((:ESSENTIAL ONT::Agent (F::phys-obj (F::intentional +)))
+	     )
  )
 
 (define-type ONT::Body-manipulation
@@ -406,6 +409,12 @@
     :arguments ((:REQUIRED ONT::neutral1 ((? th7 f::phys-obj f::abstr-obj f::situation))))
     )
 
+(define-type ont::evaluate
+    :parent ont::scrutiny
+    :wordnet-sense-keys ("evaluate%2:31:01" "contrast%2:31:00")
+    :arguments ((:REQUIRED ONT::neutral1 ((? th7 f::phys-obj f::abstr-obj f::situation))))
+    )
+
 ;; cognizer reasoning results in a value
 ;; approximate, assess, estimate, fix, guage
 (define-type ONT::Becoming-Aware-of-value
@@ -537,7 +546,7 @@
 
 
 (define-type ONT::Cause-to-Move
- :wordnet-sense-keys ("drive%2:35:01" "drive%2:41:02")
+ :wordnet-sense-keys ("drive%2:35:01" "drive%2:41:02" "move%2:38:01")
  :parent ont::motion
  :sem (F::Situation (F::Cause F::Force) (f::trajectory +))
  :arguments ((:ESSENTIAL ONT::agent)
@@ -578,10 +587,11 @@
              )
  )
 
-(define-type ONT::Co-motion
- :parent ont::motion
- :arguments ((:essential ont::neutral)   ;; the object with which the motion is relative to
-	     (:essential ONT::AFFECTED ((? ttype f::phys-obj f::abstr-obj)))  ; exclude situation, e.g., "the dog chase the cat barking": "cat barking" should not be a nominalization that is chased 
+(define-type ONT::motion-wrt-another-object
+    :parent ont::motion
+    :comment "motion defined wrt another object, either moving or static"
+    :arguments ((:essential ont::neutral)   ;; the object with which the motion is relative to
+		(:essential ONT::AFFECTED ((? ttype f::phys-obj f::abstr-obj)))  ; exclude situation, e.g., "the dog chase the cat barking": "cat barking" should not be a nominalization that is chased 
              )
  )
 
@@ -742,7 +752,7 @@
  )
 
 (define-type ONT::drink
- :wordnet-sense-keys ("drink%2:34:00" "drink%2:34:12")
+ :wordnet-sense-keys ("drink%2:34:00" "drink%2:34:12" "drinking%1:04:01" "drink%2:34:02")
  :parent ONT::consume
   :arguments ((:REQUIRED ONT::Affected (F::Phys-obj (F::Form f::liquid))))
  )
@@ -861,7 +871,7 @@
 
 ;; be -- this is red
 (define-type ONT::HAVE-PROPERTY
- :wordnet-sense-keys ("be%2:42:03" "be%2:42:05" "sound%2:39:03")
+ :wordnet-sense-keys ("be%2:42:03" "be%2:42:05" "mean%2:42:03" "sound%2:39:03")
  :parent ONT::event-of-state
  :sem (F::Situation (F::Aspect F::static) (F::Time-span F::extended) (F::Trajectory -))
  :arguments ((:REQUIRED ONT::neutral )
@@ -871,8 +881,14 @@
              )
  )
 
+(define-type ONT::BE-INACTIVE
+ :wordnet-sense-keys ("rest%2:41:00")
+ :parent ONT::HAVE-PROPERTY
+)
+
+
 (define-type ONT::possibly-true
- :wordnet-sense-keys ("seem%2:39:01")
+ ;:wordnet-sense-keys ("seem%2:39:01")
  :parent ONT::event-of-state
  :arguments ((:REQUIRED ONT::formal (F::situation))))
 
@@ -906,7 +922,7 @@
 
 ;; possess -- specific for ownership
 (define-type ont::possess
- :wordnet-sense-keys ("own%2:40:00" "have%2:40:04" "possess%2:40:00" "belong%2:40:00" "possession%1:03:00")
+ :wordnet-sense-keys ("own%2:40:00" "have%2:40:04" "possess%2:40:00" "belong%2:40:00" "possession%1:03:00" "possession%1:04:00" "ownership%1:21:00" "ownership%1:26:00")
   :parent ont::have
   :sem (F::SITUATION (F::Aspect F::stage-level) (F::Time-span F::Extended))
   :arguments ((:required ont::neutral (F::phys-obj (f::intentional +))) ;; owner is typically a person or organization
@@ -931,7 +947,7 @@
  )
 
 (define-type ONT::APPEARS-TO-HAVE-PROPERTY
- :wordnet-sense-keys ("sound%2:39:06" "taste%2:39:02")
+ :wordnet-sense-keys ("look%2:39:01" "seem%2:39:01" "seem%2:39:02" "seem%2:42:00" "sound%2:39:06" "taste%2:39:02")
  :parent ONT::HAVE-PROPERTY
  :sem (F::situation (F::Aspect F::stage-level) (F::Time-span F::extended))
  )
@@ -977,7 +993,7 @@
  )
 
 (define-type ONT::RESEMBLE
- :wordnet-sense-keys ("resemble%2:42:00")
+ :wordnet-sense-keys ("conform%2:42:06" "resemble%2:42:00")
  :parent ONT::OBJECT-COMPARE
  :sem (F::Situation (F::Trajectory -))
  :arguments ((:REQUIRED ONT::FORMAL ((? oc1 F::Phys-obj F::Abstr-obj F::Situation)))
@@ -1105,6 +1121,12 @@
 ; 		)
 ;     )
 
+(define-type ont::err
+    :parent ONT::fail
+    :arguments ((:REQUIRED ONT::affected))
+    :wordnet-sense-keys ("err%2:31:00")
+ )
+
 (define-type ont::miss
     :parent ONT::fail
     :arguments (
@@ -1131,7 +1153,7 @@
 (define-type ONT::be-inclined
     ;; 20120529 GUM change new parent
     :wordnet-sense-keys ("tend%2:42:01")
-    :parent ont::event-of-state
+    :parent ont::have-property
     :arguments (
 		(:REQUIRED ONT::Formal ((? obj F::SITUATION F::ABSTR-OBJ) (f::intentional -)))
 		)

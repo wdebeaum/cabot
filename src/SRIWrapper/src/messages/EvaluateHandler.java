@@ -34,6 +34,8 @@ public class EvaluateHandler {
 
 	ModelBuilder modelBuilder;
 	GoalStateHandler goalStateHandler;
+	boolean lastConstraintViolatedExample;
+	ConstraintBundle lastViolatedConstraintBundle = null;
 	boolean teachingMode;
 	private static int nextId = 1;
 	
@@ -175,6 +177,34 @@ public class EvaluateHandler {
 	
 	public KQMLList handleYesNoAnswerMessage(KQMLList content, KQMLList context)
 	{
+		
+		String value = content.getKeywordArg(":VALUE").toString();
+		
+		if (goalStateHandler.systemState == SystemState.CHECKING_CONSTRAINT)
+		{
+			if (value.equals("ONT::TRUE"))
+			{
+				TextToSpeech.say("Okay.");
+			}
+			else
+			{
+				for (Constraint c : lastViolatedConstraintBundle.getConstraints())
+				{
+					modelBuilder.getLastModelInstantiation().constraints.remove(c);
+					ConstraintLogger.removedConstraint(c);
+				}
+				if (lastViolatedConstraintBundle.getConstraints().size() > 1)
+					TextToSpeech.say("Okay, I removed those constraint.");
+				else
+					TextToSpeech.say("Okay, I removed that constraint.");
+					
+			}
+			
+			goalStateHandler.systemState = SystemState.LEARNING_CONSTRAINTS;
+			
+			return acceptableContent(content, context);
+		}
+		
 		// Clear planned blocks
 		try {
 			BlockMessageSender.clearBlocks();
@@ -184,8 +214,6 @@ public class EvaluateHandler {
 		}
 		
 		// Only handles "are you done?" right now
-		String value = content.getKeywordArg(":VALUE").toString();
-		
 		String queryVariable = content.getKeywordArg(":QUERY").stringValue();
 		KQMLList queryTerm = KQMLUtilities.findTermInKQMLList(queryVariable, context);
 		String instanceOf = queryTerm.getKeywordArg(":INSTANCE-OF").stringValue();
@@ -229,6 +257,7 @@ public class EvaluateHandler {
 		}
 		else if (instanceOf.equals("ONT::STRUCTURE"))
 		{
+			
 			return acceptableContent(content, context);
 		}
 		
@@ -358,14 +387,38 @@ public class EvaluateHandler {
 				continue;
 			
 			String relevantSymbol = null;
+			
+			if (assertionContentTerm.getKeywordArg(":FORMAL") != null)
+			{
+				relevantSymbol = assertionContentTerm.getKeywordArg(":FORMAL").stringValue();	
+				KQMLList relevantTerm = KQMLUtilities.findTermInKQMLList(relevantSymbol, context);		
+				
+				if (relevantTerm.getKeywordArg(":INSTANCE-OF").stringValue().equalsIgnoreCase("ONT::FINISHED"))
+				{
+					TextToSpeech.say("Great! I enjoyed learning with you.");
+					goalStateHandler.systemState = SystemState.FINISHED;
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					return acceptableContent("ASSERTION", id, goal, goalLF, context);
+				}
+			}
+			
 			if (assertionContentTerm.getKeywordArg(":NEUTRAL1") != null)
 			{
 				relevantSymbol = assertionContentTerm.getKeywordArg(":NEUTRAL1").stringValue();	
 				KQMLList relevantTerm = KQMLUtilities.findTermInKQMLList(relevantSymbol, context);
+				// User says "This is an example"
 				if (relevantTerm.getKeywordArg(":INSTANCE-OF").stringValue().equalsIgnoreCase("ONT::EXAMPLE"))
 				{
 					TextToSpeech.say("Ok.");
-					modelBuilder.processAssertion(content,context);
+					modelBuilder.addPositiveExampleFromCurrentScene();
+					// IP: Don't know why this is here 
+					// modelBuilder.processAssertion(content,context);
 					return acceptableContent("ASSERTION", id, goal, goalLF, context);
 				}
 					
@@ -422,10 +475,31 @@ public class EvaluateHandler {
 		else
 			System.out.println("No Neutral term to learn assertions");
 		
+		// Check previous examples to see if there's an issue with this constraint
+		lastConstraintViolatedExample = false;
+		for (Constraint c : cb.getConstraints())
+		{
+			for (StructureInstance si : modelBuilder.getLastModelInstantiation().getPositiveExamples())
+			{
+				boolean satisfied = modelBuilder.getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(si.blocks);
+				if (!satisfied)
+				{
+					lastConstraintViolatedExample = true;
+					lastViolatedConstraintBundle = cb;
+					goalStateHandler.examplesViolatedByNewConstraint(c);
+					break;
+					// Send clarification question
+				}
+			}
+		}
+		
 		if (cb != null && cb.size() > 0)
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.append("Ok. It should be true that ");
+			if (lastConstraintViolatedExample)
+				sb.append("Hmm, from what I understood, it should be true that ");
+			else
+				sb.append("Ok. It should be true that ");
 			int currentConstraint = 0;
 			for (Constraint c : cb.getConstraints())
 			{
@@ -433,9 +507,13 @@ public class EvaluateHandler {
 				currentConstraint += 1;
 				if (cb.size() > currentConstraint)
 					sb.append(" and ");
-				
 			}
+			
+			if (lastConstraintViolatedExample)
+				sb.append(". However, that doesn't match an example you showed me. Do you still want to add this constraint?");
+			
 			TextToSpeech.say(sb.toString());
+			
 			try {
 				Thread.sleep(1600);
 			} catch (InterruptedException e) {
@@ -535,7 +613,10 @@ public class EvaluateHandler {
 			if (goalType.equalsIgnoreCase("ONT::SHOW"))
 				goalStateHandler.systemState = SystemState.LEARNING_DEMONSTRATION;
 			else
+			{
+				goalStateHandler.setTopLevelGoal(new Goal(goal,id,goalLF));
 				goalStateHandler.systemState = SystemState.LEARNING_CONSTRAINTS;
+			}
 			String newModelName = "ONT::REFERENTIAL-SEM";
 			KQMLObject whatPhrase = goalLF.getKeywordArg(":FORMAL");
 			String whatPhraseSymbol;

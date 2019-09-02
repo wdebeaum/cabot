@@ -11,6 +11,7 @@ import features.BlockFeatureGroup;
 import features.TemporalSequenceFeature;
 import messages.BlockMessageSender;
 import messages.EvaluateHandler;
+import models.Constraint;
 import models.FeatureConstraint;
 import models.FeatureProjection;
 import models.ModelBuilder;
@@ -30,6 +31,8 @@ public class GoalStateHandler {
 	private HashMap<String,Goal> idGoalMapping;
 	private Goal currentGoal;
 	private Goal lastProposedGoal;
+	private Goal topLevelGoal;
+	private Constraint lastConstraint;
 	private KQMLList currentContext;
 	private GoalState goalState;
 	public SystemState systemState;
@@ -41,7 +44,7 @@ public class GoalStateHandler {
 	public boolean userCompleted = false;
 	public Block lastBlockPlaced;
 	private boolean systemGoalStarted = false;
-	public enum SystemState {LEARNING_DEMONSTRATION, LEARNING_CONSTRAINTS, TESTING, BUILDING, WAITING, CHECKING_IF_DONE}
+	public enum SystemState {LEARNING_DEMONSTRATION, LEARNING_CONSTRAINTS, TESTING, BUILDING, WAITING, CHECKING_IF_DONE, CHECKING_CONSTRAINT, FINISHED}
 	
 	public enum GoalState {ACCEPTED, PROPOSED, COMPLETED, REJECTED, WAITING}
 
@@ -76,11 +79,26 @@ public class GoalStateHandler {
 			System.out.println("with content: " + currentGoal.getTerm());
 			String goalInstanceType = currentGoal.getInstanceOf();
 			
+			if (systemState.equals(SystemState.CHECKING_CONSTRAINT))
+			{
+				return GoalMessages.askIfConstraintShouldBeAdded(currentGoal);
+			}
+			
+			if (systemState.equals(SystemState.FINISHED))
+			{
+				checkingForGoalCompletion = false;
+				if (topLevelGoal != null)
+					return GoalMessages.executionStatus(topLevelGoal.getId(), "ONT::DONE");
+				else
+					return GoalMessages.executionStatus(goalId, "ONT::DONE");
+			}
+			
 			if (currentGoal.isCompleted())
 			{
 				checkingForGoalCompletion = false;
 				return GoalMessages.executionStatus(goalId, "ONT::DONE");
 			}
+			
 			if (goalInstanceType == null)
 			{
 				System.out.println("Instance type was null");
@@ -490,6 +508,11 @@ public class GoalStateHandler {
 	}
 	
 
+	public void examplesViolatedByNewConstraint(Constraint c)
+	{
+		lastConstraint = c;
+		systemState = SystemState.CHECKING_CONSTRAINT;
+	}
 	
 	private void askIfDone(String goalId)
 	{
@@ -537,6 +560,14 @@ public class GoalStateHandler {
 		performativeToSend.setParameter(":CONTENT",responseContent);
 		performativeToSend.setParameter(":IN-REPLY-TO", lastReplyWith);
 		sriWrapper.sendKQMLPerformative(performativeToSend);
+	}
+
+	public Goal getTopLevelGoal() {
+		return topLevelGoal;
+	}
+
+	public void setTopLevelGoal(Goal topLevelGoal) {
+		this.topLevelGoal = topLevelGoal;
 	}
 	
 	

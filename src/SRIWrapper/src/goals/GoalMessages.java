@@ -158,6 +158,8 @@ public class GoalMessages {
 		return adoptContent;
 	}
 	
+	
+	
 	public static KQMLList askWhContent(String id, String query,
 			String what, String parentId)
 	{
@@ -181,6 +183,23 @@ public class GoalMessages {
 		return adoptContent;
 	}
 	
+	public static KQMLList askIfConstraintShouldBeAdded(Goal parent)
+	{
+		Query q = new Query("ONT::ADD-INCLUDE");
+		q.setParent(parent);
+		String queryId = "R" + Goal.getNextId();
+		KQMLList addInclude = new KQMLList();
+		addInclude.add("ONT::RELN");
+		addInclude.add(queryId);
+		addInclude.add(":INSTANCE-OF");
+		addInclude.add("ONT::ADD-INCLUDE");
+		q.addQuery("ONT::ADD-INCLUDE", queryId);
+		
+		q.addContextElement(addInclude);
+		
+		return proposeAskIfContent(q);
+	}
+	
 	public static KQMLList proposeAskWhContent(Query q)
 	{
 		KQMLList content =  askWhContent(q.getId(), q.getQueryId(), q.getWhat(), q.getParent().getId());
@@ -196,6 +215,8 @@ public class GoalMessages {
 		context.addAll(q.getContext());
 		return propose(content, context);
 	}
+	
+	
 	
 	public static KQMLList waitingForUser(String goalId)
 	{

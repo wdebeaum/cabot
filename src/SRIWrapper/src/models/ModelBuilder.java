@@ -16,6 +16,8 @@ import spatialreasoning.Predicate;
 import spatialreasoning.PredicateType;
 import TRIPS.KQML.*;
 import environment.Block;
+import environment.Scene;
+import environment.StructureInstance;
 
 import java.io.IOException;
 import java.util.*;
@@ -37,6 +39,7 @@ public class ModelBuilder {
 	boolean showedExample = false;
 	boolean showedUserExample = false;
 	int constraintsReceived = 0;
+	StructureInstance lastExampleShown = null;
 	String[] numbers = {"zero","one","two","three","four","five","six"};
 
 	
@@ -309,6 +312,7 @@ public class ModelBuilder {
 			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
 					currentGridModel.getBlocks()))
 			{
+				lastExampleShown = new StructureInstance("example", currentGridModel.getBlocks());
 				return currentGridModel;
 			}
 		}
@@ -325,6 +329,7 @@ public class ModelBuilder {
 			if (getLastModelInstantiation().testModelOnParticularStructureInstanceNoDebug(
 					currentGridModel.getBlocks()))
 			{
+				lastExampleShown = new StructureInstance("example", currentGridModel.getBlocks());
 				return currentGridModel;
 			}
 		}
@@ -388,6 +393,11 @@ public class ModelBuilder {
 		return newQuery;
 	}
 
+	public void addPositiveExampleFromCurrentScene()
+	{
+		getLastModelInstantiation().addPositiveExample(
+				Scene.currentScene.getWholeStructureInstance(lastModelName + "positive"));
+	}
 	
 	public void processUtterance(String goal, KQMLList definition)
 	{
@@ -397,6 +407,14 @@ public class ModelBuilder {
 		ModelInstantiation mi = new ModelInstantiation();
 		
 		modelInstantiations.put(goal, mi);
+	}
+	
+	public void handleExampleResponse(boolean satisfied)
+	{
+		if (satisfied)
+		{
+			getLastModelInstantiation().addPositiveExample(lastExampleShown);
+		}
 	}
 	
 	public void processAssertion(KQMLList content, KQMLList context)

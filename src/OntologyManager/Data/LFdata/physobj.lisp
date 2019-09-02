@@ -1,9 +1,17 @@
 (in-package :om)
 
-(define-type ONT::defined-by-sequence-relationship
+
+
+(define-type ONT::object-defined-by-relationship
     :parent ONT::PHYS-OBJECT
+    :wordnet-sense-keys ("possession%1:03:00")
     :arguments ((:required ONT::FIGURE (F::Phys-obj)))
-)
+    )
+
+(define-type ONT::defined-by-sequence-relationship
+    :parent ONT::object-defined-by-relationship
+    :arguments ((:required ONT::FIGURE (F::Phys-obj)))
+    )
 
 (define-type ONT::predecessor
     :parent ONT::defined-by-sequence-relationship
@@ -50,7 +58,7 @@
     )
 
 (define-type ONT::MOLECULAR-PART
-    ::wordnet-sense-keys ("chemical_group%1:27:00" )
+    :wordnet-sense-keys ("chemical_group%1:27:00" )
     :parent ONT::natural-object
     )
 
@@ -349,7 +357,7 @@
 |#
 
 (define-type ont::weather
-    :wordnet-sense-keys ("weather%1:19:00" "weather_condition%1:19:00" "conditions%1:19:00" "atmospheric_condition%1:19:00")
+    :wordnet-sense-keys ("atmospheric_condition%1:19:00" "conditions%1:19:00" "freeze%1:19:00" "weather%1:19:00" "weather_condition%1:19:00")
     :parent ont::atmospheric-phenomenon
     :sem (F::Phys-obj (F::origin F::non-living))
     )
@@ -452,7 +460,7 @@
 ;how to deal with this?
 ;State and country are too similar. Perhaps country should be a child of state?
 (define-type ONT::STATE
-    :wordnet-sense-keys ("land%1:15:02" "state%1:15:00" "country%1:15:00" "body_politic%1:14:00" "res_publica%1:14:00" "commonwealth%1:14:00" "land%1:14:00" "country%1:14:00" "nation%1:14:00" "state%1:14:00" "state%1:15:01" "province%1:15:00")
+    :wordnet-sense-keys ("body_politic%1:14:00" "res_publica%1:14:00" "commonwealth%1:14:00" "state%1:15:01" "province%1:15:00")
     :parent ONT::political-region
     )
 
@@ -461,6 +469,7 @@
     )
 
 (define-type ONT::COUNTRY
+    :wordnet-sense-keys ("country%1:15:00" "country%1:14:00")
     :parent ONT::POLITICAL-REGION
     )
 
@@ -796,7 +805,7 @@
 
 
 (define-type ONT::person
-    :wordnet-sense-keys ("person%1:03:00" "imaginary_being%1:18:00")
+    :wordnet-sense-keys ("person%1:03:00")
     :parent ONT::mammal ;; umls
     :sem (F::Phys-obj (F::form F::solid-object)
 		      (F::spatial-abstraction F::spatial-point)
@@ -814,11 +823,23 @@
 
 ;; angel, devil
 (define-type ONT::supernatural-being
+    :wordnet-sense-keys ("supernatural_being%1:18:00")
     :parent ONT::organism ;; for parsing purposes, they are like people ;) ;; umls
     :sem (F::Phys-obj (F::form F::solid-object)
 		      (F::spatial-abstraction F::spatial-point)
 		      (F::origin F::Human)
 		      (F::Object-Function F::Occupation)
+		      (f::mobility f::self-moving)
+		      (F::Container -) (F::intentional +) (F::information -))
+    )
+
+(define-type ONT::imaginary-being
+    :wordnet-sense-keys ("imaginary_being%1:18:00")
+    :parent ONT::organism ; not all of them are people, e.g., unicorn
+    :sem (F::Phys-obj (F::form F::solid-object)
+		      (F::spatial-abstraction F::spatial-point)
+		      ;(F::origin F::Human)
+		      ;(F::Object-Function F::Occupation)
 		      (f::mobility f::self-moving)
 		      (F::Container -) (F::intentional +) (F::information -))
     )
@@ -1014,7 +1035,8 @@
 (define-type ONT::VEHICLE
     :wordnet-sense-keys ("transport%1:06:00" "conveyance%1:06:00" "vehicle%1:06:00")
     :parent ONT::MANUFACTURED-OBJECT
-    :sem (F::Phys-obj (F::Object-Function F::vehicle) (F::MOBILITY F::Self-moving) (F::container (? fcont + -)))
+    :sem (F::Phys-obj (F::Object-Function F::vehicle) (F::MOBILITY F::Self-moving)
+		      (F::trajectory +) (F::container (? fcont + -)))
     )
 
 (define-type ONT::AIR-VEHICLE
@@ -1201,7 +1223,7 @@
 ;; bar, lounge
 (define-type ONT::drinking-establishment
     :parent ONT::entertainment-establishment
-    :wordnet-sense-keys ("barroom%1:06:00" "bar%1:06:00" "saloon%1:06:00" "ginmill%1:06:00" "taproom%1:06:00")
+    :wordnet-sense-keys ("barroom%1:06:00" "saloon%1:06:00" "ginmill%1:06:00" "taproom%1:06:00")
     ;;:sem (F::Phys-obj (F::object-function F::Building))
     )
 
@@ -2031,7 +2053,7 @@
 
 (define-type ONT::DEVICE
     :parent ONT::MANUFACTURED-OBJECT
-    :wordnet-sense-keys ("device%1:06:00")
+    :wordnet-sense-keys ("device%1:06:00" "buoy%1:10:00")
     :sem (F::Phys-obj (F::Origin F::Artifact))
     )
 
@@ -2364,9 +2386,10 @@
     :arguments ((:OPTIONAL ONT::FIGURE))
     )
 
-;; square, triangle, etc.  -- shapes that can be moved around on the screen
+;; square, triangle, etc.  -- objects defined by their shape
 (define-type ONT::shape-object
     :parent  ONT::shape
+    :wordnet-sense-keys ("shape%1:03:00")
     :sem (f::Phys-obj (:required  (F::origin f::artifact) (f::form f::object) (f::intentional -) (f::information -)
 				  (f::object-function f::representation))
 		      (:default (f::mobility f::non-self-moving))
@@ -2670,7 +2693,8 @@
 
 (define-type ONT::BEVERAGES
     :parent ONT::FOOD
-    :wordnet-sense-keys ("beverage%1:13:00" "drink%1:13:00" "drinkable%1:13:00" "potable%1:13:00")
+    :wordnet-sense-keys ("beverage%1:13:00" "drink%1:13:00" "drinkable%1:13:00" "potable%1:13:00"
+					    "milkshake%1:13:00")
     :sem (f::phys-obj (F::form F::liquid) (f::origin f::natural))
     )
 
@@ -3225,7 +3249,7 @@
 
 ;; a number/amount/quantity of X
 (define-type ONT::QUANTITY
- :wordnet-sense-keys ("measure%1:03:00" "quantity%1:03:00" "amount%1:03:00")
+ ;;:wordnet-sense-keys ("measure%1:03:00" "quantity%1:03:00" "amount%1:03:00" "quantity%1:09:01")
  ;:parent ONT::ORDERED-DOMAIN
  :parent ONT::GROUP-OBJECT
  :arguments ((:ESSENTIAL ONT::FIGURE ((? val f::phys-obj f::abstr-obj f::situation )))

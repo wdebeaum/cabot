@@ -25,7 +25,31 @@
       )))
 
     ))
-     
+
+
+(parser::augment-grammar
+  '((headfeatures
+	 ;;lex headcat removed --me
+     (PP KIND MASS NAME agr SEM SORT PRO SPEC CLASS transform gap gerund)
+     ;;(ADVBLS FOCUS VAR SEM SORT ATYPE ARG SEM ARGUMENT NEG TO QTYPE lex transform)
+     (ADVBL VAR SORT ARGSORT ATYPE SEM lex orig-lex headcat transform neg result-only)
+     )
+    ;;  simple adverbials- used is the lexical entry does not specify an argument-map
+    ;;  we have iot by itself here as we need to create a non null ARGUMENT value, so it can't be a head feature
+    ((ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf) (VAR ?v) (CONSTRAINT (& (FIGURE ?arg)))
+                              (sem ?sem) (transform ?transform)))
+            ;;(SORT CONSTRAINT)
+      (role ?lf)
+      (argument (% ?argument (var ?arg)))
+      (comparative -)
+      )
+     -advbl-simple-no-argmap>
+     (head (adv (WH -) (sem ?sem) (ARGUMENT-MAP -) ;;(Sort PRED) 
+	    (VAR ?v) (SUBCAT -) (LF ?lf) (implicit-arg -) (prefix -)
+	    (comparative -)
+	    ))      
+     )
+    ))
 
 (parser::augment-grammar
   '((headfeatures
@@ -63,19 +87,7 @@
 		       (new ?newc))
      )
    
-     ;;  simple adverbials- used is the lexical entry does not specify an argument-map
-    ((ADVBL (ARG ?arg) (LF (% PROP (CLASS ?lf) (VAR ?v) (CONSTRAINT (& (FIGURE ?arg)))
-                              (sem ?sem) (transform ?transform)))
-            ;;(SORT CONSTRAINT)
-      (role ?lf)
-      (comparative -)
-      )
-     -advbl-simple-no-argmap>
-     (head (adv (WH -) (sem ?sem) (ARGUMENT-MAP -) ;;(Sort PRED) 
-	    (VAR ?v) (SUBCAT -) (LF ?lf) (implicit-arg -) (prefix -)
-	    (comparative -)
-	    ))      
-     )
+    
 
     ;; advbl plus explicit scale
 
@@ -590,7 +602,7 @@
      (advbl (particle -) (ATYPE POST)
       (ARGUMENT (% S (sem ?sem) (var ?v) ;;(subjvar ?subjvar)))   06/18 I commented out tis as it si sometimes not specified in the ADVBL, and thus sets it to -, and thus the S1> rule cannot match
 		   ))
-      (GAP -)
+      (GAP -) (result-only -)
       ;;(subjvar ?subjvar)   ;Not sure why this was here - maybe for purpose clauses. Leaving it in causes many parses to fail as the SUBJVAR in the new VP is wrecked
      ;; the SUBJVAR is required in the argument to be able to pass in the subject for things like "the dog walked barking".
       (ARG ?v) (VAR ?mod)
@@ -730,7 +742,7 @@
       (GAP -)
       ;; (subjvar ?subjvar)
       (sem ?asem)
-      (SEM ($ f::abstr-obj (F::type (? ttt ont::path ont::position-reln)))) ;(F::type (? !ttt1 ont::position-as-extent-reln ont::position-w-trajectory-reln ))))
+      (SEM ($ f::abstr-obj (F::type (? ttt ont::goal-reln ont::position-reln)))) ;(F::type (? !ttt1 ont::position-as-extent-reln ont::position-w-trajectory-reln ))))
 ;      (SEM ($ f::abstr-obj (F::type (? ttt ont::position-reln ont::goal-reln ont::direction-reln))))
       (SET-MODIFIER -)  ;; mainly eliminate numbers 
       (ARG ?npvar) (VAR ?mod)

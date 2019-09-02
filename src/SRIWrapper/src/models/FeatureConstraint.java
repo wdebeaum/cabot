@@ -56,6 +56,31 @@ public class FeatureConstraint implements Constraint {
 		this.comparisonType = comparisonType;
 	}
 	
+	public static Operator getNegatedOperator(Operator op)
+	{
+		switch (op)
+		{
+		case EQUAL:
+			return Operator.NOTEQUAL;
+		case NOTEQUAL:
+			return Operator.EQUAL;
+		case LESS:
+			return Operator.GEQ;
+		case GREATER:
+			return Operator.LEQ;
+		case GEQ:
+			return Operator.LESS;
+		case LEQ:
+			return Operator.GREATER;
+		case GREATEST:
+			return Operator.LESS;
+		case LEAST:
+			return Operator.GREATER;
+		default:
+			return Operator.NOTEQUAL;
+		}
+	}
+	
 	public static Operator operatorFromTRIPS(String tripsConcept, String lex)
 	{
 		if (tripsConcept == null)

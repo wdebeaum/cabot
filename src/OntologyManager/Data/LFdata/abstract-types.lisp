@@ -133,12 +133,14 @@
 ;; more, better
 (define-type ONT::More-val
     :parent ONT::domain-property
+  :wordnet-sense-keys ("better%3:00:00::" "better%3:00:02::" "greater%3:00:00::")
     :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
 		       (:default (F::GRADABILITY +) (F::scale ?!sc)))
     )
 ;; less, worse
 (define-type ONT::less-val
     :parent ONT::domain-property
+  :wordnet-sense-keys ("worse%3:00:00::" "fewer%3:00:00::" "worse%3:00:02::" "worsened%3:00:00::" "less%3:00:00::")
     :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
 		       (:default (F::GRADABILITY +) (F::scale ?!sc)))
     )
@@ -151,7 +153,7 @@
 		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
   :arguments ((:REQUIRED ONT::FIGURE)
 	      (:REQUIRED ONT::GROUND))
- :wordnet-sense-keys ("ultimate%3:00:00" "maximum%3:00:00")
+ :wordnet-sense-keys ("best%3:00:00::" "most%3:00:01::" "most%3:00:02::" "ultimate%3:00:00" "maximum%3:00:00")
 )
 
 ;; worst, least
@@ -159,7 +161,7 @@
   :parent ONT::domain-property
   :sem (F::ABSTR-OBJ (:required (F::CONTAINER -) (F::INFORMATION -) (F::INTENTIONAL -))
 		      (:default (F::GRADABILITY +) (F::scale ?!sc)))
- :wordnet-sense-keys ("minimum%3:00:00")
+ :wordnet-sense-keys ("worst%3:00:00::" "minimum%3:00:00")
   )
 
 ;; as hot as it can be
@@ -370,24 +372,6 @@
  :parent ONT::group-object-abstr
  )
 
-;;; This is a catch-all for things that are relations between multiple
-;;; objects: identity, distance, whatever. Will need better sorting at
-;;; a future data
-(define-type ONT::relation
- :wordnet-sense-keys ("relation%1:03:00" "amount%2:42:03")
- :parent ONT::abstract-object
- :arguments ((:REQUIRED ONT::FIGURE)
-	     (:REQUIRED ONT::GROUND)
-	     (:optional ont::neutral)
-	     (:optional ont::neutral1)  ;; some relations based on verbs use this
-	     (:optional ont::norole)
-	     (:OPTIONAL ONT::COMPAR)
-	     (:OPTIONAL ONT::REFSET)
-	     )
- :sem (F::abstr-obj (:required)
-		    (:default (f::intensity ont::hi)))
- )
-
 ;; own: his own truck
 (define-type ONT::own
   :parent ONT::relation
@@ -434,6 +418,11 @@
 (define-type ont::data-structure
   :parent ont::mathematical-term
   :wordnet-sense-keys ("matrix%1:14:00")
+  )
+
+(define-type ont::parameter
+  :parent ont::mathematical-term
+  :wordnet-sense-keys ("parameter%1:10:00" "variable%1:10:00" "variable%1:09:00")
 )
 
 (define-type ont::number
@@ -471,7 +460,8 @@
 
 ;; a number/amount/quantity of X
 (define-type ONT::QUANTITY-abstr
- :wordnet-sense-keys ("measure%1:03:00" "quantity%1:03:00" "amount%1:03:00")
+    :wordnet-sense-keys ("measure%1:03:00" "quantity%1:03:00" "amount%1:03:00" "quantity%1:09:01"
+					   "amount%1:21:00" "amount%1:07:00")
 ; :parent ONT::DOMAIN-PROPERTY
  :parent ONT::GROUP-OBJECT-abstr
  :sem (F::abstr-obj (F::tangible +))
@@ -495,21 +485,27 @@
   )
 
 (define-type ont::Hour-duration
+    :wordnet-sense-keys ("hour%1:28:00")
     :parent ont::time-unit)
 
 (define-type ont::minute-duration
+    :wordnet-sense-keys ("minute%1:28:00")
     :parent ont::time-unit)
 
 (define-type ont::day-duration
+    :wordnet-sense-keys ("day%1:28:00")
     :parent ont::time-unit)
 
 (define-type ont::year-duration
+    :wordnet-sense-keys ("year%1:28:00")
     :parent ont::time-unit)
 
 (define-type ont::week-duration
+    :wordnet-sense-keys ("week%1:28:00")
     :parent ont::time-unit)
 
 (define-type ont::second-duration
+    :wordnet-sense-keys ("second%1:28:00")
     :parent ont::time-unit)
 
 (define-type ont::power-unit
@@ -589,9 +585,10 @@
 
 ;; portion, serving
 (define-type ont::food-measure-unit
- :parent ont::measure-unit
- :arguments ((:essential ont::FIGURE (f::phys-obj (f::form f::substance))))
- )
+    :wordnet-sense-keys ("drink%1:04:00" "serving%1:13:00")
+    :parent ont::measure-unit
+    :arguments ((:essential ont::FIGURE (f::phys-obj (f::form f::substance))))
+    )
 
 (define-type ONT::dose
  :wordnet-sense-keys ("dose%1:06:00" "dosage%1:06:00")
@@ -732,7 +729,8 @@
  )
 
 (define-type ONT::prize
- :parent ONT::function-OBJECT
+  :wordnet-sense-keys ("prize%1:21:00" "prize%1:06:00")
+  :parent ONT::function-OBJECT
  :sem (F::Abstr-obj)
  :arguments ((:essential ONT::FIGURE)
 	     )
@@ -776,6 +774,11 @@
  :arguments ((:optional ONT::FIGURE)
 	     (:optional ONT::formal (F::situation))) ; copied from ONT::MESSAGE
  )
+
+(define-type ONT::measure-metric
+ :wordnet-sense-keys ("metric%1:23:00" "measure%1:10:03" "indicator%1:10:00")
+ :parent ONT::information
+)
 
 ;; create an ont::communication-object
 ;; subject, topic
@@ -1193,7 +1196,7 @@
 
 ;; game
 (define-type ONT::game
- :wordnet-sense-keys ("game%1:04:00")
+ :wordnet-sense-keys ("game%1:04:00" "game%1:04:01")
  :parent ONT::competition
  )
 

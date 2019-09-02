@@ -12,7 +12,7 @@
 ; high-level type for spatial locations
 ; a relation between an object (figure) to another object (ground) by a spatial relation, possible abstract
 (define-type ont::position-reln
- :parent ont::abstract-object
+ :parent ont::relation
  :comment "Spatial relations that locate one object (the figure) in terms of another object (the ground), which often is implicit"
  ;; situations can be spatially located, e.g. meetings, riots, parties
  ;; so can abstr-obj: the idea in the document; the name on the envelope; the man at the party
@@ -45,10 +45,18 @@
     :comment "prototypical locating of a FIGURE wrt a point-like GROUND"
     :parent ont::position-as-point-reln
     :arguments ((:ESSENTIAL ONT::GROUND ((? val f::phys-obj f::abstr-obj f::situation) (f::tangible +)
+					 (f::type (? typ ont::phys-object ont::tangible-abstract-object ont::event-type))
 					 (f::scale (? !t ONT::TIME-MEASURE-SCALE ONT::RATE-SCALE ONT::MONEY-SCALE ONT::NUMBER-SCALE)) ; excludes "at four"
 				       )))
     )
 
+(define-type ont::loc-where-rel
+    :comment "relative clause relations that could be at-loc or in-loc, e.g., a place where it never rains; the city where I live"
+    :parent ont::position-as-point-reln
+    :arguments ((:ESSENTIAL ONT::FIGURE ((? xx f::phys-obj f::abstr-obj)  (f::tangible +)
+						      (f::type (? tt ont::location ont::mental-construction)))))
+    )
+ 
 ; figure is viewed as a point and related to ground by (abstract) containment
 (define-type ont::pos-wrt-containment-reln
     :comment "locating an object (typically the FIGURE) within an extended object (typically the GROUND)"
@@ -63,6 +71,15 @@
 				       (f::intentional -) (f::container +) ; containers include corner and pathway
 				       )))
   )
+
+#|
+(define-type ont::in-loc-rel
+    :parent ont::in-loc
+    :comment "FIGURE is part of the GROUND"
+  :arguments ((:ESSENTIAL ONT::FIGURE (f::abstr-obj (f::tangible +)
+						      (f::type ont::mental-construction))))
+  )
+|#
 
 (define-type ont::contain-reln
     :comment "a kind of Inverse of IN-LOC, but can't be used as a result location"
@@ -132,7 +149,7 @@
 ; figure is adjacent to ground
 ; adjacent (to), next (to), alongside (of), beside
 (define-type ont::adjacent
-  :wordnet-sense-keys ("adjacent%5:00:00:close:01")
+  :wordnet-sense-keys ("subjacent%3:00:00::" "adjacent%5:00:00:close:01")
   :parent ont::near-reln
   :arguments ((:essential ONT::FIGURE ) ;((? of1  f::phys-obj f::abstr-obj)))
 	      (:ESSENTIAL ONT::GROUND ((? grd F::Phys-obj)))
@@ -231,7 +248,7 @@
 (define-type ont::orients-to
     :parent ont::oriented-loc-reln
     :comment "FIGURE is located by an object defined by an orientation wrt an object. e.g., to the east, to the back"
-    :arguments ((:essential ONT::FIGURE (f::PHYS-OBJ))
+    :arguments ((:essential ONT::FIGURE (f::PHYS-OBJ) (F::spatial-abstraction (? spa F::line F::strip)))
 		(:essential ONT::GROUND ((? of1  f::phys-obj f::abstr-obj) (f::type (? t ONT::CARDINAL-POINT ONT::object-dependent-location)))))
   )
 
@@ -425,11 +442,13 @@
 ; upstairs
 (define-type ont::floor-above
  :parent ont::floor-rel
+  :wordnet-sense-keys ("upstairs%3:00:00::" "upstair%3:00:00::")
  )
 
 ; downstairs
 (define-type ont::floor-below
  :parent ont::floor-rel
+  :wordnet-sense-keys ("downstairs%3:00:00::" "downstair%3:00:00::")
  )
 
 ; figure relates to proximity to city center
@@ -533,16 +552,18 @@
 ; from
 
 (define-type ont::from
-    :comment "This is the initial state of a change - not an initial locaition, which is FROM-LOC"
+    :comment "This is the initial state of a change - not an initial location, which is FROM-LOC"
     :parent ont::source-reln
     )
 
+
 (define-type ont::source-as-loc
+    :comment "a relation that indicates where an object was in the past: the person from Italy"
  :parent ont::from
- :arguments ((:ESSENTIAL ONT::FIGURE (F::phys-obj))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::phys-obj (F::mobility F::movable)))
 	     (:ESSENTIAL ONT::GROUND (F::phys-obj
-				      (F::mobility F::movable)) ; exclude "... arrive in country X from country Y"
-				      ))
+				      ;;(F::mobility F::movable)) ; exclude "... arrive in country X from country Y"   Can't do this as it also eliminates the usual cases, doesn't it?  JFA 7/19
+				      )))
  )
 
 #| ; now this is :RESULT
@@ -625,7 +646,7 @@
 	     ;(:ESSENTIAL ONT::GROUND (F::Phys-obj (f::spatial-abstraction (? sa f::spatial-point))))
 
 	     ; copied from to-loc
-	     (:ESSENTIAL ONT::FIGURE ((? f F::PHYS-OBJ F::abstr-obj) (F::mobility F::movable)))
+	     (:ESSENTIAL ONT::FIGURE ((? f F::PHYS-OBJ F::abstr-obj F::situation)))    ;; need to allow situation here as it can modoify events as well as objects in RESULT expressions
 	     (:ESSENTIAL ONT::GROUND ((? t F::Phys-obj F::abstr-obj) (f::spatial-abstraction ?!sa)
 				     ;; (F::mobility F::movable) ; exclude "... arrive in country X from country Y"  JFA I removed the movable constraint to the figure 
 				      ) )  ; spatial-abstraction is not enough: many things have spatial-abstraction, e.g., a frog.  Another possibility is (F::object-function F::spatial-object)
@@ -636,31 +657,20 @@
 ; I moved from the chair to the sofa.  not geographic-object (gound)
 ; transmit the signal: signal is abstr-obj (figure)
 (define-type ONT::to-loc
-    :comment "the generic goal role: might be a physical object (as possessor) or a resulting state"
+    :comment "the ending location of an object undergoing motion"
  :parent ONT::goal-reln
- :arguments (;(:ESSENTIAL ONT::OF (F::situation (f::type ont::event-of-change)))
-	     ;(:ESSENTIAL ONT::VAL ((? t F::Phys-obj F::abstr-obj)))
-	     (:ESSENTIAL ONT::FIGURE ((? f F::PHYS-OBJ F::abstr-obj))); (F::situation (f::type ont::event-of-change)))   ; "I walked to the store" FIGURE should point to "I", not "walked"
+ :arguments ((:ESSENTIAL ONT::FIGURE ((? f F::PHYS-OBJ F::abstr-obj) (F::mobility F::movable) ))
 	     (:ESSENTIAL ONT::GROUND ((? t F::Phys-obj F::abstr-obj) (f::spatial-abstraction ?!sa)
 					;(F::form F::geographical-object)
 				      ) )  ; spatial-abstraction is not enough: many things have spatial-abstraction, e.g., a frog.  Another possibility is (F::object-function F::spatial-object)
 	     )
  )
 
-;; 4 2010 -- no longer needed?
-;; pan camera to 45 degrees
-;(define-type ONT::to-loc-degrees
-; :parent ONT::predicate
-; :arguments ((:ESSENTIAL ONT::OF (F::Situation (F::trajectory +)))
-;             (:ESSENTIAL ONT::VAL (F::Abstr-obj (f::measure-function f::value)))
-;             )
-; )
-
-;; for to-phrases that modify vehicles, e.g. the plane to rochester
+;; for to-phrases that modify trajectory related nouns, e.g., paths, and vehicles, e.g. the plane to rochester
 (define-type ONT::destination-loc
  :parent ONT::predicate
  :arguments ((:ESSENTIAL ONT::GROUND (F::Phys-obj (f::spatial-abstraction (? sa f::spatial-point))))
-	     (:ESSENTIAL ont::FIGURE  (f::phys-obj (F::Object-Function F::vehicle) (F::MOBILITY F::Self-moving) (F::container +)))
+	     (:ESSENTIAL ont::FIGURE  (f::phys-obj (f::trajectory +))) ;;(F::Object-Function F::vehicle) (F::MOBILITY F::Self-moving) (F::container +)))
 	     )
  )
 
@@ -735,11 +745,13 @@
 
 (define-type ont::clockwise
     :parent ont::direction-rotation
+  :wordnet-sense-keys ("clockwise%3:00:00::")
     )
 
 ; counterclockwise
 (define-type ont::counterclockwise
     :parent ont::direction-rotation
+  :wordnet-sense-keys ("counterclockwise%3:00:00::" "anticlockwise%3:00:00::" "contraclockwise%3:00:00::")
     )
 
 (define-type ont::direction-wrt-verticality
@@ -1010,7 +1022,7 @@
 
 (define-type ont::immediate
     :parent ont::event-time-rel
-    :wordnet-sense-keys ("immediately%4:02:00" "immediately%4:02:05")
+    :wordnet-sense-keys ("immediate%3:00:00::" "immediately%4:02:00" "immediately%4:02:05")
     )
 
 (define-type ont::when-while
@@ -1050,7 +1062,7 @@
  )
 
 (define-type ONT::now
-     :wordnet-sense-keys ("now%4:02:05" "presently%4:02:00" "present%3:00:01")
+     :wordnet-sense-keys ("present%3:00:02::" "now%4:02:05" "presently%4:02:00" "present%3:00:01")
      :parent ONT::event-time-wrt-now
      )
 
@@ -1065,7 +1077,7 @@
      )
 
 (define-type ONT::in-past
-     :wordnet-sense-keys ("past%3:00:00")
+     :wordnet-sense-keys ("noncurrent%3:00:00::" "past%3:00:00")
      :parent ONT::event-time-wrt-now
      )
 

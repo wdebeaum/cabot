@@ -2,7 +2,7 @@
 
 ;;; All these are predicates with arguments
 (define-type ONT::predicate
-  :parent ONT::abstract-object
+  :parent ONT::relation
   :comment "predications that require a subcat to form a modifier, typically adverbials (e.g., on, as well as)"
   :sem (F::ABSTR-OBJ (:default (F::GRADABILITY +) (F::scale -) (f::intensity -) (f::orientation -)  (F::CONTAINER -) (f::intentional -)))
   :arguments (;(:ESSENTIAL ONT::OF)
@@ -12,6 +12,7 @@
 	      
 	      )
   )
+
 
 (define-type ONT::modifier
  :parent ONT::PREDICATE
@@ -233,13 +234,11 @@
              )
  )
 
-; against
-(define-type ONT::CONTRA
+					; against
+(define-type ONT::CONTRA-FORCE
  :parent ONT::SITUATION-MODIFIER
- :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation))
-;;             (:REQUIRED ONT::VAL (F::Situation (F::aspect F::dynamic)))
-	     ;; purposes don't have to be dynamic -- e.g. to store something, to remember, etc.
-	     (:REQUIRED ONT::GROUND (F::Situation))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::Situation)  (F::aspect F::dynamic) (F::type ont::event-of-action))
+	     (:REQUIRED ONT::GROUND ((? xx F::Situation F::phys-obj F::abstr-obj)))
              )
  )
 
@@ -362,7 +361,7 @@
 (define-type ONT::manner
  :parent ONT::SITUATION-MODIFIER
  :arguments ((:ESSENTIAL ONT::FIGURE (F::situation (f::type ont::event-of-action)))
-             (:REQUIRED ONT::GROUND ((? at F::abstr-obj F::situation f::phys-obj) (f::intentional -))) ;; don't want times to work here
+             (:REQUIRED ONT::GROUND ((? at F::abstr-obj F::situation F::phys-obj) (f::intentional -))) ;; don't want times to work here
              )
  )
 

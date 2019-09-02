@@ -29,6 +29,15 @@ public class StructureInstance implements FeatureGroup {
 		generateFeatures();
 	}
 	
+	public StructureInstance(StructureInstance toCopy)
+	{
+		this.blocks = new HashSet<Block>();
+		for (Block b : toCopy.blocks)
+			this.blocks.add(new Block(b));
+		features = new HashMap<String, Feature>();
+		generateFeatures();
+	}
+	
 	public void generateFeatures()
 	{
 		generateShapeRatioFeature();

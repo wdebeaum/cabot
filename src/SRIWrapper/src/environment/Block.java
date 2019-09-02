@@ -74,12 +74,29 @@ public class Block implements BoundedVolume{
 		this.position = position;
 		
 		
-		rotation = DoubleMatrix.zeros(4);
-		rotation.put(3,1);
+		this.rotation = DoubleMatrix.zeros(4);
+		this.rotation.put(3,1);
 		proxyInstructed = false;
 		userOwned = false;
 	}
 	
+	public Block(DoubleMatrix position, DoubleMatrix rotation)
+	{
+		id = 1;
+		confidence = 1;	
+		this.position = position;
+		
+		
+		this.rotation = rotation;
+		proxyInstructed = false;
+		userOwned = false;
+	}
+	
+	public Block(Block b) {
+		this(b.position, b.rotation);
+		
+	}
+
 	public int getId() {
 		return id;
 	}
