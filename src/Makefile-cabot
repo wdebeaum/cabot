@@ -38,11 +38,11 @@ SPEECH_LIBS = \
 include config/speech-out/defs.mk
 
 SPEECH_PROGRAMS = \
-#	SpeechOutNot \
+	SpeechOutNot \
 #	Sphinx3 \
 #	SpeechIn3 \
 #	SpeechLM \
-#	SpeechController \
+	SpeechController \
 #	SpeechOut \
 #	$(SPEECH_OUT_COMPONENT) \
 #	SpeechOutServer

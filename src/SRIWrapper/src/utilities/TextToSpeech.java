@@ -25,61 +25,67 @@ public class TextToSpeech {
 	public static SRIWrapper SRIWRAPPER = null;
 	private static int nextUttnum = 1;
 	
+	
+	public static void say(String input)
+	{
+		say(input, true);
+	}
     
-    public static void say(String input)
+    public static void say(String input, boolean withKQML)
     {
-	    	sendUtterance(input);
-	    	ConstraintLogger.writeSystemUtterance(input);
-	    	System.out.println("Trying to say: " + input);
-	    	if (!SPEECH_ENABLED)
-	    	{
-	    		return;
-	    	}
-	    	
-	    	if (APPARATUS_ENABLED)
-	    	{
-		    	try {
-					CommDataSender.sendSpeechPostRequest(input);
-		    			//CommDataSender.sendCurlPostSpeechRequest(input);
-					System.out.println(input);
-					Thread.sleep(input.length() * 45);
-					return;
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-	    	}
-	    	
-	    	else if (MARYTTS_ENABLED)
-	    	{
-	    	
-		    	Socket speechSocket = null;
+    	if (withKQML)
+    		sendUtterance(input);
+    	ConstraintLogger.writeSystemUtterance(input);
+    	System.out.println("Trying to say: " + input);
+    	if (!SPEECH_ENABLED)
+    	{
+    		return;
+    	}
+    	
+    	if (APPARATUS_ENABLED)
+    	{
+	    	try {
+				CommDataSender.sendSpeechPostRequest(input);
+	    			//CommDataSender.sendCurlPostSpeechRequest(input);
+				System.out.println(input);
+				Thread.sleep(input.length() * 45);
+				return;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+    	}
+    	
+    	else if (MARYTTS_ENABLED)
+    	{
+    	
+	    	Socket speechSocket = null;
+			try {
+	                speechSocket = new Socket(NetworkConfiguration.ttsIp,
+				NetworkConfiguration.ttsPort);
+	                PrintWriter out =
+	                		new PrintWriter(speechSocket.getOutputStream(), true);
+	            
+	                out.println(input);
+					
+	            } catch (UnknownHostException e) {
+	                System.err.println("Don't know about host");
+	
+	            } catch (IOException e) {
+	                System.err.println("Couldn't get I/O for the connection to ");
+	                
+	            }
+			finally
+			{
 				try {
-		                speechSocket = new Socket(NetworkConfiguration.ttsIp,
-					NetworkConfiguration.ttsPort);
-		                PrintWriter out =
-		                		new PrintWriter(speechSocket.getOutputStream(), true);
-		            
-		                out.println(input);
-						
-		            } catch (UnknownHostException e) {
-		                System.err.println("Don't know about host");
-		
-		            } catch (IOException e) {
-		                System.err.println("Couldn't get I/O for the connection to ");
-		                
-		            }
-				finally
-				{
-					try {
-						if (speechSocket != null)
-							speechSocket.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					if (speechSocket != null)
+						speechSocket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-	    	}
+			}
+    	}
     }
     
     private static void sendUtterance(String utterance)
@@ -101,6 +107,6 @@ public class TextToSpeech {
 	    		return;
 	    	
 	    	lastSpoken = input;
-	    	say(input);
+	    	say(input, false);
     }
 }

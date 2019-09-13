@@ -158,7 +158,7 @@
  )
 
 (define-type ONT::QUALIFICATION
- :parent ONT::PREDICATE
+    :parent ONT::PREDICATE
  )
 
 (define-type ONT::RESTRICTION
@@ -351,16 +351,17 @@
              )
  )
 
-(define-type ONT::attributed-information
+(define-type ONT::attributed-to
  :parent ONT::PREDICATE
- :arguments ((:ESSENTIAL ONT::FIGURE (F::situation))
-             (:REQUIRED ONT::GROUND ((? s F::Phys-obj F::abstr-obj)))
-             )
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::situation (F::type (? t ont::HAVE-PROPERTY ont::CORRELATION))))
+             ;(:REQUIRED ONT::GROUND ((? s F::Phys-obj F::abstr-obj)))
+             (:ESSENTIAL ONT::GROUND (F::Phys-obj (f::intentional +)))
+	     )
  )
 
 (define-type ONT::manner
  :parent ONT::SITUATION-MODIFIER
- :arguments ((:ESSENTIAL ONT::FIGURE (F::situation (f::type ont::event-of-action)))
+ :arguments ((:ESSENTIAL ONT::FIGURE (F::situation (f::type (? ev ont::event-of-action ont::event-of-state))))
              (:REQUIRED ONT::GROUND ((? at F::abstr-obj F::situation F::phys-obj) (f::intentional -))) ;; don't want times to work here
              )
  )
@@ -469,6 +470,7 @@
 (define-type ONT::sequence-position
     :comment "Position related to discourse. e.g., First, we laugh"
     :parent ONT::PREDICATE
+    :wordnet-sense-keys ("rank%1:26:00")
     :arguments ((:REQUIRED ONT::FIGURE (F::Situation))
 		)
     )
@@ -492,6 +494,12 @@
 
 ;;; swift 04/14/02 added for too, also
 (define-type ONT::additive
+ :parent ONT::PREDICATE
+ :arguments ((:OPTIONAL ONT::GROUND)
+             )
+ )
+
+(define-type ONT::contrastive
  :parent ONT::PREDICATE
  :arguments ((:OPTIONAL ONT::GROUND)
              )

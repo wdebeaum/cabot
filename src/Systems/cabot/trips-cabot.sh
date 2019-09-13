@@ -239,54 +239,24 @@ if test -z "$nolisp"; then
   (sleep 5; $TRIPS_BASE/bin/trips-$TRIPS_SYSNAME-lisp) 2>&1 | tee lisp.log &
 fi
 
-# SpeechIn
-if test -z "$nouser" -a -z "$nospeech" -a -z "$nospeechin"; then
-# Ditto to comment about lisp regarding external programs in JVM
-(sleep 5; $TRIPS_BASE/bin/trips_exec -socket $TRIPS_SOCKET -register t -name speech-in $TRIPS_BASE/bin/speechin -who $who -channel $channel -scenario $TRIPS_SYSNAME -mode $mode -wait t) >speechin.err 2>&1 &
-cat - <<_EOF_ >>/tmp/trips$$
-(request
- :receiver facilitator
- :content (start-module
-	   :name speechcontroller
-           :class TRIPS.SpeechController.SpeechController
-	   :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SpeechController.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.util.jar")
-	   :argv (-rows 4
-		  -columns 16
-		  -fontsize 24
-		  -geometry -0-0
-		  -iconic false
-		  -who $who
-		  -channel $channel
-		  -mode $mode
-		  -dynLMs false
-		  $port_opt)
-))
-_EOF_
-fi
-
 # SpeechOut
-# TODO: use $port_opt?
-if test -z "$nouser" -a -z "$nospeech" -a -z "$nospeechout"; then
-(sleep 5; $TRIPS_BASE/bin/trips_exec -socket $TRIPS_SOCKET -register t -name speech-out $TRIPS_BASE/bin/SpeechOut ${voice:+-voice $voice} $TTSDIC >SpeechOut.err 2>&1) &
-else
-    # We don't use speech-out at all (run SpeechOutNot for transcript)
+# We don't use speech-out at all (run SpeechOutNot to convert SAY to SPOKEN)
 cat - <<_EOF_ >>/tmp/trips$$
 (request
  :receiver facilitator
  :content (start-module
-	   :name speech-out
-	   :class TRIPS.SpeechOutNot.SpeechOutNot
-	   :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SpeechOutNot.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
-			  "$TRIPS_BASE/etc/java/TRIPS.util.jar")
-	   :argv ($port_opt)
+    :name speech-out
+    :class TRIPS.SpeechOutNot.SpeechOutNot
+    :urlclasspath ("$TRIPS_BASE/etc/java/TRIPS.SpeechOutNot.jar"
+            "$TRIPS_BASE/etc/java/TRIPS.TripsModule.jar"
+            "$TRIPS_BASE/etc/java/TRIPS.KQML.jar"
+            "$TRIPS_BASE/etc/java/TRIPS.util.jar")
+:argv ($port_opt)
 ))
 _EOF_
-fi
+
+
+
 
 # Start TextTagger
 if test -z "$nouser" -a -z "$nospeech" -a -z "$nospeechout"; then

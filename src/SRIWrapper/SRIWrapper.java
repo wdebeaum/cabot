@@ -304,14 +304,14 @@ public class SRIWrapper extends StandardTripsModule  {
 	}	
 	try {
 	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (SPOKEN . *)))");
+		KQMLPerformative.fromString("(subscribe :content (tell &key :content (utterance . *)))");
 	    send(perf);		
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
 	}
 	try {
 	    KQMLPerformative perf =
-		KQMLPerformative.fromString("(subscribe :content (tell &key :content (utterance . *)))");
+		KQMLPerformative.fromString("(subscribe :content (request &key :content (say . *)))");
 	    send(perf);		
 	} catch (IOException ex) {
 	    error("Yow! Subscription failed: " + ex);
@@ -446,15 +446,6 @@ public class SRIWrapper extends StandardTripsModule  {
 		{
 			KQMLObject sender = msg.getParameter(":sender");
 			KQMLObject uttnum = content.getKeywordArg(":uttnum");
-			
-		}
-		else if (content0.equalsIgnoreCase("SPOKEN"))
-		{
-			
-			KQMLObject text = content.getKeywordArg(":WHAT");
-			System.out.println("Received SPOKEN message with text: " + text.toString() );
-			//if (text != null)
-			//	TextToSpeech.sayWithoutRepeating(text.stringValue());
 			
 		}
 		else {
@@ -606,6 +597,13 @@ public class SRIWrapper extends StandardTripsModule  {
 			KQMLObject dataPort = content.getKeywordArg(":message-port");
 
 			
+		}
+		else if (content0.equalsIgnoreCase("say"))
+		{
+			String text = content.get(1).stringValue();
+			System.out.println("Received SAY message with text: " + text.toString() );
+			if (text != null)
+				TextToSpeech.sayWithoutRepeating(text);
 		}
 		else {
 		    errorReply(msg, "bad request: " + content0);
